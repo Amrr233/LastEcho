@@ -10,6 +10,9 @@ find_package(SFML 2.6 COMPONENTS graphics window system audio REQUIRED)
 
 add_executable(LastEcho
         src/main.cpp
+        src/player.cpp
+        src/player.h
+        src/Data.h
 )
 
 target_include_directories(LastEcho PRIVATE
