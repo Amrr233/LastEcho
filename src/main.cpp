@@ -2,7 +2,7 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Last Echo");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Last Echo of fcis");
 
     while (window.isOpen())
     {
