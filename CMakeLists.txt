@@ -11,8 +11,7 @@ find_package(SFML 2.6 COMPONENTS graphics window system audio REQUIRED)
 add_executable(LastEcho
         src/main.cpp
         src/player.cpp
-        src/player.h
-        src/Data.h
+        src/MainMenu.cpp
 )
 
 target_include_directories(LastEcho PRIVATE
@@ -34,3 +33,10 @@ if(WIN32)
             $<TARGET_FILE_DIR:LastEcho>
     )
 endif()
+
+# Copy assets
+add_custom_command(TARGET LastEcho POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:LastEcho>/assets"
+)

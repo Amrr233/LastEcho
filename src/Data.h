@@ -18,11 +18,14 @@ const int MAX_PORTALS = 8;
 // ENUMS
 // ==============================
 enum AppState {
+    STATE_MENU,        // ← أضف ده
     STATE_PLAYING,
     STATE_DIALOGUE,
     STATE_BOSS_FIGHT,
     STATE_PAUSED,
-    STATE_GAME_OVER
+    STATE_GAME_OVER,
+    STATE_SETTINGS,    // ← أضف ده
+    STATE_LOAD         // ← أضف ده
 };
 
 enum Direction {
