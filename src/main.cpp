@@ -21,7 +21,7 @@ bool isSolid(float x, float y) {
 // MAIN
 // ==============================
 int main() {
-    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "Cursed Campus");
+    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "يارب نخلص");
     window.setFramerateLimit(60);
 
     // Init State
