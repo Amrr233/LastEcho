@@ -7,6 +7,9 @@ menus mainmenu;
 
 void MenuStart(RenderWindow& window)
 {
+    float W = window.getSize().x;
+    float H = window.getSize().y;
+
     if (!mainmenu.font.loadFromFile("assets/fonts/pixelsix00.ttf"))
         cout << "Error: Font not found!" << endl;
 
@@ -19,26 +22,34 @@ void MenuStart(RenderWindow& window)
     if (!mainmenu.bgTex.loadFromFile("assets/mainmenu/mainbackground.png"))
         cout << "Error: Background Texture not found!" << endl;
 
-    // Background
+    // Background — يملى الشاشة كلها
     mainmenu.background.setTexture(mainmenu.bgTex);
-    Vector2u winSize = window.getSize();
-    Vector2u bgSize  = mainmenu.bgTex.getSize();
+    Vector2u bgSize = mainmenu.bgTex.getSize();
     mainmenu.background.setScale(
-        (float)winSize.x / bgSize.x,
-        (float)winSize.y / bgSize.y
+        W / bgSize.x,
+        H / bgSize.y
     );
 
-    // Logo
+    // Logo — فوق في المنتصف
     mainmenu.logo.setTexture(mainmenu.logoTex);
     mainmenu.logo.setOrigin(
         mainmenu.logoTex.getSize().x / 2.0f,
         mainmenu.logoTex.getSize().y / 2.0f
     );
-    mainmenu.logo.setPosition(window.getSize().x / 2.0f, 200);
-    mainmenu.logo.setScale(0.5f, 0.5f);
+    mainmenu.logo.setPosition(W * 0.5f, H * 0.25f);
+    mainmenu.logo.setScale(
+        (W * 0.4f) / mainmenu.logoTex.getSize().x,
+        (W * 0.4f) / mainmenu.logoTex.getSize().x
+    );
 
-    // Buttons
+    // Buttons — متوزعين في النص تحت
     string choices[] = {"START", "LOAD", "SETTINGS", "EXIT"};
+    float btnStartY  = H * 0.55f;
+    float btnSpacing = H * 0.12f;
+    float btnScaleX  = (W * 0.25f) / mainmenu.btnTex.getSize().x;
+    float btnScaleY  = (H * 0.08f) / mainmenu.btnTex.getSize().y;
+    int   fontSize   = static_cast<int>(H * 0.045f);
+
     for (int i = 0; i < 4; i++)
     {
         mainmenu.buttonSprites[i].setTexture(mainmenu.btnTex);
@@ -46,12 +57,12 @@ void MenuStart(RenderWindow& window)
             mainmenu.btnTex.getSize().x / 2.0f,
             mainmenu.btnTex.getSize().y / 2.0f
         );
-        mainmenu.buttonSprites[i].setPosition(window.getSize().x / 2.0f, 450 + (i * 120));
-        mainmenu.buttonSprites[i].setScale(0.45f, 0.45f);
+        mainmenu.buttonSprites[i].setPosition(W * 0.5f, btnStartY + (i * btnSpacing));
+        mainmenu.buttonSprites[i].setScale(btnScaleX, btnScaleY);
 
         mainmenu.options[i].setFont(mainmenu.font);
         mainmenu.options[i].setString(choices[i]);
-        mainmenu.options[i].setCharacterSize(40);
+        mainmenu.options[i].setCharacterSize(fontSize);
         FloatRect textRect = mainmenu.options[i].getLocalBounds();
         mainmenu.options[i].setOrigin(
             textRect.left + textRect.width  / 2.0f,
