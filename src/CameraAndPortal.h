@@ -25,7 +25,7 @@ extern Map currentMap;
 extern std::vector<Portal> portals;
 extern std::vector<int>    dugTiles;
 
-void loadMap(const std::string& ts, const std::string& g, const std::string& s, const std::string& o, int w, int tSize);
+void loadMap(const std::string& ts, const std::vector<std::string>& csvFiles, int w, int tSize);
 void drawMap(sf::RenderWindow& window);
 void addPortal(int x, int y, int w, int h, std::string ts, std::string g, std::string s, std::string o, int mw, int tsiz, sf::Vector2f spawn);
 bool isSolid(float x, float y);

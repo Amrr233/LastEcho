@@ -8,7 +8,7 @@ Map currentMap;
 std::vector<Portal> portals;
 std::vector<int> dugTiles;
 
-void loadMap(const std::string& ts, const std::string& g, const std::string& s, const std::string& o, int w, int tSize) {
+void loadMap(const std::string& ts, const std::vector<std::string>& csvFiles, int w, int tSize) {
     currentMap.layers.clear();
     portals.clear();
     dugTiles.clear();
@@ -31,16 +31,18 @@ void loadMap(const std::string& ts, const std::string& g, const std::string& s, 
         return data;
     };
 
-    MapLayer l1, l2, l3;
-    l1.tiles = loadCSV(g); l2.tiles = loadCSV(s); l3.tiles = loadCSV(o);
+    // الـ Loop السحرية: هتحمل أي عدد من الملفات أنت بعته
+    for (const auto& path : csvFiles) {
+        MapLayer newLayer;
+        newLayer.tiles = loadCSV(path);
+        if (!newLayer.tiles.empty()) {
+            currentMap.layers.push_back(newLayer);
+        }
+    }
 
-    currentMap.layers.push_back(l1);
-    currentMap.layers.push_back(l2);
-    currentMap.layers.push_back(l3);
-
-    // استنتاج الارتفاع بناءً على العرض المدخل (60)
-    if (w > 0 && !l1.tiles.empty())
-        currentMap.heightTiles = (int)l1.tiles.size() / w;
+    // استنتاج الارتفاع من أول لير (الأرضية)
+    if (w > 0 && !currentMap.layers.empty())
+        currentMap.heightTiles = (int)currentMap.layers[0].tiles.size() / w;
 }
 
 void drawMap(sf::RenderWindow& window) {

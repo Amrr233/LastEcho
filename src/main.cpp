@@ -44,13 +44,16 @@ int main() {
 
         if (gState.currentState == STATE_PLAYING) {
             if (!mapLoaded) {
-                // بيحمل ماب الكلية من برا
+                // تقدر تبعت 2، 3، 5 أو حتى 10 ملفات براحتك
                 loadMap("assets/maps/outside/outside.png",
-                        "assets/maps/outside/_Ground.csv",
-                        "assets/maps/outside/_Staircase.csv",
-                        "assets/maps/outside/_Others.csv", 60, 16);
+                        {
+                          "assets/maps/outside/_Ground.csv",
+                          "assets/maps/outside/_Staircase.csv",
+                          "assets/maps/outside/_Others.csv",
+                          "assets/maps/outside/_Trees.csv" // مثال لطبقة رابعة زيادة
+                        },
+                        60, 16);
 
-                // مكان بداية اللاعب
                 initPlayer({480, 550});
                 mapLoaded = true;
             }
