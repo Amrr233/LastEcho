@@ -2,60 +2,82 @@
 #include "Data.h"
 #include "player.h"
 #include "MainMenu.h"
-#include <CameraAndPortal.h>
+#include "CameraAndPortal.h"
+#include <cmath>
+using namespace sf;
 
-// ← أضف
-
-sf::RenderWindow window;
+RenderWindow window;
 GameState        gState;
 Player           player;
-
-bool isSolid(float x, float y) { return false; }
 bool mapLoaded = false;
 
 int main() {
-    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "يارب نخلص");
+
+    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    gState.currentState = STATE_MENU;      // ← غيّر لـ MENU
-    gState.currentPhase = 0;
+    sf::RectangleShape mouseBox(sf::Vector2f(16, 16));
+    mouseBox.setFillColor(sf::Color(255, 255, 255, 100));
+    mouseBox.setOutlineThickness(1);
 
-    MenuStart(window);                     // ← أضف
-    initPlayer(sf::Vector2f(SCREEN_W / 2, SCREEN_H / 2));
-
+    gState.currentState = STATE_MENU;
+    MenuStart(window);
     sf::Clock clock;
 
     while (window.isOpen()) {
-
         gState.deltaTime = clock.restart().asSeconds();
-
         sf::Event event;
-        while (window.pollEvent(event))
-            if (event.type == sf::Event::Closed)
-                window.close();
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) window.close();
 
-        // UPDATE
-        MenuUpdate(window, gState.currentState);
-        if (gState.currentState == STATE_PLAYING && !mapLoaded) {
-            loadMap(
-                "assets/maps/outside/outside.png",
-                {
-                    "assets/maps/outside/_Ground.csv",
-                    "assets/maps/outside/_Staircase.csv",
-                    "assets/maps/outside/_Others.csv"
-                },
-                60, 70, 16   // widthTiles, heightTiles, tileSize
-            );
-            mapLoaded = true;
+            if (gState.currentState == STATE_PLAYING && event.type == sf::Event::MouseButtonPressed) {
+                sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                int gx = (int)mPos.x / currentMap.tileSize;
+                int gy = (int)mPos.y / currentMap.tileSize;
+                int idx = gy * currentMap.widthTiles + gx;
+
+                if (idx >= 0 && idx < (int)currentMap.layers[0].tiles.size()) {
+                    dugTiles.push_back(idx);
+                }
+            }
         }
 
-        // RENDER
-        window.clear(sf::Color::Black);
-        MenuDraw(window, gState.currentState);
-        if (gState.currentState == STATE_PLAYING)
+        if (gState.currentState == STATE_PLAYING) {
+            if (!mapLoaded) {
+                // بيحمل ماب الكلية من برا
+                loadMap("assets/maps/outside/outside.png",
+                        "assets/maps/outside/_Ground.csv",
+                        "assets/maps/outside/_Staircase.csv",
+                        "assets/maps/outside/_Others.csv", 60, 16);
+
+                // مكان بداية اللاعب
+                initPlayer({480, 550});
+                mapLoaded = true;
+            }
+
             updatePlayer(gState.deltaTime);
+
+        }
+
+        window.clear();
+        if (gState.currentState == STATE_MENU) {
+            MenuUpdate(window, gState.currentState);
+            MenuDraw(window, gState.currentState);
+        } else {
+            // تطبيق الـ View اللي بيعمل Stretch للماب على الشاشة
+            sf::View cam = updateCamera(player, currentMap);
+            window.setView(cam);
+
+            drawMap(window);
+
+            // مربع الماوس
+            sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+            mouseBox.setPosition(std::floor(mPos.x/16.f)*16.f, std::floor(mPos.y/16.f)*16.f);
+            window.draw(mouseBox);
+
+            drawPlayer(window);
+        }
         window.display();
     }
-
     return 0;
 }
