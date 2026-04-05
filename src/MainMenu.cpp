@@ -16,7 +16,7 @@
         if (!mainmenu.btnTex.loadFromFile("assets/mainMenu/button.png"))
             cout << "Error: Button Texture not found!" << endl;
 
-        if (!mainmenu.logoTex.loadFromFile("assets/mainmenu/logo.png"))
+        if (!mainmenu.logoTex.loadFromFile("assets/mainmenu/logo2.png"))
             cout << "Error: Logo Texture not found!" << endl;
 
         if (!mainmenu.bgTex.loadFromFile("assets/mainmenu/mainbackground.png"))
