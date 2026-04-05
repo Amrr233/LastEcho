@@ -1,14 +1,17 @@
 #include <SFML/Graphics.hpp>
 #include "Data.h"
 #include "player.h"
-#include "MainMenu.h"      // ← أضف
+#include "MainMenu.h"
+#include <CameraAndPortal.h>
+
+// ← أضف
 
 sf::RenderWindow window;
 GameState        gState;
 Player           player;
-TileMap          currentMap;
 
 bool isSolid(float x, float y) { return false; }
+bool mapLoaded = false;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "يارب نخلص");
@@ -32,15 +35,25 @@ int main() {
                 window.close();
 
         // UPDATE
-        MenuUpdate(window, gState.currentState);          // ← أضف
-        if (gState.currentState == STATE_PLAYING)
-            updatePlayer(gState.deltaTime);
+        MenuUpdate(window, gState.currentState);
+        if (gState.currentState == STATE_PLAYING && !mapLoaded) {
+            loadMap(
+                "assets/maps/outside/outside.png",
+                {
+                    "assets/maps/outside/_Ground.csv",
+                    "assets/maps/outside/_Staircase.csv",
+                    "assets/maps/outside/_Others.csv"
+                },
+                60, 70, 16   // widthTiles, heightTiles, tileSize
+            );
+            mapLoaded = true;
+        }
 
         // RENDER
         window.clear(sf::Color::Black);
-        MenuDraw(window, gState.currentState);            // ← أضف
+        MenuDraw(window, gState.currentState);
         if (gState.currentState == STATE_PLAYING)
-            drawPlayer(window);
+            updatePlayer(gState.deltaTime);
         window.display();
     }
 

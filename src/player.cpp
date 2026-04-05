@@ -1,10 +1,11 @@
 #include "player.h"
+#include "CameraAndPortal.h"
 
 // ==============================
 // EXTERN GLOBALS
 // ==============================
 extern Player           player;
-extern TileMap          currentMap;
+extern Map currentMap;
 
 // ==============================
 // LOCAL VARIABLES

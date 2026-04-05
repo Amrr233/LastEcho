@@ -54,14 +54,7 @@ struct Player {
     bool         isMoving;
 };
 
-struct TileMap {
-    std::vector<int> groundLayer;
-    std::vector<int> collisionLayer;
-    std::vector<int> detailLayer;
-    int widthTiles;
-    int heightTiles;
-    int tileSize;
-};
+
 
 struct GameState {
     AppState currentState;
@@ -78,4 +71,3 @@ struct GameState {
 extern sf::RenderWindow window;
 extern GameState        gState;
 extern Player           player;
-extern TileMap          currentMap;
