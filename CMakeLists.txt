@@ -16,6 +16,8 @@ add_executable(LastEcho
         src/CameraAndPortal.h
         src/settings.h
         src/settings.cpp
+        "src/audio.h"
+        "src/audio.cpp"
 )
 
 target_include_directories(LastEcho PRIVATE
