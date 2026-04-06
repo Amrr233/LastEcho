@@ -2,6 +2,7 @@
 #include "Data.h"
 #include "player.h"
 #include "MainMenu.h"
+#include "settings.h"
 #include "CameraAndPortal.h"
 #include <cmath>
 using namespace sf;
