@@ -2,6 +2,8 @@
 #include "Data.h"
 #include "player.h"
 #include "MainMenu.h"
+#include "settings.h"
+#include "audio.h"
 #include "CameraAndPortal.h"
 #include <cmath>
 using namespace sf;
@@ -10,6 +12,7 @@ RenderWindow window;
 GameState        gState;
 Player           player;
 bool mapLoaded = false;
+AudioManager audio;
 
 int main() {
 
@@ -22,8 +25,9 @@ int main() {
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
+    settings.init(SCREEN_W, SCREEN_H);
     sf::Clock clock;
-
+    audio.playBGM();
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
         sf::Event event;
@@ -66,7 +70,17 @@ int main() {
         if (gState.currentState == STATE_MENU) {
             MenuUpdate(window, gState.currentState);
             MenuDraw(window, gState.currentState);
-        } else {
+        }
+        else if (gState.currentState == STATE_SETTINGS) {
+            window.setView(window.getDefaultView());
+            // هنا بنحدث المنطق بتاع السيتنجز (زي الرجوع أو تحريك السلايدر)
+            // لازم تكون معرف الدالة دي في settings.cpp
+            SettingsUpdate(window, gState.currentState);
+
+            // رسم شباك الإعدادات
+            settings.draw(window);
+        }
+        else {
             // تطبيق الـ View اللي بيعمل Stretch للماب على الشاشة
             sf::View cam = updateCamera(player, currentMap);
             window.setView(cam);
