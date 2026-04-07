@@ -1,11 +1,12 @@
 #include "player.h"
-#include "CameraAndPortal.h"
+#include "GameMap.h"
+#include <SFML/Graphics.hpp>
 
 // ==============================
 // EXTERN GLOBALS
 // ==============================
-extern Player           player;
-extern Map currentMap;
+extern Player    player;
+extern GameMap   myMap; // دلوقتى ده Struct ملوش Methods
 
 // ==============================
 // LOCAL VARIABLES
@@ -18,7 +19,7 @@ static sf::RectangleShape playerRect;
 void initPlayer(sf::Vector2f startPos) {
     player.pos      = startPos;
     player.velocity = sf::Vector2f(0, 0);
-    player.speed    = 120.f;
+    player.speed    = 170.f; // السرعة اللي إنت ظبطتها
     player.hp       = 100;
     player.maxHp    = 100;
     player.xp       = 0;
@@ -26,54 +27,62 @@ void initPlayer(sf::Vector2f startPos) {
     player.isMoving = false;
     player.facing   = DIR_DOWN;
 
-    playerRect.setSize(sf::Vector2f(TILE_SIZE - 4, TILE_SIZE - 4));
+    // حجم البلاير (لو الماب متموطة Stretch، ممكن تحتاج تكبر الـ 12 دي لـ 32 مثلاً)
+    float size = 12.f;
+    playerRect.setSize(sf::Vector2f(size, size));
     playerRect.setFillColor(sf::Color::Green);
     playerRect.setOrigin(
-        playerRect.getSize().x / 2,
-        playerRect.getSize().y / 2
+        playerRect.getSize().x / 2.f,
+        playerRect.getSize().y / 2.f
     );
 }
 
 void updatePlayer(float dt) {
-    sf::Vector2f velocity(0, 0);
+    sf::Vector2f velocity(0.f, 0.f);
 
     // WASD Input
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         velocity.y = -player.speed;
         player.facing = DIR_UP;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         velocity.y = player.speed;
         player.facing = DIR_DOWN;
     }
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
         velocity.x = -player.speed;
         player.facing = DIR_LEFT;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         velocity.x = player.speed;
         player.facing = DIR_RIGHT;
     }
 
     // Normalize diagonal movement
-    if (velocity.x != 0 && velocity.y != 0) {
+    if (velocity.x != 0.f && velocity.y != 0.f) {
         velocity.x *= 0.7071f;
         velocity.y *= 0.7071f;
     }
 
-    player.isMoving = (velocity.x != 0 || velocity.y != 0);
+    player.isMoving = (velocity.x != 0.f || velocity.y != 0.f);
 
-    // Collision X
+    // --- Bounds Checking (حساب حدود الماب مباشرة من الـ Struct) ---
+
+    float mapLimitX = (float)(myMap.width * myMap.tileSize);
+    float mapLimitY = (float)(myMap.height * myMap.tileSize);
+
+    // التعديل في محور X
     float nextX = player.pos.x + velocity.x * dt;
-    // !isSolid(nextX, player.pos.y)
-    if (1)
+    if (nextX > 0 && nextX < mapLimitX) {
         player.pos.x = nextX;
+    }
 
-    // Collision Y
+    // التعديل في محور Y
     float nextY = player.pos.y + velocity.y * dt;
-    // if (!isSolid(player.pos.x, nextY))
-    if (1)
+    if (nextY > 0 && nextY < mapLimitY) {
         player.pos.y = nextY;
+    }
 }
 
 void drawPlayer(sf::RenderWindow& window) {

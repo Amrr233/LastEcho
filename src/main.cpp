@@ -3,98 +3,96 @@
 #include "player.h"
 #include "MainMenu.h"
 #include "settings.h"
+#include "GameMap.h"
 #include "audio.h"
-#include "CameraAndPortal.h"
+#include <iostream>
 #include <cmath>
-using namespace sf;
 
+using namespace sf;
+using namespace std;
+
+// ==============================
+// GLOBALS
+// ==============================
 RenderWindow window;
-GameState        gState;
-Player           player;
-bool mapLoaded = false;
+GameState    gState;
+Player       player;
 AudioManager audio;
+GameMap      myMap; // دلوقتى عبارة عن struct عادي جداً
 
 int main() {
-
+    // 1. إنشاء النافذة
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    sf::RectangleShape mouseBox(sf::Vector2f(16, 16));
-    mouseBox.setFillColor(sf::Color(255, 255, 255, 100));
-    mouseBox.setOutlineThickness(1);
+    // 2. تحميل الماب (باستخدام الدالة المستقلة)
+    if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+        cout << "CRITICAL ERROR: Failed to load map file!" << endl;
+        return -1;
+    }
 
+    // 3. حساب أبعاد الماب لوضع اللاعب في المنتصف
+    // بما إننا شغالين Struct، بنوصل للبيانات مباشرة
+    float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
+    float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
+    initPlayer(Vector2f(spawnX, spawnY));
+
+    // إعدادات المنيو والصوت
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
+
     sf::Clock clock;
     audio.playBGM();
+
+    // ==============================
+    // MAIN GAME LOOP
+    // ==============================
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
+
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
+            if (event.type == sf::Event::Closed)
+                window.close();
 
-            if (gState.currentState == STATE_PLAYING && event.type == sf::Event::MouseButtonPressed) {
-                sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-                int gx = (int)mPos.x / currentMap.tileSize;
-                int gy = (int)mPos.y / currentMap.tileSize;
-                int idx = gy * currentMap.widthTiles + gx;
-
-                if (idx >= 0 && idx < (int)currentMap.layers[0].tiles.size()) {
-                    dugTiles.push_back(idx);
-                }
+            // التعامل مع الـ Events في المنيو والإعدادات
+            if (gState.currentState == STATE_MENU) {
+                MenuUpdate(window, gState.currentState);
+            }
+            else if (gState.currentState == STATE_SETTINGS) {
+                SettingsUpdate(window, gState.currentState);
             }
         }
 
+        // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            if (!mapLoaded) {
-                // تقدر تبعت 2، 3، 5 أو حتى 10 ملفات براحتك
-                loadMap("assets/maps/outside/outside.png",
-                        {
-                          "assets/maps/outside/_Ground.csv",
-                          "assets/maps/outside/_Staircase.csv",
-                          "assets/maps/outside/_Others.csv",
-                          "assets/maps/outside/_Trees.csv" // مثال لطبقة رابعة زيادة
-                        },
-                        60, 16);
-
-                initPlayer({480, 550});
-                mapLoaded = true;
-            }
-
             updatePlayer(gState.deltaTime);
-
         }
 
+        // --- DRAW LOGIC ---
         window.clear();
+
         if (gState.currentState == STATE_MENU) {
-            MenuUpdate(window, gState.currentState);
             MenuDraw(window, gState.currentState);
         }
         else if (gState.currentState == STATE_SETTINGS) {
-            window.setView(window.getDefaultView());
-            // هنا بنحدث المنطق بتاع السيتنجز (زي الرجوع أو تحريك السلايدر)
-            // لازم تكون معرف الدالة دي في settings.cpp
-            SettingsUpdate(window, gState.currentState);
-
-            // رسم شباك الإعدادات
             settings.draw(window);
         }
-        else {
-            // تطبيق الـ View اللي بيعمل Stretch للماب على الشاشة
-            sf::View cam = updateCamera(player, currentMap);
-            window.setView(cam);
+        else if (gState.currentState == STATE_PLAYING) {
+            // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
+            // بننادي الدالة ونبعت لها الـ struct
+            window.setView(getMapView(myMap));
 
-            drawMap(window);
+            // ب. رسم الماب (الـ 3 ليرات)
+            drawMap(window, myMap);
 
-            // مربع الماوس
-            sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-            mouseBox.setPosition(std::floor(mPos.x/16.f)*16.f, std::floor(mPos.y/16.f)*16.f);
-            window.draw(mouseBox);
-
+            // ج. رسم اللاعب
             drawPlayer(window);
         }
+
         window.display();
     }
+
     return 0;
 }

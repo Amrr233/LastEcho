@@ -12,12 +12,12 @@ add_executable(LastEcho
         src/main.cpp
         src/player.cpp
         src/MainMenu.cpp
-        src/CameraAndPortal.cpp
-        src/CameraAndPortal.h
         src/settings.h
         src/settings.cpp
         "src/audio.h"
         "src/audio.cpp"
+        src/GameMap.cpp
+        src/GameMap.h
 )
 
 target_include_directories(LastEcho PRIVATE
