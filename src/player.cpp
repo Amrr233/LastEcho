@@ -64,6 +64,7 @@ void updatePlayer(float dt) {
         velocity.x *= 0.7071f;
         velocity.y *= 0.7071f;
     }
+//sssss
 
     player.isMoving = (velocity.x != 0.f || velocity.y != 0.f);
 
