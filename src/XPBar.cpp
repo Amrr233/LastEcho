@@ -1,5 +1,6 @@
 #include "XPBar.h"
 #include "Data.h"
+#include "player.h"
 
 extern Player player;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+
 #include <string>
 #include <vector>
 
@@ -29,35 +30,11 @@ enum AppState {
     STATE_LOAD         // شاشة التحميل (بين المابات)
 };
 
-enum Direction {
-    DIR_IDLE,
-    DIR_UP,
-    DIR_DOWN,
-    DIR_LEFT,
-    DIR_RIGHT
-};
+
 
 // ==============================
 // STRUCTS
 // ==============================
-struct Player {
-    sf::Vector2f pos;
-    sf::Vector2f velocity;
-    Direction    facing;
-    float        speed;
-    int          hp;
-    int          maxHp;
-    int          xp;
-    int          level;
-    int          currentPhase;
-    int          frameIndex;
-    float        aniTimer;
-    int xpToNextLevel;
-    bool         isMoving;
-
-    // إضافة الـ Sprite هنا عشان يبقى مركزي
-    sf::Sprite   sprite;
-};
 
 struct GameState {
     AppState currentState;
@@ -77,4 +54,3 @@ struct GameState {
 // الـ extern يعني بنقول للـ Compiler إنهم متعرفين في الـ main.cpp
 extern sf::RenderWindow window;
 extern GameState        gState;
-extern Player           player;
