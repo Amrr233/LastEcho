@@ -73,7 +73,7 @@ void damaging(int damage) {
 
 void drawHealthBar(sf::RenderWindow& window) {
     if (!hpLoaded) {
-        if (hpTexture.loadFromFile("assets/settings/HPP.png")) {
+        if (hpTexture.loadFromFile("assets/settings/HP.png")) {
             hpSprite.setTexture(hpTexture);
             // ضبط الـ Origin والـ Scale زي كود الـ XP اللي بعته
             hpSprite.setOrigin(0.0f, 0.0f);
