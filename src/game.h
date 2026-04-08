@@ -5,7 +5,6 @@
 #include "Data.h" // تأكد أن الـ Enum موجود هنا
 
 struct Game {
-public:
     bool isPaused; // حالة الإيقاف المؤقت
     Game();
     // دالة التحميل الأساسية
@@ -15,7 +14,6 @@ public:
     // دالة الرسم
     void draw(sf::RenderWindow& window);
 
-private:
     sf::Sprite background;
     sf::Texture bgTex;
 
@@ -24,6 +22,7 @@ private:
 
     sf::Sprite pauseMenuBG;
     sf::Texture pauseMenuTex;
+
 
 };
 

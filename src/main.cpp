@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "healthbar.h"
+#include "inventory.h"
 #include "XPBar.h"
 
 using namespace sf;
@@ -23,8 +24,8 @@ GameState    gState;
 Player       player;
 AudioManager audio;
 GameMap      myMap; // دلوقتى عبارة عن struct عادي جداً
-Game         gameLogic; // تعريف كائن اللعبة للتحكم في البوز
-
+Game         gameLogic;  // تعريف كائن اللعبة للتحكم في البوز
+inventory    inventory;
 int main() {
     // 1. إنشاء النافذة
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -91,13 +92,15 @@ int main() {
         else if (gState.currentState == STATE_PLAYING) {
             // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
             window.setView(getMapView(myMap));
-
             // ب. رسم الماب واللاعب
             drawMap(window, myMap);
             drawPlayer(window);
 
             // ج. رسم الـ UI (لازم نرجع للـ Default View عشان الحاجات دي تفضل ثابتة في الشاشة)
             window.setView(window.getDefaultView());
+            // 3. نادي رسم الانفنتوري
+            inventory.invt_draw(window);
+            in.draw(window);
             drawHealthBar(window);
             drawXPBar(window);
 
