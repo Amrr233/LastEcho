@@ -7,7 +7,7 @@ void inventory::invt_init(float W, float H) {
 
     // 2. تظبيط مكان الشريط (تحت في النص)
     invBar.setOrigin(invTex.getSize().x / 2.0f, invTex.getSize().y);
-    invBar.setPosition(-100.f,  -100.0f); // بعيد عن الحافة التحتانية بـ 10 بكسل
+    invBar.setPosition(500.f,  500.0f); // بعيد عن الحافة التحتانية بـ 10 بكسل
 
     // 3. تظبيط شكل المربع اللي بيحدد الخانة
     selector.setSize(sf::Vector2f(50.0f, 50.0f)); // مقاس المربع (عدله حسب مقاس خانتك)

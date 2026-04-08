@@ -36,17 +36,17 @@ int main() {
         cout << "CRITICAL ERROR: Failed to load map file!" << endl;
         return -1;
     }
-
     // 3. حساب أبعاد الماب لوضع اللاعب في المنتصف
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
     initPlayer(Vector2f(spawnX, spawnY));
-
     // إعدادات المنيو والصوت والبوز
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H); // تحميل ملفات البوز
+    // ... تحت gameLogic.init ...
+    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H); // لازم تحمل صور الانفنتوري هنا!
 
     sf::Clock clock;
     audio.playBGM();
@@ -74,7 +74,7 @@ int main() {
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             gameLogic.update(window, gState.currentState);
-
+            inventory.invt_update(window, gState.currentState);
             if (!gameLogic.isPaused) { // لو مش عامل بوز، كمل تحديث اللاعب
                 updatePlayer(gState.deltaTime);
             }
@@ -100,7 +100,6 @@ int main() {
             window.setView(window.getDefaultView());
             // 3. نادي رسم الانفنتوري
             inventory.invt_draw(window);
-            in.draw(window);
             drawHealthBar(window);
             drawXPBar(window);
 
