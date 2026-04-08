@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "GameMap.h"
 #include "audio.h"
+#include "healthbar.h"
 #include <iostream>
 #include <cmath>
 
@@ -36,6 +37,7 @@ int main() {
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
     initPlayer(Vector2f(spawnX, spawnY));
+    initHealthBar();
 
     // إعدادات المنيو والصوت
     gState.currentState = STATE_MENU;
@@ -68,6 +70,7 @@ int main() {
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             updatePlayer(gState.deltaTime);
+            window.setView(getMapView(myMap));
         }
 
         // --- DRAW LOGIC ---
@@ -80,15 +83,26 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
-            // بننادي الدالة ونبعت لها الـ struct
+            // 1. اضبط الكاميرا على مكان اللاعب (العالم المتحرك)
             window.setView(getMapView(myMap));
 
-            // ب. رسم الماب (الـ 3 ليرات)
+            // 2. ارسم الحاجات اللي جوه الخريطة (الخريطة + اللاعب)
             drawMap(window, myMap);
-
-            // ج. رسم اللاعب
             drawPlayer(window);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+                damaging(10);
+
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                healing(50);
+
+            }
+
+            // 3. ارجع للـ View الافتراضي عشان ترسم الـ UI (الواجهة الثابتة)
+            window.setView(window.getDefaultView());
+
+            // 4. ارسم الهيلث بار (هينزل فوق الخريطة في مكانه الثابت)
+            drawHealthBar(window);
         }
 
         window.display();
