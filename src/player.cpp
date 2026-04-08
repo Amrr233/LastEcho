@@ -28,7 +28,7 @@ void initPlayer(Vector2f startPos) {
     player.walkTextures[EAST].loadFromFile("assets/sprites/player/walking.east.png");
 
     playerSprite.setTexture(player.walkTextures[SOUTH]);
-    playerSprite.setScale(2.5f, 2.5f); // التكبير عشان الحجم يظبط مع الماب
+    playerSprite.setScale(1.8f, 1.8f); // التكبير عشان الحجم يظبط مع الماب
     playerSprite.setOrigin(24.f, 24.f);
 }
 
@@ -78,7 +78,7 @@ void updatePlayer(float dt) {
         player.currentFrame = 0;
     }
 
-    playerSprite.setTextureRect(IntRect(player.currentFrame * 48, 0, 48, 48));
+    playerSprite.setTextureRect(IntRect(player.currentFrame * 68, 0, 68, 68));
 }
 
 void drawPlayer(RenderWindow& window) {
