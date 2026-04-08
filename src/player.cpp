@@ -1,140 +1,87 @@
 #include "player.h"
-#include "healthbar.h"
 #include "GameMap.h"
 #include <SFML/Graphics.hpp>
+#include <cmath>
 
-// ==============================
-// EXTERN GLOBALS
-// ==============================
-extern Player    player;
-extern GameMap   myMap; // دلوقتى ده Struct ملوش Methods
+using namespace sf;
 
-// ==============================
-// LOCAL VARIABLES
-// ==============================
-//player settings
-//============
-static sf::RectangleShape playerRect;
-//============
+extern Player player;
+extern GameMap myMap;
 
-// ==============================
-// FUNCTIONS
-// ==============================
-void initPlayer(sf::Vector2f startPos) {
-    player.pos      = startPos;
-    player.velocity = sf::Vector2f(0, 0);
-    player.speed    = 170.f; // السرعة اللي إنت ظبطتها
-    player.hp       = 100;
-    player.maxHp    = 100;
-    player.xp       = 100;
-    player.level    = 1;
-    player.xpToNextLevel=100;
+static Sprite playerSprite;
+
+void initPlayer(Vector2f startPos) {
+    player.pos = startPos;
+    player.speed = 140.f; // سرعة متوسطة عشان السلاسة
+    player.facing = SOUTH;
+    player.currentFrame = 0;
+    player.animationTimer = 0.f;
     player.isMoving = false;
-    player.facing   = DIR_DOWN;
 
-    // حجم البلاير (لو الماب متموطة Stretch، ممكن تحتاج تكبر الـ 12 دي لـ 32 مثلاً)
-    float size = 12.f;
-    playerRect.setSize(sf::Vector2f(size, size));
-    playerRect.setFillColor(sf::Color::Green);
-    playerRect.setOrigin(
-        playerRect.getSize().x / 2.f,
-        playerRect.getSize().y / 2.f
-    );
-    //HEALTH BAR SHAPES
-    // healthbarBACK.setSize(sf::Vector2f(200.f, 20.f));
-    // healthbarBACK.setFillColor(sf::Color(100, 0, 0)); // خلفية رمادية
-    //
-    // healthbarFRONT.setFillColor(sf::Color::Green);
-    // healthbarBACK.setSize(sf::Vector2f(200.f, 20.f));
-    // healthbarBACK.setFillColor(sf::Color(100,0,0));
-    // healthbarFRONT.setFillColor(sf::Color::Green);
-    // if (hpdeclaration.loadFromFile("assets/fonts/pixelsix00.ttf")) {
-    //     hptexture.setFont((hpdeclaration));
-    //     hptexture.setCharacterSize(20);
-    //     hptexture.setFillColor(sf::Color::White);
-    // }
+    player.frameWidth = 48;
+    player.frameHeight = 48;
 
+    // حملنا ملفات المشي فقط
+    player.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking.south.png");
+    player.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking.north.png");
+    player.walkTextures[WEST].loadFromFile("assets/sprites/player/walking.west.png");
+    player.walkTextures[EAST].loadFromFile("assets/sprites/player/walking.east.png");
+
+    playerSprite.setTexture(player.walkTextures[SOUTH]);
+    playerSprite.setScale(2.5f, 2.5f); // التكبير عشان الحجم يظبط مع الماب
+    playerSprite.setOrigin(24.f, 24.f);
 }
 
 void updatePlayer(float dt) {
-    sf::Vector2f velocity(0.f, 0.f);
+    Vector2f velocity(0.f, 0.f);
 
-    // WASD Input
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-        velocity.y = -player.speed;
-        player.facing = DIR_UP;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        velocity.y = player.speed;
-        player.facing = DIR_DOWN;
-    }
+    // 1. Input
+    if (Keyboard::isKeyPressed(Keyboard::W)) velocity.y -= 1;
+    if (Keyboard::isKeyPressed(Keyboard::S)) velocity.y += 1;
+    if (Keyboard::isKeyPressed(Keyboard::A)) velocity.x -= 1;
+    if (Keyboard::isKeyPressed(Keyboard::D)) velocity.x += 1;
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        velocity.x = -player.speed;
-        player.facing = DIR_LEFT;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        velocity.x = player.speed;
-        player.facing = DIR_RIGHT;
-    }
+    // 2. الحركة والاتجاه
+    if (velocity.x != 0.f || velocity.y != 0.f) {
+        player.isMoving = true;
 
-    // Normalize diagonal movement
-    if (velocity.x != 0.f && velocity.y != 0.f) {
-        velocity.x *= 0.7071f;
-        velocity.y *= 0.7071f;
+        if (velocity.x > 0)      player.facing = EAST;
+        else if (velocity.x < 0) player.facing = WEST;
+        else if (velocity.y > 0) player.facing = SOUTH;
+        else if (velocity.y < 0) player.facing = NORTH;
+
+        float length = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        velocity /= length;
+    } else {
+        player.isMoving = false;
     }
 
+    // 3. الموقع والحدود
+    Vector2f nextPos = player.pos + (velocity * player.speed * dt);
+    float mapW = (float)(myMap.width * myMap.tileSize);
+    float mapH = (float)(myMap.height * myMap.tileSize);
 
-    player.isMoving = (velocity.x != 0.f || velocity.y != 0.f);
+    if (nextPos.x > 0 && nextPos.x < mapW) player.pos.x = nextPos.x;
+    if (nextPos.y > 0 && nextPos.y < mapH) player.pos.y = nextPos.y;
 
-    // --- Bounds Checking (حساب حدود الماب مباشرة من الـ Struct) ---
+    // 4. الأنميشن (المشي فقط)
+    playerSprite.setTexture(player.walkTextures[player.facing]);
 
-    float mapLimitX = (float)(myMap.width * myMap.tileSize);
-    float mapLimitY = (float)(myMap.height * myMap.tileSize);
-
-    // التعديل في محور X
-    float nextX = player.pos.x + velocity.x * dt;
-    if (nextX > 0 && nextX < mapLimitX) {
-        player.pos.x = nextX;
+    if (player.isMoving) {
+        player.animationTimer += dt;
+        if (player.animationTimer >= 0.1f) { // سرعة الأنميشن (0.1 ثانية للفريم)
+            player.animationTimer = 0.f;
+            player.currentFrame = (player.currentFrame + 1) % 6; // الـ 6 فريمات بتوعك
+        }
+    } else {
+        // لو مش بيتحرك، نثبت على الفريم رقم 0 (وضعية الوقوف الطبيعية في شيت المشي)
+        player.currentFrame = 0;
     }
 
-    // التعديل في محور Y
-    float nextY = player.pos.y + velocity.y * dt;
-    if (nextY > 0 && nextY < mapLimitY) {
-        player.pos.y = nextY;
-    }
+    playerSprite.setTextureRect(IntRect(player.currentFrame * 48, 0, 48, 48));
 }
-// void healing(int heal) {
-//     player.hp += heal;
-//     if (player.hp > player.maxHp) {
-//         player.hp = player.maxHp;
-//     }
-// }
-// void damaging(int damage) {
-//     player.hp -= damage;
-//     if (player.hp < 0)
-//         player.hp = 0;
-// }
-// void drawhealthbar(sf::RenderWindow& window) {
-//     float hpratio = (float)player.hp / (float)player.maxHp;
-//     healthbarFRONT.setSize(sf::Vector2f(200.f * hpratio, 20.f));
-//
-//     std::string hp_string=std::to_string(player.hp) + " / " + std::to_string(player.maxHp);
-//     hptexture.setString(hp_string);
-//
-//     hptexture.setPosition(sf::Vector2f(18.f, 18.f));
-//     sf::Vector2f uiPos(20.f, 20.f);
-//     healthbarBACK.setPosition(uiPos);
-//     healthbarFRONT.setPosition(uiPos);
-//
-//     hptexture.setPosition(uiPos.x + 65.f, uiPos.y);
-//
-//     window.draw(healthbarBACK);
-//     window.draw(healthbarFRONT);
-//     window.draw(hptexture);
-// }
 
-void drawPlayer(sf::RenderWindow& window) {
-    playerRect.setPosition(player.pos);
-    window.draw(playerRect);
+void drawPlayer(RenderWindow& window) {
+    playerSprite.setPosition(player.pos);
+    window.draw(playerSprite);
 }

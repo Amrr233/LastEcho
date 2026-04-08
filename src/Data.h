@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
+using namespace sf;
 
 // ==============================
 // CONSTANTS
@@ -29,34 +30,37 @@ enum AppState {
     STATE_LOAD         // شاشة التحميل (بين المابات)
 };
 
-enum Direction {
-    DIR_IDLE,
-    DIR_UP,
-    DIR_DOWN,
-    DIR_LEFT,
-    DIR_RIGHT
-};
+
+
+
 
 // ==============================
 // STRUCTS
 // ==============================
+
+enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
+enum playerState { IDLE, WALKING };
+
 struct Player {
     sf::Vector2f pos;
     sf::Vector2f velocity;
-    Direction    facing;
-    float        speed;
-    int          hp;
-    int          maxHp;
-    int          xp;
-    int          level;
-    int          currentPhase;
-    int          frameIndex;
-    float        aniTimer;
-    int xpToNextLevel;
-    bool         isMoving;
+    float speed;
 
-    // إضافة الـ Sprite هنا عشان يبقى مركزي
-    sf::Sprite   sprite;
+    // البيانات الأساسية
+    int hp, maxHp, xp, level;
+
+    // الأنميشن (الصور والمنطق)
+    sf::Texture walkTextures[4]; // شلنا الـ Idle عشان نخفف الرام
+    Direction   facing;
+    playerState currentState;
+    int   currentFrame;
+    float animationTimer;
+    bool  isMoving;
+    int xpToNextLevel = 100;
+
+    // المقاسات الجديدة اللي اتفقنا عليها (48x48)
+    int frameWidth = 48;
+    int frameHeight = 48;
 };
 
 struct GameState {

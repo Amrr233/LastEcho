@@ -27,6 +27,7 @@ int main() {
     // 1. إنشاء النافذة
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
 
     // 2. تحميل الماب (باستخدام الدالة المستقلة)
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
