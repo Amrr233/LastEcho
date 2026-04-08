@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "Data.h"
+#include "game.h"
 #include "player.h"
 #include "MainMenu.h"
 #include "settings.h"
@@ -45,6 +46,10 @@ int main() {
     sf::Clock clock;
     audio.playBGM();
 
+
+    Game game; // <-- التعريف لازم يكون هنا بره الـ while
+    game.init(SCREEN_W, SCREEN_H);
+
     // ==============================
     // MAIN GAME LOOP
     // ==============================
@@ -56,7 +61,6 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            // التعامل مع الـ Events في المنيو والإعدادات
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -65,12 +69,16 @@ int main() {
             }
         }
 
-        // --- UPDATE LOGIC ---
+        // --- 1. UPDATE LOGIC (المنطق) ---
         if (gState.currentState == STATE_PLAYING) {
-            updatePlayer(gState.deltaTime);
+            // تحديث منطق البوز واللوحة الخشبية
+            game.update(window, gState.currentState);
+
+            // تحديث اللاعب فقط لو اللعبة مش واخدة بوز (المنطق ده جوه game.update)
+                updatePlayer(gState.deltaTime);
         }
 
-        // --- DRAW LOGIC ---
+        // --- 2. DRAW LOGIC (الرسم) ---
         window.clear();
 
         if (gState.currentState == STATE_MENU) {
@@ -80,15 +88,16 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
-            // بننادي الدالة ونبعت لها الـ struct
+            // 1. ارسم الماب واللاعب بالكاميرا المخصصة (getMapView)
             window.setView(getMapView(myMap));
-
-            // ب. رسم الماب (الـ 3 ليرات)
             drawMap(window, myMap);
-
-            // ج. رسم اللاعب
             drawPlayer(window);
+
+            // 2. ارجع للكاميرا الأصلية عشان ترسم الـ UI (البوز) في نص الشاشة
+            window.setView(window.getDefaultView());
+
+            // 3. نادى على الرسم بتاع البوز
+            game.draw(window);
         }
 
         window.display();
