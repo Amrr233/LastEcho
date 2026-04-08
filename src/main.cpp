@@ -93,7 +93,12 @@ int main() {
             drawHealthBar(window);
             drawXPBar(window);
         }
-
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
+            healing(10);
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) {
+            damaging(10);
+        }
         window.display();
     }
 //xxxx

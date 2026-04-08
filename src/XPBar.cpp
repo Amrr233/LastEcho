@@ -12,7 +12,7 @@ static bool fontLoaded = false;
 
 void drawXPBar(sf::RenderWindow& window) {
     if (!loaded) {
-        if (xpTexture.loadFromFile("assets/settings/XPP.png")) {
+        if (xpTexture.loadFromFile("assets/settings/XP.png")) {
             xpSprite.setTexture(xpTexture);
 
             // --- تعديل الـ Origin عشان يبقى التوب ليفت (0,0) بدل السنتر ---
@@ -40,8 +40,8 @@ void drawXPBar(sf::RenderWindow& window) {
     if (ratio > 1.0f) ratio = 1.0f;
 
     int totalSegments = 10;
-    float totalWidth = 285.0f * 1.05f;
-    float barHeight = 35.0f * 1.05f;
+    float totalWidth = 285.0f * 0.63f;
+    float barHeight = 35.0f * 1.7f;
     float gap = 2.0f;
     float segmentWidth = (totalWidth - (gap * (totalSegments - 1))) / totalSegments;
 
@@ -56,11 +56,11 @@ void drawXPBar(sf::RenderWindow& window) {
         }
 
         sf::RectangleShape bar(sf::Vector2f(currentDrawWidth, barHeight));
-        bar.setFillColor(sf::Color(80, 120, 255));
+        bar.setFillColor(sf::Color(212, 181, 125));
 
         // --- تعديل الـ Origin لـ 0.0 عشان يناسب الـ Sprite Origin الجديد ---
         // الـ 60 اللي كنت كاتبها كانت بتشفته بناء على إن الـ Sprite Origin في السنتر
-        bar.setOrigin(0.0f, barHeight / 2.0f);
+        bar.setOrigin(38.f,  -73.f);
 
         // --- تعديل حسابات مكان الـ Fill بالنسبة للتوب ليفت ---
         // الـ 110 ده الـ Offset الأفقي عشان يبدأ بعد المربع الصغير
@@ -91,10 +91,9 @@ void drawXPBar(sf::RenderWindow& window) {
 
         // --- تعديل مكان النص بالنسبة للتوب ليفت ---
         // الـ 55 والـ 30 دول عشان يتوسط المربع الخشبي الصغير بالظبط
-        float lvlXOffset = (65.0f * 0.5f);
-        float lvlYOffset = (65.0f * 0.5f);
+        float lvlXOffset = (40.0f * 0.5f);
+        float lvlYOffset = (260.0f * 0.5f);
         lvlText.setPosition(startX + lvlXOffset, startY + lvlYOffset);
-
         window.draw(lvlText);
     }
 }
