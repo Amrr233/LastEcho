@@ -21,7 +21,9 @@ add_executable(LastEcho
         src/game.h
         src/game.cpp
         src/healthbar.cpp   # <--- ضيف السطر ده هنا
-        src/healthbar.h     # ويفضل تضيف الهيدر كمان للتنظيم
+        src/healthbar.h
+        src/XPbar.cpp
+        src/XPBar.h     # ويفضل تضيف الهيدر كمان للتنظيم
 )
 
 target_include_directories(LastEcho PRIVATE

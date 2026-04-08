@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "healthbar.h"
+#include "XPBar.h"
 
 using namespace sf;
 using namespace std;
@@ -90,6 +91,7 @@ int main() {
             // ج. رسم اللاعب
             drawPlayer(window);
             drawHealthBar(window);
+            drawXPBar(window);
         }
 
         window.display();

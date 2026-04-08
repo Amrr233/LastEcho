@@ -52,6 +52,7 @@ struct Player {
     int          currentPhase;
     int          frameIndex;
     float        aniTimer;
+    int xpToNextLevel;
     bool         isMoving;
 
     // إضافة الـ Sprite هنا عشان يبقى مركزي

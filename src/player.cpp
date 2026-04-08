@@ -26,8 +26,9 @@ void initPlayer(sf::Vector2f startPos) {
     player.speed    = 170.f; // السرعة اللي إنت ظبطتها
     player.hp       = 100;
     player.maxHp    = 100;
-    player.xp       = 0;
+    player.xp       = 50;
     player.level    = 1;
+    player.xpToNextLevel=100;
     player.isMoving = false;
     player.facing   = DIR_DOWN;
 
