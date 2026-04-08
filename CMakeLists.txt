@@ -18,6 +18,10 @@ add_executable(LastEcho
         "src/audio.cpp"
         src/GameMap.cpp
         src/GameMap.h
+        src/game.h
+        src/game.cpp
+        src/healthbar.cpp   # <--- ضيف السطر ده هنا
+        src/healthbar.h     # ويفضل تضيف الهيدر كمان للتنظيم
 )
 
 target_include_directories(LastEcho PRIVATE

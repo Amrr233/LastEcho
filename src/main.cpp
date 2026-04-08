@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "healthbar.h"
+
 using namespace sf;
 using namespace std;
 
@@ -83,12 +85,11 @@ int main() {
             // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
             // بننادي الدالة ونبعت لها الـ struct
             window.setView(getMapView(myMap));
-
             // ب. رسم الماب (الـ 3 ليرات)
             drawMap(window, myMap);
-
             // ج. رسم اللاعب
             drawPlayer(window);
+            drawHealthBar(window);
         }
 
         window.display();
