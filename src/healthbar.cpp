@@ -1,6 +1,7 @@
 #include "healthbar.h"
 #include "Data.h"
 #include <string>
+#include "player.h"
 
 extern Player player;
 
