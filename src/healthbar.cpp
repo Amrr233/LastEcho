@@ -1,8 +1,5 @@
-
-
 #include "healthbar.h"
 #include "Data.h"
-#include "player.h"
 #include <string>
 
 extern Player player;
@@ -28,8 +25,8 @@ void drawHealthBar(sf::RenderWindow& window) {
         if (hpTexture.loadFromFile("assets/settings/HP.png")) {
             hpSprite.setTexture(hpTexture);
             // ضبط الـ Origin والـ Scale زي كود الـ XP اللي بعته
-            hpSprite.setOrigin(0.0f, 0.0f);
-            hpSprite.setScale(0.296f, 0.6f);
+            hpSprite.setOrigin(-14.0f, -150.0f);
+            hpSprite.setScale(0.3f, 0.4f);
             hpLoaded = true;
         }
     }
@@ -47,7 +44,7 @@ void drawHealthBar(sf::RenderWindow& window) {
     // 2. نفس متغيرات التقسيم اللي طلبتها بالظبط
     int totalSegments = 10;
     float totalWidth = 285.0f * 0.63f;
-    float barHeight = 35.0f * 1.7f;
+    float barHeight = 35.0f * 1.3f;
     float gap = 2.0f;
     float segmentWidth = (totalWidth - (gap * (totalSegments - 1))) / totalSegments;
 
@@ -70,8 +67,8 @@ void drawHealthBar(sf::RenderWindow& window) {
         // نفس الـ Origin والـ Offset اللي في كود الـ XP بتاعك
         bar.setOrigin(38.f, -73.f);
 
-        float xOffset = (177.0f * 0.5f) + (i * (segmentWidth + gap));
-        float yOffset = (-60.f * 1.05f);
+        float xOffset = (185.0f * 0.5f) + (i * (segmentWidth + gap));
+        float yOffset = (-5.f * 1.05f);
 
         bar.setPosition(startX + xOffset, startY + yOffset);
         window.draw(bar);

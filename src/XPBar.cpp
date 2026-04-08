@@ -18,9 +18,9 @@ void drawXPBar(sf::RenderWindow& window) {
 
             // --- تعديل الـ Origin عشان يبقى التوب ليفت (0,0) بدل السنتر ---
             // ده بيسهل رص العناصر جواه بالنسبة للتوب ليفت برضه
-            xpSprite.setOrigin(0.0f, -150.0f);
+            xpSprite.setOrigin(-14.0f, -300.0f);
 
-            xpSprite.setScale(0.3f, 0.6f);
+            xpSprite.setScale(0.3f, 0.4f);
             loaded = true;
         }
         if (!fontLoaded) {
@@ -42,7 +42,7 @@ void drawXPBar(sf::RenderWindow& window) {
 
     int totalSegments = 10;
     float totalWidth = 285.0f * 0.63f;
-    float barHeight = 35.0f * 1.7f;
+    float barHeight = 35.0f * 1.f;
     float gap = 2.0f;
     float segmentWidth = (totalWidth - (gap * (totalSegments - 1))) / totalSegments;
 
@@ -61,13 +61,13 @@ void drawXPBar(sf::RenderWindow& window) {
 
         // --- تعديل الـ Origin لـ 0.0 عشان يناسب الـ Sprite Origin الجديد ---
         // الـ 60 اللي كنت كاتبها كانت بتشفته بناء على إن الـ Sprite Origin في السنتر
-        bar.setOrigin(38.f,  -73.f);
+        bar.setOrigin(38.f,  -30.f);
 
         // --- تعديل حسابات مكان الـ Fill بالنسبة للتوب ليفت ---
         // الـ 110 ده الـ Offset الأفقي عشان يبدأ بعد المربع الصغير
         // الـ (27*1.05) ده عشان يتوسط الخشب طولياً
-        float xOffset = (175.0f * 0.5f) + (i * (segmentWidth + gap));
-        float yOffset = (32.0f * 1.05f); // يتوسط طولياً
+        float xOffset = (185.0f * 0.5f) + (i * (segmentWidth + gap));
+        float yOffset = (95.f * 1.05f);
 
         bar.setPosition(startX + xOffset, startY + yOffset);
         window.draw(bar);
@@ -81,7 +81,7 @@ void drawXPBar(sf::RenderWindow& window) {
         sf::Text lvlText;
         lvlText.setFont(xpFont);
         lvlText.setString(std::to_string(player.level));
-        lvlText.setCharacterSize(40);
+        lvlText.setCharacterSize(34);
         lvlText.setFillColor(sf::Color::White);
         lvlText.setOutlineColor(sf::Color::Black);
         lvlText.setOutlineThickness(1.5f);
@@ -92,8 +92,8 @@ void drawXPBar(sf::RenderWindow& window) {
 
         // --- تعديل مكان النص بالنسبة للتوب ليفت ---
         // الـ 55 والـ 30 دول عشان يتوسط المربع الخشبي الصغير بالظبط
-        float lvlXOffset = (40.0f * 0.5f);
-        float lvlYOffset = (260.0f * 0.5f);
+        float lvlXOffset = (48.0f * 0.5f);
+        float lvlYOffset = (293.0f * 0.5f);
         lvlText.setPosition(startX + lvlXOffset, startY + lvlYOffset);
         window.draw(lvlText);
     }
