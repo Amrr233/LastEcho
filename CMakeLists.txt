@@ -18,8 +18,6 @@ add_executable(LastEcho
         "src/audio.cpp"
         src/GameMap.cpp
         src/GameMap.h
-        src/healthbar.h
-        src/healthbar.cpp
 )
 
 target_include_directories(LastEcho PRIVATE
