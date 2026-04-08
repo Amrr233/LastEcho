@@ -5,13 +5,13 @@ Game::Game() : isPaused(false) {}
 
 void Game::init(float W, float H) {
     // 2. تحميل زرار البوز الصغير (علامة الـ ||)
-    pauseTex.loadFromFile("assets/gameplay/pause.png");
+    pauseTex.loadFromFile("assets/settings/pause.png");
     pauseBtn.setTexture(pauseTex);
     pauseBtn.setScale(0.3f, 0.3f);
     pauseBtn.setPosition(-55.f, 20.f); // في الركن فوق شمال مثلاً
 
     // 3. تحميل اللوحة الخشبية (اللي شيلنا منها الزراير)
-    pauseMenuTex.loadFromFile("assets/gameplay/pauseMenu.png");
+    pauseMenuTex.loadFromFile("assets/settings/pauseMenu.png");
     pauseMenuBG.setTexture(pauseMenuTex);
     // سنترة اللوحة في نص الشاشة
     pauseMenuBG.setOrigin(pauseMenuTex.getSize().x / 2.f, pauseMenuTex.getSize().y / 2.f);
