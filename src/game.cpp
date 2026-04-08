@@ -8,7 +8,7 @@ void Game::init(float W, float H) {
     pauseTex.loadFromFile("assets/settings/pause.png");
     pauseBtn.setTexture(pauseTex);
     pauseBtn.setScale(0.3f, 0.3f);
-    pauseBtn.setPosition(-55.f, 20.f); // في الركن فوق شمال مثلاً
+    pauseBtn.setPosition(-55.f, 180.f); // في الركن فوق شمال مثلاً
 
     // 3. تحميل اللوحة الخشبية (اللي شيلنا منها الزراير)
     pauseMenuTex.loadFromFile("assets/settings/pauseMenu.png");

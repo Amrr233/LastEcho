@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "GameMap.h"
 #include "audio.h"
+#include "Game.h" // ضفنا الهيدر بتاع البوز
 #include <iostream>
 #include <cmath>
 
@@ -22,6 +23,7 @@ GameState    gState;
 Player       player;
 AudioManager audio;
 GameMap      myMap; // دلوقتى عبارة عن struct عادي جداً
+Game         gameLogic; // تعريف كائن اللعبة للتحكم في البوز
 
 int main() {
     // 1. إنشاء النافذة
@@ -35,15 +37,15 @@ int main() {
     }
 
     // 3. حساب أبعاد الماب لوضع اللاعب في المنتصف
-    // بما إننا شغالين Struct، بنوصل للبيانات مباشرة
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
     initPlayer(Vector2f(spawnX, spawnY));
 
-    // إعدادات المنيو والصوت
+    // إعدادات المنيو والصوت والبوز
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
+    gameLogic.init((float)SCREEN_W, (float)SCREEN_H); // تحميل ملفات البوز
 
     sf::Clock clock;
     audio.playBGM();
@@ -70,7 +72,11 @@ int main() {
 
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            updatePlayer(gState.deltaTime);
+            gameLogic.update(window, gState.currentState);
+
+            if (!gameLogic.isPaused) { // لو مش عامل بوز، كمل تحديث اللاعب
+                updatePlayer(gState.deltaTime);
+            }
         }
 
         // --- DRAW LOGIC ---
@@ -84,15 +90,21 @@ int main() {
         }
         else if (gState.currentState == STATE_PLAYING) {
             // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
-            // بننادي الدالة ونبعت لها الـ struct
             window.setView(getMapView(myMap));
-            // ب. رسم الماب (الـ 3 ليرات)
+
+            // ب. رسم الماب واللاعب
             drawMap(window, myMap);
-            // ج. رسم اللاعب
             drawPlayer(window);
+
+            // ج. رسم الـ UI (لازم نرجع للـ Default View عشان الحاجات دي تفضل ثابتة في الشاشة)
+            window.setView(window.getDefaultView());
             drawHealthBar(window);
             drawXPBar(window);
+
+            // د. رسم زرار ولوحة البوز (تحت الهيلث والاكسبي عشان تظهر فوقهم)
+            gameLogic.draw(window);
         }
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
             healing(10);
         }
@@ -101,6 +113,6 @@ int main() {
         }
         window.display();
     }
-//xxxx
+
     return 0;
 }
