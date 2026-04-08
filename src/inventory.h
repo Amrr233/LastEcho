@@ -12,6 +12,8 @@ struct inventory {
 
     void invt_init(float W, float H);
     void invt_update(sf::RenderWindow& window, AppState& currentState);
+    void invt_pickup(sf::RenderWindow& window, AppState& currentState);
+    void invt_throw(sf::RenderWindow& window, AppState& currentState);
     void invt_draw(sf::RenderWindow& window);
 };
 
