@@ -50,6 +50,10 @@ int main() {
     Clock clock;
     audio.playBGM();
 
+    // تعريف الفيو
+    View mainView;
+    mainView.setSize(SCREEN_W, SCREEN_H);
+
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
 
@@ -66,7 +70,7 @@ int main() {
         }
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-
+            mainView = updateMapView(mainView, myMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
             // tool bar
             inventory.invt_update(window, gState.currentState);
@@ -110,11 +114,9 @@ int main() {
         }
         else if (gState.currentState == STATE_PLAYING) {
             // تظبيط الكاميرا على الماب الجديدة
-            window.setView(getMapView(myMap));
-
+            window.setView(mainView);
             drawMap(window, myMap);
             drawPlayer(window);
-
             // رسم مربعات البوابات للتأكد من مكانها (Debug)
             for (auto& p : myMap.portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));

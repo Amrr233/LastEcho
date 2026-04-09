@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 using namespace std;
+using namespace sf;
 
 using json = nlohmann::json;
 
@@ -44,7 +45,7 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath);
 void drawMap(sf::RenderWindow& window, const GameMap& map);
 
 // حساب الكاميرا المتموطة (Stretch) بناءً على بيانات الـ struct
-sf::View getMapView(const GameMap& map);
+View updateMapView(View& currentView, const GameMap& map, Vector2f playerPos, float deltaTime);
 
 // دوال مساعدة للحسابات
 inline int getMapWidthPixels(const GameMap& map) { return map.width * map.tileSize; }

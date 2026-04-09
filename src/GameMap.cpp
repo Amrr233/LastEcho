@@ -101,14 +101,52 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
     return true;
 }
 
-// 2. الكاميرا (تم تعديلها لتأخذ مركز اللاعب كخيار مستقبلي)
-sf::View getMapView(const GameMap& map) {
+//الكاميرا بتجري ورا اللاعب حرفيا
+
+View updateMapView(sf::View& currentView, const GameMap& map, sf::Vector2f playerPos, float deltaTime) { //
+
+    //المكان العايزك تشوفه هو مكان اللاعب دلوقتي
+    Vector2f targetPos = playerPos;
+
+    // 2. سرعة جري الكاميرا
+    float followSpeed = 5.f;
+
+    // 3. معادلة اسمها lerp بتخلي التتبع بتاع الكاميرا smooth اكتر
+
+    sf::Vector2f currentCenter = currentView.getCenter();
+    sf::Vector2f newCenter;
+
+    newCenter.x = currentCenter.x + (targetPos.x - currentCenter.x) *followSpeed * deltaTime;
+    newCenter.y = currentCenter.y + (targetPos.y - currentCenter.y) *followSpeed * deltaTime;
+
+    // منع الكاميرا من الخروج بره حدود الماب
+
     float mapW = (float)(map.width * map.tileSize);
     float mapH = (float)(map.height * map.tileSize);
-    sf::View view;
-    view.setSize(mapW, mapH);
-    view.setCenter(mapW / 2.0f, mapH / 2.0f);
-    return view;
+    Vector2f viewSize = currentView.getSize();
+
+
+
+    if (mapW <= viewSize.x) {
+        newCenter.x = mapW / 2.0f;
+    }
+    else {
+        // لو الماب أكبر، اعمل Clamp عادي عشان متخرجش بره
+        if (newCenter.x - viewSize.x / 2.0f < 0) newCenter.x = viewSize.x / 2.0f;
+        if (newCenter.x + viewSize.x / 2.0f > mapW) newCenter.x = mapW - viewSize.x / 2.0f;
+    }
+
+    // بالطول (Y): نفس المنطق
+    if (mapH <= viewSize.y) {
+        newCenter.y = mapH / 2.0f;
+    }
+    else {
+        if (newCenter.y - viewSize.y / 2.0f < 0) newCenter.y = viewSize.y / 2.0f;
+        if (newCenter.y + viewSize.y / 2.0f > mapH) newCenter.y = mapH - viewSize.y / 2.0f;
+    }
+
+    currentView.setCenter(newCenter);
+    return currentView;// برحع الفيو الهيظهر في الاخر للاعب
 }
 
 // 3. الرسم
