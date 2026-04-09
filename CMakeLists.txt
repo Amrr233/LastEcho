@@ -20,12 +20,14 @@ add_executable(LastEcho
         src/GameMap.h
         src/game.h
         src/game.cpp
-        src/healthbar.cpp   # <--- ضيف السطر ده هنا
+        src/healthbar.cpp
         src/healthbar.h
         src/XPbar.cpp
         src/XPBar.h
         src/inventory.cpp
-        src/inventory.h     # ويفضل تضيف الهيدر كمان للتنظيم
+        src/inventory.h
+        src/enemies.cpp
+        src/enemies.h
 )
 
 target_include_directories(LastEcho PRIVATE

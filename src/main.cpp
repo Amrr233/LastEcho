@@ -5,13 +5,14 @@
 #include "settings.h"
 #include "GameMap.h"
 #include "audio.h"
-#include "Game.h" // ضفنا الهيدر بتاع البوز
+#include "Game.h"
 #include <iostream>
 #include <cmath>
 
 #include "healthbar.h"
 #include "inventory.h"
 #include "XPBar.h"
+#include <enemies.h>
 
 using namespace sf;
 using namespace std;
@@ -23,30 +24,34 @@ RenderWindow window;
 GameState    gState;
 Player       player;
 AudioManager audio;
-GameMap      myMap; // دلوقتى عبارة عن struct عادي جداً
-Game         gameLogic;  // تعريف كائن اللعبة للتحكم في البوز
+GameMap      myMap;
+Game         gameLogic;
 inventory    inventory;
+
 int main() {
-    // 1. إنشاء النافذة
+    // 1. Create Window
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    // 2. تحميل الماب (باستخدام الدالة المستقلة)
+    // 2. Load Map
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
         cout << "CRITICAL ERROR: Failed to load map file!" << endl;
         return -1;
     }
-    // 3. حساب أبعاد الماب لوضع اللاعب في المنتصف
+
+    // 3. Setup Spawn and Entities
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
+
     initPlayer(Vector2f(spawnX, spawnY));
-    // إعدادات المنيو والصوت والبوز
+    initEnemy(0, sf::Vector2f(500.f, 400.f), BASIC_ENEMY);
+
+    // 4. Initialize Systems
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
-    gameLogic.init((float)SCREEN_W, (float)SCREEN_H); // تحميل ملفات البوز
-    // ... تحت gameLogic.init ...
-    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H); // لازم تحمل صور الانفنتوري هنا!
+    gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
+    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
 
     sf::Clock clock;
     audio.playBGM();
@@ -62,7 +67,6 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            // التعامل مع الـ Events في المنيو والإعدادات
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -75,8 +79,10 @@ int main() {
         if (gState.currentState == STATE_PLAYING) {
             gameLogic.update(window, gState.currentState);
             inventory.invt_update(window, gState.currentState);
-            if (!gameLogic.isPaused) { // لو مش عامل بوز، كمل تحديث اللاعب
+
+            if (!gameLogic.isPaused) {
                 updatePlayer(gState.deltaTime);
+                updateEnemies(gState.deltaTime);
             }
         }
 
@@ -90,31 +96,43 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
+            // A. Set Camera View
             window.setView(getMapView(myMap));
-            // ب. رسم الماب واللاعب
+
+            // B. Draw World Objects
             drawMap(window, myMap);
+
+            // DRAW ENEMIES (Added fix to ensure they show up)
+            drawEnemy(window);
+
             drawPlayer(window);
 
-            // ج. رسم الـ UI (لازم نرجع للـ Default View عشان الحاجات دي تفضل ثابتة في الشاشة)
+            // C. Debug Hitbox
+            if (player.currentState == ATTACKING) {
+                sf::FloatRect rect = attackHitBox();
+                sf::RectangleShape debugBox(sf::Vector2f(rect.width, rect.height));
+                debugBox.setPosition(rect.left, rect.top);
+                debugBox.setFillColor(sf::Color(255, 0, 0, 120));
+                window.draw(debugBox);
+            }
+
+            // D. Draw UI (Switch back to Default View)
             window.setView(window.getDefaultView());
-            // 3. نادي رسم الانفنتوري
             inventory.invt_draw(window);
             drawHealthBar(window);
             drawXPBar(window);
-
-            // د. رسم زرار ولوحة البوز (تحت الهيلث والاكسبي عشان تظهر فوقهم)
             gameLogic.draw(window);
         }
 
+        // Temporary testing inputs
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
             healing(10);
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) {
             damaging(10);
         }
+
         window.display();
     }
-
     return 0;
 }

@@ -2,42 +2,49 @@
 #include <SFML/Graphics.hpp>
 #include "Data.h"
 
-
-
+// Directions matching the sheet order
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
-enum playerState { IDLE, WALKING };
+enum playerState { IDLE, WALKING, ATTACKING, HURT, DEAD };
 
 struct Player {
     sf::Vector2f pos;
     sf::Vector2f velocity;
     float speed;
 
-    // البيانات الأساسية
+    // Stats
     int hp, maxHp, xp, level;
+    int xpToNextLevel = 100;
 
-    // الأنميشن (الصور والمنطق)
-    sf::Texture walkTextures[4]; // شلنا الـ Idle عشان نخفف الرام
+    // Animation & Textures
+    sf::Texture walkTextures[4];
+    sf::Texture attackTextures[4];
     Direction   facing;
     playerState currentState;
     int   currentFrame;
     float animationTimer;
     bool  isMoving;
-    int xpToNextLevel = 100;
 
-    // المقاسات الجديدة اللي اتفقنا عليها (48x48)
-    int frameWidth = 48;
-    int frameHeight = 48;
+    // Sprite Dimensions (matching your 68x68 punch sheets)
+    int frameWidth = 68;
+    int frameHeight = 68;
+
+    // Combat Logic
+    int   attack_damage = 10;
+    float cooldown_timer;
+    float cooldown_maxtime = 0.5f;
+    float attack_range = 50.f;
+    float hurt_timer = 0.4f;
+    bool  isInvincible = false;
 };
 
-
-
-
-// ==============================
-// FUNCTION PROTOTYPES
-// ==============================
+// Function Prototypes
 void initPlayer(sf::Vector2f startPos);
 void updatePlayer(float dt);
+void handlingAttack(float dt);
+void handlingHurt(float dt);
+sf::FloatRect attackHitBox();
+void checkAttackHits();
 void drawPlayer(sf::RenderWindow& window);
 
-
-extern Player   player;
+// Global instance
+extern Player player;
