@@ -50,8 +50,6 @@ int main() {
     Clock clock;
     audio.playBGM();
 
-
-
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
 
@@ -83,12 +81,16 @@ int main() {
 
                     // بنتشيك هل مربع اللاعب بيخبط في مربع البوابة
                     if (playerBounds.intersects(p.bounds)) {
-                        std::cout << "[Collision Detected]: Player at (" << player.pos.x << "," << player.pos.y << ")" << std::endl;
-
                         string fullPath = "assets/maps/" + p.targetMap + "/" + p.targetMap + ".json";
+
                         if (loadMapFromJSON(myMap, fullPath)) {
-                            player.pos = p.spawnPos;
+                            // بنضرب القيمة اللي جاية من JSON في حجم التايلة
+                            player.pos.x = p.spawnPos.x * myMap.tileSize;
+                            player.pos.y = p.spawnPos.y * myMap.tileSize;
+
                             player.sprite.setPosition(player.pos);
+
+                            std::cout << "[Final Fix]: Player moved to Pixel (" << player.pos.x << "," << player.pos.y << ")" << std::endl;
                             break;
                         }
                     }
@@ -107,19 +109,21 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
+            // تظبيط الكاميرا على الماب الجديدة
             window.setView(getMapView(myMap));
+
             drawMap(window, myMap);
             drawPlayer(window);
 
-
+            // رسم مربعات البوابات للتأكد من مكانها (Debug)
             for (auto& p : myMap.portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
                 debugRect.setPosition(p.bounds.left, p.bounds.top);
-                debugRect.setFillColor(sf::Color(255, 0, 0, 150)); // أحمر واضح شوية
+                debugRect.setFillColor(sf::Color(255, 0, 0, 100));
                 window.draw(debugRect);
             }
 
-
+            // العودة للـ View الافتراضية لرسم الـ UI فوق الماب
             window.setView(window.getDefaultView());
             inventory.invt_draw(window);
             drawHealthBar(window);
@@ -132,9 +136,6 @@ int main() {
 
         window.display();
     }
-
-
-
 
     return 0;
 }

@@ -52,6 +52,9 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         if (layer["type"] == "objectgroup" && layer["name"] == "Portals") {
             for (auto& obj : layer["objects"]) {
                 Portal p;
+                // إعطاء قيم افتراضية واضحة للـ Debug
+                p.spawnPos = sf::Vector2f(0.0f, 0.0f);
+
                 p.bounds = sf::FloatRect(obj["x"].get<float>(), obj["y"].get<float>(),
                                         obj["width"].get<float>(), obj["height"].get<float>());
 
@@ -62,11 +65,25 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
 
                         if (value.is_null()) continue;
 
-                        if (key == "targetMap") p.targetMap = value.get<std::string>();
-                        else if (key == "spawnX") p.spawnPos.x = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
-                        else if (key == "spawnY") p.spawnPos.y = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
+                        if (key == "targetMap") {
+                            p.targetMap = value.get<std::string>();
+                        }
+                        else if (key == "spawnX") {
+                            p.spawnPos.x = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
+                            std::cout << "[JSON Debug]: Found spawnX = " << p.spawnPos.x << " for portal to " << p.targetMap << std::endl;
+                        }
+                        else if (key == "spawnY") {
+                            p.spawnPos.y = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
+                            std::cout << "[JSON Debug]: Found spawnY = " << p.spawnPos.y << " for portal to " << p.targetMap << std::endl;
+                        }
                     }
                 }
+
+                // لو القيم لسه أصفار، طبع تحذير
+                if (p.spawnPos.x == 0.0f && p.spawnPos.y == 0.0f) {
+                    std::cout << "[Warning]: Portal to " << p.targetMap << " has spawnPos (0,0). Check Tiled properties (spawnX/spawnY)!" << std::endl;
+                }
+
                 map.portals.push_back(p);
             }
         }
@@ -84,7 +101,7 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
     return true;
 }
 
-// 2. الكاميرا
+// 2. الكاميرا (تم تعديلها لتأخذ مركز اللاعب كخيار مستقبلي)
 sf::View getMapView(const GameMap& map) {
     float mapW = (float)(map.width * map.tileSize);
     float mapH = (float)(map.height * map.tileSize);
