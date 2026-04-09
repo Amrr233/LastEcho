@@ -2,8 +2,9 @@
 #include <fstream>
 #include <iostream>
 
-// 1. دالة التحميل: بتملأ الـ struct بالبيانات من الـ JSON
+// 1. دالة التحميل: بتملأ الـ struct بالبيانات وبتحفظ اسم الماب للـ NPCs
 bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
+
     std::ifstream file(jsonPath);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open JSON file at " << jsonPath << std::endl;
@@ -18,18 +19,29 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         return false;
     }
 
-    // قراءة الأبعاد (مباشرة للـ struct)
+    // --- [تعديل مهم]: استخراج اسم الماب عشان الـ NPCs يعرفوا يظهروا فين ---
+    // لو المسار "assets/maps/outside/outside.json" هياخد كلمة "outside"
+    size_t lastSlashPath = jsonPath.find_last_of("/\\");
+    size_t lastDot = jsonPath.find_last_of(".");
+    if (lastSlashPath != std::string::npos && lastDot != std::string::npos) {
+        map.mapName = jsonPath.substr(lastSlashPath + 1, lastDot - lastSlashPath - 1);
+    } else {
+        map.mapName = "unknown";
+    }
+
+    // قراءة الأبعاد الأساسية
     map.width = mapData["width"];
     map.height = mapData["height"];
     map.tileSize = mapData["tileheight"];
 
-    // التعامل مع صورة التايلسيت
+    // التعامل مع صورة التايلسيت (Tileset)
     std::string textureName = mapData["tilesets"][0]["image"];
     size_t lastSlash = textureName.find_last_of("/\\");
     if (lastSlash != std::string::npos) {
         textureName = textureName.substr(lastSlash + 1);
     }
 
+    // تأكد إن فولدر الصور صح (عدله لو بتستخدم فولدرات مختلفة)
     std::string fullPath = "assets/maps/outside/" + textureName;
 
     if (!map.tilesetTexture.loadFromFile(fullPath)) {
@@ -37,10 +49,9 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         return false;
     }
 
-    // تعطيل الـ Smoothing عشان بكسلات الـ Stretch تفضل حادة
     map.tilesetTexture.setSmooth(false);
 
-    // قراءة الليرات
+    // قراءة الليرات (Tiles Only)
     map.layers.clear();
     for (auto& layer : mapData["layers"]) {
         if (layer["type"] == "tilelayer") {
@@ -52,25 +63,22 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         }
     }
 
-    std::cout << "Map loaded successfully: " << map.width << "x" << map.height
-              << " with " << map.layers.size() << " layers." << std::endl;
     return true;
 }
 
-// 2. دالة الكاميرا: بتحسب الـ View بناءً على بيانات الماب المبعوتة
+// 2. دالة الكاميرا: ضبط الرؤية حسب حجم الماب
 sf::View getMapView(const GameMap& map) {
     float mapW = (float)(map.width * map.tileSize);
     float mapH = (float)(map.height * map.tileSize);
 
     sf::View view;
-    // Stretch Logic
     view.setSize(mapW, mapH);
     view.setCenter(mapW / 2.0f, mapH / 2.0f);
 
     return view;
 }
 
-// 3. دالة الرسم: بتلف على ليرات الماب وترسمها
+// 3. دالة الرسم: رسم كل ليرات البلاط
 void drawMap(sf::RenderWindow& window, const GameMap& map) {
     if (map.layers.empty()) return;
 
