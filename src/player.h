@@ -13,7 +13,7 @@ struct Player {
     float speed;
 
     // البيانات الأساسية
-    int hp, maxHp, xp, level;
+    int hp=100, maxHp=100, xp=40, level=1;
 
     // الأنميشن (الصور والمنطق)
     sf::Texture walkTextures[4]; // شلنا الـ Idle عشان نخفف الرام

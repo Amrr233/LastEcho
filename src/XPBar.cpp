@@ -11,6 +11,14 @@ static bool loaded = false;// ضيف دول فوق مع الـ static variables 
 static sf::Font xpFont;
 static bool fontLoaded = false;
 
+void addXP(int amount) {
+    player.xp+=amount;
+    while (player.xp >= player.xpToNextLevel) {
+        player.xp-=100;
+        player.level++;
+    }
+}
+
 void drawXPBar(sf::RenderWindow& window) {
     if (!loaded) {
         if (xpTexture.loadFromFile("assets/settings/XP.png")) {
@@ -18,7 +26,7 @@ void drawXPBar(sf::RenderWindow& window) {
 
             // --- تعديل الـ Origin عشان يبقى التوب ليفت (0,0) بدل السنتر ---
             // ده بيسهل رص العناصر جواه بالنسبة للتوب ليفت برضه
-            xpSprite.setOrigin(-14.0f, -300.0f);
+            xpSprite.setOrigin(-14.0f, -150.0f);
 
             xpSprite.setScale(0.3f, 0.4f);
             loaded = true;
@@ -61,7 +69,7 @@ void drawXPBar(sf::RenderWindow& window) {
 
         // --- تعديل الـ Origin لـ 0.0 عشان يناسب الـ Sprite Origin الجديد ---
         // الـ 60 اللي كنت كاتبها كانت بتشفته بناء على إن الـ Sprite Origin في السنتر
-        bar.setOrigin(38.f,  -30.f);
+        bar.setOrigin(38.f,  30.f);
 
         // --- تعديل حسابات مكان الـ Fill بالنسبة للتوب ليفت ---
         // الـ 110 ده الـ Offset الأفقي عشان يبدأ بعد المربع الصغير
@@ -81,7 +89,12 @@ void drawXPBar(sf::RenderWindow& window) {
         sf::Text lvlText;
         lvlText.setFont(xpFont);
         lvlText.setString(std::to_string(player.level));
-        lvlText.setCharacterSize(34);
+        if (player.level <10) {
+            lvlText.setCharacterSize(30);
+        }
+        else {
+            lvlText.setCharacterSize(22);
+        }
         lvlText.setFillColor(sf::Color::White);
         lvlText.setOutlineColor(sf::Color::Black);
         lvlText.setOutlineThickness(1.5f);
@@ -93,7 +106,7 @@ void drawXPBar(sf::RenderWindow& window) {
         // --- تعديل مكان النص بالنسبة للتوب ليفت ---
         // الـ 55 والـ 30 دول عشان يتوسط المربع الخشبي الصغير بالظبط
         float lvlXOffset = (48.0f * 0.5f);
-        float lvlYOffset = (293.0f * 0.5f);
+        float lvlYOffset = (173.0f * 0.5f);
         lvlText.setPosition(startX + lvlXOffset, startY + lvlYOffset);
         window.draw(lvlText);
     }

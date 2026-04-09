@@ -26,7 +26,7 @@ void drawHealthBar(sf::RenderWindow& window) {
         if (hpTexture.loadFromFile("assets/settings/HP.png")) {
             hpSprite.setTexture(hpTexture);
             // ضبط الـ Origin والـ Scale زي كود الـ XP اللي بعته
-            hpSprite.setOrigin(-14.0f, -150.0f);
+            hpSprite.setOrigin(-14.0f, -0.0f);
             hpSprite.setScale(0.3f, 0.4f);
             hpLoaded = true;
         }
@@ -66,10 +66,10 @@ void drawHealthBar(sf::RenderWindow& window) {
         bar.setFillColor(sf::Color(165, 42, 42));
 
         // نفس الـ Origin والـ Offset اللي في كود الـ XP بتاعك
-        bar.setOrigin(38.f, -73.f);
+        bar.setOrigin(38.f, 0.f);
 
         float xOffset = (185.0f * 0.5f) + (i * (segmentWidth + gap));
-        float yOffset = (-5.f * 1.05f);
+        float yOffset = (0.f * 1.05f);
 
         bar.setPosition(startX + xOffset, startY + yOffset);
         window.draw(bar);

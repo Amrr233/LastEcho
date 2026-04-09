@@ -106,13 +106,6 @@ int main() {
             // د. رسم زرار ولوحة البوز (تحت الهيلث والاكسبي عشان تظهر فوقهم)
             gameLogic.draw(window);
         }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
-            healing(10);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) {
-            damaging(10);
-        }
         window.display();
     }
 
