@@ -1,4 +1,12 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"lobby.json"
+        }
+    },
  "height":53,
  "infinite":false,
  "layers":[
@@ -138,7 +146,7 @@
                 {
                  "height":148.721395881007,
                  "id":1,
-                 "name":"Portal",
+                 "name":"toLeftPassage",
                  "properties":[
                         {
                          "name":"spawnX",
@@ -153,7 +161,7 @@
                         {
                          "name":"targetMap",
                          "type":"string",
-                         "value":"righPassage"
+                         "value":"leftPassage"
                         }],
                  "rotation":0,
                  "type":"",
@@ -161,6 +169,60 @@
                  "width":24.5594965675057,
                  "x":1.36441647597254,
                  "y":462.537185354691
+                }, 
+                {
+                 "height":19.1018306636156,
+                 "id":2,
+                 "name":"toOutside",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"string",
+                         "value":"30"
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"string",
+                         "value":"40"
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"outside"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":260.603546910755,
+                 "x":406.596109839817,
+                 "y":934.62528604119
+                }, 
+                {
+                 "height":103.695652173913,
+                 "id":3,
+                 "name":"toRightPassage",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"string",
+                         "value":"50"
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"string",
+                         "value":"50"
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"rightPassage"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":28.6527459954232,
+                 "x":1049.23627002288,
+                 "y":488.461098398169
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -169,7 +231,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":2,
+ "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

@@ -20,7 +20,7 @@
                         {
                          "name":"spawnY",
                          "type":"float",
-                         "value":50
+                         "value":5
                         },
                         {
                          "name":"targetMap",
