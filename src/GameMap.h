@@ -23,6 +23,9 @@ struct GameMap {
 
     sf::Texture tilesetTexture;      // الصورة المستخدمة
     std::vector<MapLayer> layers;    // ليرات الماب (Ground, Staircase, etc.)
+
+    std::string mapName; // ضيف السطر ده هنا
+
 };
 
 // 3. الدوال المسؤولة عن العمليات (بتاخد الماب كـ reference)
