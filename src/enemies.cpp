@@ -39,10 +39,10 @@ void initEnemy(int index, Vector2f startPos, EnemyType type) {
         enemies[index].attackRange = 60.f;
     }
 
-    enemies[index].walkTextures[SOUTH].loadFromFile("assets/sprites/mummy/walkingMummy/mummy walk(south).png");
-    enemies[index].walkTextures[NORTH].loadFromFile("assets/sprites/mummy/walkingMummy/mummy walk(north).png");
-    enemies[index].walkTextures[WEST].loadFromFile("assets/sprites/mummy/walkingMummy/mummy walk(west).png");
-    enemies[index].walkTextures[EAST].loadFromFile("assets/sprites/mummy/walkingMummy/mummy walk(east).png");
+    enemies[index].walkTextures[SOUTH].loadFromFile("assets/sprites/mummy/mummywalk(south).png");
+    enemies[index].walkTextures[NORTH].loadFromFile("assets/sprites/mummy/mummywalk(north).png");
+    enemies[index].walkTextures[WEST].loadFromFile("assets/sprites/mummy/mummywalk(west).png");
+    enemies[index].walkTextures[EAST].loadFromFile("assets/sprites/mummy/mummywalk(east).png");
 
     enemySprite.setScale(1.8f, 1.8f);
     enemySprite.setOrigin(34.f, 34.f); // Half of 68

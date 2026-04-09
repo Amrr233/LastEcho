@@ -43,7 +43,6 @@ void updatePlayer(float dt);
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
-void checkAttackHits();
 void drawPlayer(sf::RenderWindow& window);
 
 // Global instance
