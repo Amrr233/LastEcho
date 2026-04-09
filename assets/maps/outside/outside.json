@@ -3,6 +3,44 @@
  "infinite":false,
  "layers":[
         {
+         "draworder":"topdown",
+         "id":6,
+         "name":"Portals",
+         "objects":[
+                {
+                 "height":120.666666666667,
+                 "id":8,
+                 "name":"Portal",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"float",
+                         "value":30
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"float",
+                         "value":50
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"lobby"
+                        }],
+                 "rotation":0,
+                 "type":"Transition",
+                 "visible":true,
+                 "width":266,
+                 "x":371.333333333333,
+                 "y":487.333333333333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -164,8 +202,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":1,
+ "nextlayerid":7,
+ "nextobjectid":9,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -174,7 +212,7 @@
         {
          "columns":60,
          "firstgid":1,
-         "image":"..\/outside.png",
+         "image":"..\/..\/..\/..\/LAST ECHO OF FCISASU MAPS\/outside\/outside.png",
          "imageheight":1106,
          "imagewidth":960,
          "margin":0,

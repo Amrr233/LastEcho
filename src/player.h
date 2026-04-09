@@ -3,7 +3,6 @@
 #include "Data.h"
 
 
-
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
 enum playerState { IDLE, WALKING };
 
@@ -11,6 +10,7 @@ struct Player {
     sf::Vector2f pos;
     sf::Vector2f velocity;
     float speed;
+    sf::Sprite sprite;
 
     // البيانات الأساسية
     int hp, maxHp, xp, level;

@@ -5,10 +5,20 @@
 #include <json.hpp>
 #include <vector>
 #include <string>
+using namespace std;
 
 using json = nlohmann::json;
 
 // 1. هيكل بيانات الطبقة الواحدة
+
+
+struct Portal {
+    sf::FloatRect bounds;
+    std::string targetMap;
+    sf::Vector2f spawnPos;
+};
+
+
 struct MapLayer {
     std::vector<int> data;
     std::string name;
@@ -20,9 +30,9 @@ struct GameMap {
     int width = 0;             // عدد التايلات عرضاً
     int height = 0;            // عدد التايلات طولاً
     int tileSize = 0;          // حجم التايلة بالبكسل
-
     sf::Texture tilesetTexture;      // الصورة المستخدمة
-    std::vector<MapLayer> layers;    // ليرات الماب (Ground, Staircase, etc.)
+    vector<MapLayer> layers;
+    vector<Portal> portals;// ليرات الماب (Ground, Staircase, etc.)
 };
 
 // 3. الدوال المسؤولة عن العمليات (بتاخد الماب كـ reference)

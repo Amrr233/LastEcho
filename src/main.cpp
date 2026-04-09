@@ -5,10 +5,8 @@
 #include "settings.h"
 #include "GameMap.h"
 #include "audio.h"
-#include "Game.h" // ضفنا الهيدر بتاع البوز
+#include "Game.h"
 #include <iostream>
-#include <cmath>
-
 #include "healthbar.h"
 #include "inventory.h"
 #include "XPBar.h"
@@ -23,46 +21,44 @@ RenderWindow window;
 GameState    gState;
 Player       player;
 AudioManager audio;
-GameMap      myMap; // دلوقتى عبارة عن struct عادي جداً
-Game         gameLogic;  // تعريف كائن اللعبة للتحكم في البوز
+GameMap      myMap;
+Game         gameLogic;
 inventory    inventory;
+
 int main() {
     // 1. إنشاء النافذة
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    // 2. تحميل الماب (باستخدام الدالة المستقلة)
+    // 2. تحميل الماب الافتراضية (البداية)
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
         cout << "CRITICAL ERROR: Failed to load map file!" << endl;
         return -1;
     }
-    // 3. حساب أبعاد الماب لوضع اللاعب في المنتصف
+
+    // احداثيات الهتعمل فيها spawn
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
-    initPlayer(Vector2f(spawnX, spawnY));
-    // إعدادات المنيو والصوت والبوز
+    initPlayer(Vector2f(spawnX, spawnY + 80));
+
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
-    gameLogic.init((float)SCREEN_W, (float)SCREEN_H); // تحميل ملفات البوز
-    // ... تحت gameLogic.init ...
-    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H); // لازم تحمل صور الانفنتوري هنا!
+    gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
+    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
 
-    sf::Clock clock;
+    Clock clock;
     audio.playBGM();
 
-    // ==============================
-    // MAIN GAME LOOP
-    // ==============================
+
+
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
 
-        sf::Event event;
+        Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
-            // التعامل مع الـ Events في المنيو والإعدادات
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -70,13 +66,34 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
             }
         }
-
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
+
             gameLogic.update(window, gState.currentState);
+            // tool bar
             inventory.invt_update(window, gState.currentState);
-            if (!gameLogic.isPaused) { // لو مش عامل بوز، كمل تحديث اللاعب
+
+            if (!gameLogic.isPaused) {
                 updatePlayer(gState.deltaTime);
+                // ========================================================
+                // سيستم الانتقال بين المابس وحركات وبركات
+                for (auto& p : myMap.portals) {
+                    // هنعمل مربع يدوي للاعب بناءً على مكانه الحالي ومقاسه (48x48)
+                    sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
+
+                    // بنتشيك هل مربع اللاعب بيخبط في مربع البوابة
+                    if (playerBounds.intersects(p.bounds)) {
+                        std::cout << "[Collision Detected]: Player at (" << player.pos.x << "," << player.pos.y << ")" << std::endl;
+
+                        string fullPath = "assets/maps/" + p.targetMap + "/" + p.targetMap + ".json";
+                        if (loadMapFromJSON(myMap, fullPath)) {
+                            player.pos = p.spawnPos;
+                            player.sprite.setPosition(player.pos);
+                            break;
+                        }
+                    }
+                }
+                // ========================================================
             }
         }
 
@@ -90,31 +107,34 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // أ. ضبط الكاميرا (الـ View) بناءً على الماب الحالية
             window.setView(getMapView(myMap));
-            // ب. رسم الماب واللاعب
             drawMap(window, myMap);
             drawPlayer(window);
 
-            // ج. رسم الـ UI (لازم نرجع للـ Default View عشان الحاجات دي تفضل ثابتة في الشاشة)
+
+            for (auto& p : myMap.portals) {
+                sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
+                debugRect.setPosition(p.bounds.left, p.bounds.top);
+                debugRect.setFillColor(sf::Color(255, 0, 0, 150)); // أحمر واضح شوية
+                window.draw(debugRect);
+            }
+
+
             window.setView(window.getDefaultView());
-            // 3. نادي رسم الانفنتوري
             inventory.invt_draw(window);
             drawHealthBar(window);
             drawXPBar(window);
-
-            // د. رسم زرار ولوحة البوز (تحت الهيلث والاكسبي عشان تظهر فوقهم)
             gameLogic.draw(window);
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
-            healing(10);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) {
-            damaging(10);
-        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+
         window.display();
     }
+
+
+
 
     return 0;
 }
