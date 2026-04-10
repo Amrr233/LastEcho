@@ -25,6 +25,7 @@ void initEnemy(int index, Vector2f startPos, EnemyType type) {
     enemies[index].isInvincible = false;
     enemies[index].currentState = IDLE;
     //just trying smth out
+    // blah
 
     if (type == BASIC_ENEMY) {
         enemies[index].hp = 50;
