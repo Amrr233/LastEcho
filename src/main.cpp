@@ -12,6 +12,7 @@
 #include "NPC.h"
 #include <iostream>
 #include <cmath>
+#include "enemies.h"
 
 using namespace sf;
 using namespace std;
@@ -26,7 +27,7 @@ AudioManager audio;
 GameMap      myMap;
 Game         gameLogic;
 inventory    inventory;
-bool         gameFlags[100] = { false }; // حجز مكان المصفوفة
+bool         gameFlags[100] = { false };
 
 int main() {
     // 1. إنشاء النافذة
@@ -43,19 +44,22 @@ int main() {
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
     initPlayer(Vector2f(spawnX, spawnY));
 
+    // مكان العدو قريب منك عشان تشوفه
+    initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+
     // 3. إعداد الأنظمة
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
-    initNPCs(); // تجهيز الـ NPCs
+    initNPCs();
 
     sf::Clock clock;
     audio.playBGM();
 
     // ==============================
-    // MAIN GAME LOOP (واحدة بس!)
+    // MAIN GAME LOOP
     // ==============================
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
@@ -65,7 +69,7 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            // إيفنت التفاعل مع الـ NPC
+            // تفاعل NPC
             if (gState.currentState == STATE_PLAYING && event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::E) {
                     interactWithNPC(player.pos);
@@ -87,7 +91,8 @@ int main() {
 
             if (!gameLogic.isPaused) {
                 updatePlayer(gState.deltaTime);
-                updateNPCs(gState.deltaTime, myMap.mapName, player.pos); // تحديث حركة الـ NPCs
+                updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
+                updateEnemies(gState.deltaTime); // تحديث الأعداء عشان يتحركوا
             }
         }
 
@@ -101,18 +106,29 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // 1. رسم العالم (View الكاميرا)
+            // رسم العالم
             window.setView(getMapView(myMap));
             drawMap(window, myMap);
-            drawNPCs(window, myMap.mapName); // رسم الـ NPCs
+            drawNPCs(window, myMap.mapName);
+            drawEnemy(window);
             drawPlayer(window);
 
-            // 2. رسم الـ UI (View الشاشة الثابت)
+            // C. Debug Hitbox (المصلح)
+            if (player.currentState == ATTACKING && player.currentFrame == 3) {
+                sf::FloatRect rect = attackHitBox();
+                sf::RectangleShape debugBox(sf::Vector2f(rect.width, rect.height));
+                debugBox.setPosition(rect.left, rect.top);
+                // التصحيح لـ setFillColor بدل setFillOptions
+                debugBox.setFillColor(sf::Color(255, 0, 0, 120));
+                window.draw(debugBox);
+            }
+
+            // رسم الواجهة
             window.setView(window.getDefaultView());
             inventory.invt_draw(window);
             drawHealthBar(window);
             drawXPBar(window);
-            gameLogic.draw(window); // لوحة البوز
+            gameLogic.draw(window);
         }
 
         window.display();

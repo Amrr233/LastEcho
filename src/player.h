@@ -5,7 +5,7 @@
 
 
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
-enum playerState { IDLE, WALKING };
+enum playerState { IDLE, WALKING  , HURT , ATTACKING , DEAD};
 
 struct Player {
     sf::Vector2f pos;
@@ -17,6 +17,7 @@ struct Player {
 
     // الأنميشن (الصور والمنطق)
     sf::Texture walkTextures[4]; // شلنا الـ Idle عشان نخفف الرام
+    sf::Texture attackTextures[4];
     Direction   facing;
     playerState currentState;
     int   currentFrame;
@@ -27,6 +28,14 @@ struct Player {
     // المقاسات الجديدة اللي اتفقنا عليها (48x48)
     int frameWidth = 48;
     int frameHeight = 48;
+
+    // Combat Logic
+    int   attack_damage = 10;
+    float cooldown_timer;
+    float cooldown_maxtime = 0.5f;
+    float attack_range = 50.f;
+    float hurt_timer = 0.4f;
+    bool  isInvincible = false;
 };
 
 
@@ -37,6 +46,9 @@ struct Player {
 // ==============================
 void initPlayer(sf::Vector2f startPos);
 void updatePlayer(float dt);
+void handlingAttack(float dt);
+void handlingHurt(float dt);
+sf::FloatRect attackHitBox();
 void drawPlayer(sf::RenderWindow& window);
 
 
