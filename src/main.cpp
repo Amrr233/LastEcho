@@ -85,16 +85,22 @@ int main() {
 
                     // بنتشيك هل مربع اللاعب بيخبط في مربع البوابة
                     if (playerBounds.intersects(p.bounds)) {
-                        string fullPath = "assets/maps/" + p.targetMap + "/" + p.targetMap + ".json";
+                        // 1. خزن الإحداثيات والمسار في متغيرات مؤقتة الأول
+                        string nextMap = p.targetMap;
+                        float nextX = p.spawnPos.x;
+                        float nextY = p.spawnPos.y;
 
+                        string fullPath = "assets/maps/" + nextMap + "/" + nextMap + ".json";
+
+                        // 2. حمل الماب الجديدة
                         if (loadMapFromJSON(myMap, fullPath)) {
-                            // بنضرب القيمة اللي جاية من JSON في حجم التايلة
-                            player.pos.x = p.spawnPos.x * myMap.tileSize;
-                            player.pos.y = p.spawnPos.y * myMap.tileSize;
+                            // 3. استخدم المتغيرات المؤقتة اللي خزناها من الـ JSON بتاع الـ outside
+                            player.pos.x = nextX * myMap.tileSize;
+                            player.pos.y = nextY * myMap.tileSize;
 
                             player.sprite.setPosition(player.pos);
 
-                            std::cout << "[Final Fix]: Player moved to Pixel (" << player.pos.x << "," << player.pos.y << ")" << std::endl;
+                            std::cout << "[Fixed]: Moved to " << nextMap << " at " << player.pos.x << "," << player.pos.y << std::endl;
                             break;
                         }
                     }

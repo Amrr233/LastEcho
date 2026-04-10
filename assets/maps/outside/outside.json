@@ -15,12 +15,12 @@
                         {
                          "name":"spawnX",
                          "type":"float",
-                         "value":40
+                         "value":30
                         },
                         {
                          "name":"spawnY",
                          "type":"float",
-                         "value":40
+                         "value":45
                         },
                         {
                          "name":"targetMap",

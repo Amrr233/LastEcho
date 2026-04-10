@@ -12,7 +12,7 @@ static Sprite playerSprite;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
-    player.speed = 140.f; // سرعة متوسطة عشان السلاسة
+    player.speed = 300.f; // سرعة متوسطة عشان السلاسة
     player.facing = SOUTH;
     player.currentFrame = 0;
     player.animationTimer = 0.f;
