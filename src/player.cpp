@@ -20,10 +20,10 @@ void initPlayer(Vector2f startPos) {
     player.isMoving = false;
 
     // تحميل الصور بمسارات صحيحة
-    player.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking.south.png");
-    player.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking.north.png");
-    player.walkTextures[WEST].loadFromFile("assets/sprites/player/walking.west.png");
-    player.walkTextures[EAST].loadFromFile("assets/sprites/player/walking.east.png");
+    player.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
+    player.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
+    player.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
+    player.walkTextures[EAST].loadFromFile("assets/sprites/player/walking/walking.east.png");
 
     player.attackTextures[SOUTH].loadFromFile("assets/sprites/player/punching/crosspunching.south.png");
     player.attackTextures[NORTH].loadFromFile("assets/sprites/player/punching/crosspunching.north.png");

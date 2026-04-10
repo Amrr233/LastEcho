@@ -21,10 +21,10 @@ void initNPCs() {
     student.name = "Student"; // اسم الشخصية
 
     // تحميل صور الحركة لكل اتجاه
-    student.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking.south.png");
-    student.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking.north.png");
-    student.walkTextures[WEST].loadFromFile("assets/sprites/player/walking.west.png");
-    student.walkTextures[EAST].loadFromFile("assets/sprites/player/walking.east.png");
+    student.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
+    student.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
+    student.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
+    student.walkTextures[EAST].loadFromFile("assets/sprites/player/walking/walking.east.png");
 
     student.isStatic = false; // متحرك
     student.speed = 90.f;     // السرعة
@@ -51,10 +51,10 @@ void initNPCs() {
     hadry_static.name = "hadry";
 
     // تحميل كل الاتجاهات عشان يقدر يلف وشه ليك لما تقرب منه
-    hadry_static.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking.south.png");
-    hadry_static.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking.north.png");
-    hadry_static.walkTextures[WEST].loadFromFile("assets/sprites/player/walking.west.png");
-    hadry_static.walkTextures[EAST].loadFromFile("assets/sprites/player/walking.east.png");
+    hadry_static.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
+    hadry_static.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
+    hadry_static.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
+    hadry_static.walkTextures[EAST].loadFromFile("assets/sprites/player/walking/walking.east.png");
 
     hadry_static.isStatic = true;     // ثابت
     hadry_static.pos = {800, 800};    // مكانه
