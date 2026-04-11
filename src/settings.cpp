@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "audio.h"
 extern AudioManager audio;
-
+extern AppState last_state;
 settingsMenu settings;
 
 void settingsMenu::init(float W, float H) {
@@ -138,9 +138,19 @@ void settingsMenu::draw(sf::RenderWindow &window) {
 // دالة التحديث والتحكم (الرجوع بـ Escape وحركة الماوس)
 void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
     // 1. الرجوع للمنيو
+    static bool escWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-        currentState = STATE_MENU;
+        if (!escWasPressed) {
+            currentState = last_state;
+            escWasPressed = true;
+            sf::sleep(sf::milliseconds(200));
+            // currentState = STATE_MENU;
+        }
     }
+    else {
+        escWasPressed = false;
+    }
+
 
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 

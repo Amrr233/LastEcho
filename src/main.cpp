@@ -27,6 +27,7 @@ AudioManager audio;
 GameMap      myMap;
 Game         gameLogic;
 inventory    inventory;
+AppState    last_state;
 bool         gameFlags[100] = { false };
 
 int main() {

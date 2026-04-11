@@ -54,6 +54,6 @@ struct GameState {
 // الـ extern يعني بنقول للـ Compiler إنهم متعرفين في الـ main.cpp
 extern sf::RenderWindow window;
 extern GameState        gState;
-
+extern AppState         last_state;
 // الإعلان عن مصفوفة الأعلام (Flags) عشان الكل يشوفها
 extern bool gameFlags[100];

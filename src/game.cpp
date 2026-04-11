@@ -69,7 +69,10 @@ void Game::update(sf::RenderWindow& window, AppState& currentState) {
                     // فحص الضغط
                     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                         if (i == 0) isPaused = false;               // Resume
-                        if (i == 1) currentState = STATE_SETTINGS;  // Settings
+                        if (i == 1) {
+                            last_state = STATE_PLAYING;
+                            currentState = STATE_SETTINGS;
+                        }                                       // Settings
                         if (i == 2) window.close();                 // Quit
 
                         sf::sleep(sf::milliseconds(250)); // حماية عشان ميفضلش يضغط

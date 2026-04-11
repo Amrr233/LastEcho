@@ -96,7 +96,12 @@
                 {
                     if (i == 0) currentState = STATE_PLAYING;
                     if (i == 1) currentState = STATE_LOAD;
-                    if (i == 2) currentState = STATE_SETTINGS;
+                    if (i == 2) {
+                        currentState = STATE_SETTINGS;
+                        last_state = STATE_MENU; // خزن إننا كنا في المنيو
+                        gState.currentState = STATE_SETTINGS;
+                        sf::sleep(sf::milliseconds(250));
+                    }
                     if (i == 3) window.close();
                 }
             }
