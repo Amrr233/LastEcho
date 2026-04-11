@@ -10,7 +10,7 @@ struct Player {
     sf::Vector2f pos;
     sf::Vector2f velocity;
     float speed;
-    //
+    ///
 
     // Stats
     int hp, maxHp, xp, level;
