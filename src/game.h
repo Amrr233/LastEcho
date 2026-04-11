@@ -23,7 +23,10 @@ struct Game {
     sf::Sprite pauseMenuBG;
     sf::Texture pauseMenuTex;
 
-
+    sf::Texture pauseMenubuttons;
+    sf::Sprite buttons[3];
+    sf::Text words[3];
+    sf::Font word_font;
 };
 
 #endif
