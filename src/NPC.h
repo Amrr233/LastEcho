@@ -1,6 +1,6 @@
 #ifndef NPC_H
 #define NPC_H
-
+#include "Data.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -21,7 +21,9 @@ struct NPC {
 
     // الحركة
     bool isStatic;         // هل واقف مكانه ولا بيمشي؟
-    std::vector<sf::Vector2f> waypoints; // نقط الحركة لو مش static
+    // std::vector<sf::Vector2f> waypoints; // نقط الحركة لو مش static
+    sf::Vector2f waypoints[MAX_WAYPOINTS];
+    int waypointsCount;
     int currentWaypoint = 0;
     float speed = 50.0f;
 
@@ -33,8 +35,7 @@ struct NPC {
     int currentFrame = 0;
 };
 
-// مصفوفة عالمية للـ Flags (موجودة في Data.h أصلاً المفروض)
-extern bool gameFlags[100];
+//flags in data.h
 
 // الدوال الأساسية
 void initNPCs();
