@@ -15,6 +15,8 @@ constexpr int PHASE_COUNT = 7;
 constexpr int MAX_NPCS    = 20;
 constexpr int MAX_ITEMS   = 16;
 constexpr int MAX_PORTALS = 8;
+constexpr int MAX_WAYPOINTS = 100;
+
 
 // ==============================
 // ENUMS
