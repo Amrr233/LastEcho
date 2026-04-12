@@ -187,6 +187,60 @@
                  "width":257,
                  "x":197,
                  "y":1033
+                }, 
+                {
+                 "height":26.1547987616099,
+                 "id":2,
+                 "name":"toWcm1",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"string",
+                         "value":"50"
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"string",
+                         "value":"30"
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"wcm1"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":45.7708978328173,
+                 "x":508.928792569659,
+                 "y":292.061919504644
+                }, 
+                {
+                 "height":26.1548,
+                 "id":3,
+                 "name":"toWcw",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"string",
+                         "value":"50"
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"string",
+                         "value":"30"
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"wcw"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":45.7709,
+                 "x":508.928791486068,
+                 "y":550.340556656347
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -194,8 +248,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":4,
- "nextobjectid":2,
+ "nextlayerid":5,
+ "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
