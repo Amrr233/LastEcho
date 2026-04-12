@@ -172,7 +172,7 @@
                         {
                          "name":"targetMap",
                          "type":"string",
-                         "value":""
+                         "value":"hallAfter"
                         }],
                  "rotation":0,
                  "type":"",
