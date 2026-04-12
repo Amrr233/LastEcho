@@ -214,12 +214,12 @@
                         {
                          "name":"spawnX",
                          "type":"float",
-                         "value":50
+                         "value":15
                         }, 
                         {
                          "name":"spawnY",
                          "type":"float",
-                         "value":50
+                         "value":20
                         }, 
                         {
                          "name":"targetMap",
