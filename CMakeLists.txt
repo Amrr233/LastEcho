@@ -25,7 +25,9 @@ add_executable(LastEcho
         src/XPbar.cpp
         src/XPBar.h
         src/inventory.cpp
-        src/inventory.h     # ويفضل تضيف الهيدر كمان للتنظيم
+        src/inventory.h
+        src/world.h
+        # ويفضل تضيف الهيدر كمان للتنظيم
 )
 
 target_include_directories(LastEcho PRIVATE
