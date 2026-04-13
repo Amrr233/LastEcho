@@ -24,6 +24,10 @@ AudioManager audio;
 GameMap      myMap;
 Game         gameLogic;
 inventory    inventory;
+// Fade System Variables
+float fadeAlpha = 255.0f; // بنبدأ بـ 255 عشان أول ماب تفتح بسواد بيختفي
+bool isFading = true;    // هل إحنا في حالة التلاشي دلوقتي؟
+float fadeSpeed = 180.0f; // سرعة السواد (ممكن تزودها أو تقللها)
 
 int main() {
     // 1. إنشاء النافذة
@@ -97,8 +101,9 @@ int main() {
                             // 3. استخدم المتغيرات المؤقتة اللي خزناها من الـ JSON بتاع الـ outside
                             player.pos.x = nextX * myMap.tileSize;
                             player.pos.y = nextY * myMap.tileSize;
-
                             player.sprite.setPosition(player.pos);
+                            fadeAlpha = 255.0f; // رجع السواد كامل
+                            isFading = true;    // فعل الـ Fade عشان يبدأ يفتح ببطء
 
                             std::cout << "[Fixed]: Moved to " << nextMap << " at " << player.pos.x << "," << player.pos.y << std::endl;
                             break;
@@ -106,6 +111,14 @@ int main() {
                     }
                 }
                 // ========================================================
+            }
+        }
+        // تحديث قيمة الـ Fade
+        if (isFading) {
+            fadeAlpha -= fadeSpeed * gState.deltaTime;
+            if (fadeAlpha <= 0) {
+                fadeAlpha = 0;
+                isFading = false;
             }
         }
 
@@ -141,7 +154,14 @@ int main() {
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+        if (fadeAlpha > 0) {
+            sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
+            fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
 
+            // تأكد إننا بنرسم على الـ Default View عشان يغطي الشاشة الثابتة مش الكاميرا المتحركة
+            window.setView(window.getDefaultView());
+            window.draw(fadeOverlay);
+        }
         window.display();
     }
 
