@@ -177,3 +177,33 @@ void drawMap(sf::RenderWindow& window, const GameMap& map) {
         }
     }
 }
+
+bool mapIsWalkable(const GameMap& map, float x, float y) {
+    int tileX = (int)x / map.tileSize;
+    int tileY = (int)y / map.tileSize;
+
+    // Out of bounds
+    if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) {
+        return false;
+    }
+
+    // Find "ground" layer بالتحديد
+    for (const auto& layer : map.layers) {
+        if (layer.name == "ground") {  // ← شيك الـ ground layer بس
+            int index = tileY * map.width + tileX;
+            if (index >= 0 && index < (int)layer.data.size()) {
+                int gid = layer.data[index];
+                return gid != 0;  // non-zero = ground tile, 0 = empty/not walkable
+            }
+        }
+    }
+
+    return false;  // Default not walkable
+}
+
+bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds) {
+    return !mapIsWalkable(map, playerBounds.left, playerBounds.top) ||
+           !mapIsWalkable(map, playerBounds.left + playerBounds.width, playerBounds.top) ||
+           !mapIsWalkable(map, playerBounds.left, playerBounds.top + playerBounds.height) ||
+           !mapIsWalkable(map, playerBounds.left + playerBounds.width, playerBounds.top + playerBounds.height);
+}

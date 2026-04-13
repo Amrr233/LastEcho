@@ -241,6 +241,33 @@
                  "width":45.7709,
                  "x":508.928791486068,
                  "y":550.340556656347
+                }, 
+                {
+                 "height":29.4241486068112,
+                 "id":4,
+                 "name":"toSecur",
+                 "properties":[
+                        {
+                         "name":"spawnX",
+                         "type":"float",
+                         "value":10
+                        }, 
+                        {
+                         "name":"spawnY",
+                         "type":"float",
+                         "value":20
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"secur"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":38.1424148606811,
+                 "x":510.018575851393,
+                 "y":784.643962848297
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -249,7 +276,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":4,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

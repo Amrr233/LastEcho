@@ -51,4 +51,10 @@ View updateMapView(View& currentView, const GameMap& map, Vector2f playerPos, fl
 inline int getMapWidthPixels(const GameMap& map) { return map.width * map.tileSize; }
 inline int getMapHeightPixels(const GameMap& map) { return map.height * map.tileSize; }
 
+// Check if a position is walkable
+bool mapIsWalkable(const GameMap& map, float x, float y);
+
+// Check collision with player bounds
+bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds);
+
 #endif
