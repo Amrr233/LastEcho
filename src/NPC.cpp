@@ -4,6 +4,7 @@
 #include <iostream>   // للطباعة
 #include "DialogueManager.h" // 🔥 المانجر الجديد
 
+
 // ===============================
 // 🔥 استبدال الـ vector بـ array
 // ===============================
@@ -38,7 +39,10 @@ void initNPCs() {
 
     student.pos = student.waypoints[0];
     student.currentMap = "outside";
-    student.dialogues.push_back({"Hey! I'm touring the campus \negropergkoperkopgkopergkoepergopk.", -1});
+    // 🔥 إضافة الحوار للـ array
+    student.dialogueCount = 0;
+    student.dialogues[student.dialogueCount++] = {"Hey! I'm touring the campus \negropergkoperkopgkopergkoepergopk.", -1};
+
 
     // 🔥 إضافة للـ array
     allNPCs[npcCount++] = student;
@@ -56,8 +60,12 @@ void initNPCs() {
     hadry_static.isStatic = true;
     hadry_static.pos = {800, 800};
     hadry_static.currentMap = "outside";
-    hadry_static.dialogues.push_back({"Welcome to the Faculty.", -1});
+    // 🔥 إضافة الحوار للـ array
+    hadry_static.dialogueCount = 0;
+    hadry_static.dialogues[hadry_static.dialogueCount++] = {"Welcome to the Faculty.", -1};
+
     allNPCs[npcCount++] = hadry_static;
+
     // إعدادات عامة
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
@@ -152,6 +160,7 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
         npc.sprite.setPosition(npc.pos);
     }
 }
+
 // DRAW
 void drawNPCs(sf::RenderWindow& window, std::string currentMapName) {
     for (int i = 0; i < npcCount; i++) {
@@ -159,16 +168,15 @@ void drawNPCs(sf::RenderWindow& window, std::string currentMapName) {
         if (npc.currentMap == currentMapName) {window.draw(npc.sprite);}
     }
 }
+
 // INTERACTION
 void interactWithNPC(sf::Vector2f playerPos) {
-
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
 
         float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
 
         if (dist < 75.0f) {
-
             sf::Vector2f diff = playerPos - npc.pos;
             if (std::abs(diff.x) > std::abs(diff.y)) {
                 npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
@@ -177,11 +185,13 @@ void interactWithNPC(sf::Vector2f playerPos) {
             }
             npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
 
-            // 🔥 الربط مع السيستم الجديد
+            // 🔥 الربط مع المصفوفة الثابتة
             std::string tempLines[MAX_DIALOGUE_LINES];
             int lineCount = 0;
-            for (const auto& d : npc.dialogues) {
-                if (lineCount < MAX_DIALOGUE_LINES) tempLines[lineCount++] = d.text;
+            for (int j = 0; j < npc.dialogueCount; j++) {
+                if (lineCount < MAX_DIALOGUE_LINES) {
+                    tempLines[lineCount++] = npc.dialogues[j].text;
+                }
             }
 
             if (lineCount > 0) dialogueSystem.startDialogue(npc.name, tempLines, lineCount);

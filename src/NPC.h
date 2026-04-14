@@ -3,7 +3,6 @@
 #include "Data.h"
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <vector>
 
 struct Dialogue {
     std::string text;
@@ -21,21 +20,20 @@ struct NPC {
 
     // الحركة
     bool isStatic;         // هل واقف مكانه ولا بيمشي؟
-    // std::vector<sf::Vector2f> waypoints; // نقط الحركة لو مش static
     sf::Vector2f waypoints[MAX_WAYPOINTS];
     int waypointsCount;
     int currentWaypoint = 0;
     float speed = 50.0f;
 
-    // الحوارات
-    std::vector<Dialogue> dialogues;
+    // 🔥 الحوارات كـ Array ثابت
+    Dialogue dialogues[MAX_DIALOGUE_LINES];
+    int dialogueCount = 0; // عداد يدوي بدل الـ vector
     int currentDialogueIdx = 0;
+
     // أنميشن خاص بكل NPC
     float animTimer = 0.f;
     int currentFrame = 0;
 };
-
-//flags in data.h
 
 // الدوال الأساسية
 void initNPCs();
