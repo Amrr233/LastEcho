@@ -10,116 +10,170 @@
 #include "inventory.h"
 #include "XPBar.h"
 #include "NPC.h"
-#include <iostream>
-#include <cmath>
 #include "enemies.h"
 #include "DialogueManager.h"
+
+#include <iostream>
+#include <cmath>
 
 using namespace sf;
 using namespace std;
 
+// =====================
+// GLOBALS
+// =====================
 RenderWindow window;
 GameState    gState;
 Player       player;
 AudioManager audio;
 GameMap      myMap;
 Game         gameLogic;
-inventory    inventory;
+inventory    inventorySystem;
 AppState     last_state;
-bool         gameFlags[100] = { false };
 
+bool gameFlags[100] = { false };
+
+// =====================
+// MAIN
+// =====================
 int main() {
-    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
+
+    window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
+    // =====================
+    // LOAD MAP
+    // =====================
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
         return -1;
     }
 
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
-    initPlayer(Vector2f(spawnX, spawnY));
-    initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
 
+    initPlayer(Vector2f(spawnX, spawnY));
+    initEnemy(0, Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+
+    // =====================
+    // INIT STATES
+    // =====================
     gState.currentState = STATE_MENU;
+
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
-    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
+    inventorySystem.invt_init((float)SCREEN_W, (float)SCREEN_H);
+
     initNPCs();
-    dialogueSystem.init();
+    initDialogue(); // 🔥 بدل dialogueSystem.init()
 
     sf::Clock clock;
     audio.playBGM();
 
+    // =====================
+    // GAME LOOP
+    // =====================
     while (window.isOpen()) {
+
         gState.deltaTime = clock.restart().asSeconds();
-        sf::Event event;
+        Event event;
+
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+
+            if (event.type == Event::Closed)
                 window.close();
 
+            // =====================
+            // MENU
+            // =====================
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
+
+            // =====================
+            // SETTINGS
+            // =====================
             else if (gState.currentState == STATE_SETTINGS) {
                 SettingsUpdate(window, gState.currentState);
             }
+
+            // =====================
+            // GAMEPLAY INPUT
+            // =====================
             else if (gState.currentState == STATE_PLAYING) {
-                if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::E) {
-                        if (dialogueSystem.isDialogueActive()) {
-                            dialogueSystem.nextLine();
-                        } else {
+
+                if (event.type == Event::KeyPressed) {
+
+                    if (event.key.code == Keyboard::E) {
+
+                        // 🔥 لو فيه دايلوج → next line
+                        if (isOpen) {
+                            nextLine();
+                        }
+
+                        // 🔥 لو مفيش → interact
+                        else {
                             interactWithNPC(player.pos);
                         }
                     }
                 }
             }
         }
-        // --- داخل main.cpp ---
-        if (gState.currentState == STATE_PLAYING) {
-            gameLogic.update(window, gState.currentState);
-            dialogueSystem.update(gState.deltaTime);
 
-            // 🔥 الشرط السحري: لو مفيش دايلوج شغال، حدث اللاعب والوحوش
-            if (!dialogueSystem.isDialogueActive()) {
+        // =====================
+        // UPDATE
+        // =====================
+        if (gState.currentState == STATE_PLAYING) {
+
+            gameLogic.update(window, gState.currentState);
+            updateDialogue(gState.deltaTime);
+
+            // 🔥 وقف كل حاجة وقت الديالوج
+            if (!isOpen) {
                 updatePlayer(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
                 updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
             }
-            // لو فيه دايلوج، الـ update مش هيتنده فـ اللاعب هيفضل متثبت مكانه
         }
-        // --- DRAW LOGIC ---
+
+        // =====================
+        // DRAW
+        // =====================
         window.clear();
 
         if (gState.currentState == STATE_MENU) {
             MenuDraw(window, gState.currentState);
         }
+
         else if (gState.currentState == STATE_SETTINGS) {
             settings.draw(window);
         }
+
         else if (gState.currentState == STATE_PLAYING) {
-            // 1. رسم العالم (الكاميرا المتحركة)
+
+            // =====================
+            // WORLD VIEW
+            // =====================
             window.setView(getMapView(myMap));
+
             drawMap(window, myMap);
             drawNPCs(window, myMap.mapName);
             drawEnemy(window);
             drawPlayer(window);
 
-            // 2. رسم الواجهة (الكاميرا الثابتة)
+            // =====================
+            // UI VIEW
+            // =====================
             window.setView(window.getDefaultView());
 
-            // 🔥 هنا اللعبة: لو فيه حوار شغال، اظهر الحوار واخفي الانفنتوري
-            if (dialogueSystem.isDialogueActive()) {
-                dialogueSystem.draw(window);
+            // 🔥 لو دايلوج → اعرضه
+            if (isOpen) {
+                drawDialogue(window);
             }
             else {
-                // لو مفيش حوار، اظهر الانفنتوري عادي
-                inventory.invt_draw(window);
+                inventorySystem.invt_draw(window);
             }
 
-            // باقي الـ UI (الهيلث والـ XP يفضلوا ظاهرين أو اخفيهم بنفس الطريقة لو تحب)
             drawHealthBar(window);
             drawXPBar(window);
             gameLogic.draw(window);
@@ -127,5 +181,6 @@ int main() {
 
         window.display();
     }
+
     return 0;
 }

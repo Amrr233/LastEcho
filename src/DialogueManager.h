@@ -2,45 +2,51 @@
 #define DIALOGUE_MANAGER_H
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <string>
 #include "Data.h"
 
+// =====================
+// GLOBAL VARIABLES
+// =====================
+extern sf::Sprite boxSprite;
+extern sf::Texture boxTexture;
+extern sf::Font font;
+extern sf::Text dialogueText;
+extern sf::Text nameText;
 
-class DialogueManager {
-private:
-    sf::Sprite boxSprite;
-    sf::Texture boxTexture;
-    sf::Font font;
-    sf::Text dialogueText;
-    sf::Text nameText;
+extern sf::SoundBuffer typeBuffer;
+extern sf::Sound typeSound;
 
-    bool isOpen = false;
-    std::string currentMessages[MAX_DIALOGUE_LINES];
-    int totalLines = 0;
-    int currentLineIdx = 0;
+extern bool isOpen;
 
-    // 🔥 متغيرات أنميشن الكتابة
-    std::string fullText;       // الجملة كاملة
-    std::string displayText;    // الجزء اللي هيظهر تدريجياً
-    float typeTimer = 0.f;
-    float typeSpeed = 0.03f;    // سرعة الكتابة
-    int charIdx = 0;
+extern std::string currentMessages[MAX_DIALOGUE_LINES];
+extern int totalLines;
+extern int currentLineIdx;
 
-    void centerText();
+// Typewriter
+extern std::string fullText;
+extern std::string displayText;
+extern float typeTimer;
+extern float typeSpeed;
+extern int charIdx;
 
-public:
-    DialogueManager();
-    void init();
-    void startDialogue(std::string name, std::string messages[], int count);
-    void nextLine();
+// Sound
+extern float soundTimer;
+extern float soundDelay;
 
-    // 🔥 التعديل هنا: إضافة float deltaTime
-    void update(float deltaTime);
+// Auto wrap
+extern float maxWidth;
 
-    void draw(sf::RenderWindow& window);
-    bool isDialogueActive() const { return isOpen; }
-};
-
-extern DialogueManager dialogueSystem;
+// =====================
+// FUNCTIONS
+// =====================
+void initDialogue();
+void startDialogue(std::string name, std::string messages[], int count);
+void nextLine();
+void updateDialogue(float deltaTime);
+void drawDialogue(sf::RenderWindow& window);
+std::string wrapText(const std::string& text);
+void centerText();
 
 #endif

@@ -1,15 +1,44 @@
 #include "DialogueManager.h"
-#include "Data.h"
 #include <iostream>
+#include <sstream>
 
-DialogueManager dialogueSystem;
+// =====================
+// GLOBAL DEFINITIONS
+// =====================
+sf::Sprite boxSprite;
+sf::Texture boxTexture;
+sf::Font font;
+sf::Text dialogueText;
+sf::Text nameText;
 
-DialogueManager::DialogueManager() : isOpen(false), totalLines(0), currentLineIdx(0), charIdx(0), typeTimer(0.f) {}
+sf::SoundBuffer typeBuffer;
+sf::Sound typeSound;
 
-void DialogueManager::init() {
+bool isOpen = false;
+
+std::string currentMessages[MAX_DIALOGUE_LINES];
+int totalLines = 0;
+int currentLineIdx = 0;
+
+std::string fullText;
+std::string displayText;
+float typeTimer = 0.f;
+float typeSpeed = 0.00005f;
+int charIdx = 0;
+
+float soundTimer = 0.f;
+float soundDelay = 0.08f;
+float maxWidth = 500.f;
+
+// =====================
+// INIT
+// =====================
+void initDialogue() {
+
     if (!boxTexture.loadFromFile("assets/gameplay/dialogue.png")) {
-        std::cout << "ERROR: Dialogue Box Texture not found!" << std::endl;
+        std::cout << "ERROR: box texture\n";
     }
+
     boxSprite.setTexture(boxTexture);
     boxSprite.setScale(1.4f, 1.4f);
 
@@ -18,7 +47,7 @@ void DialogueManager::init() {
     boxSprite.setPosition(x, y);
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
-        std::cout << "ERROR: Font not found!" << std::endl;
+        std::cout << "ERROR: font\n";
     }
 
     nameText.setFont(font);
@@ -28,52 +57,93 @@ void DialogueManager::init() {
     dialogueText.setFont(font);
     dialogueText.setCharacterSize(22);
     dialogueText.setFillColor(sf::Color::White);
+
+    // sound
+    if (!typeBuffer.loadFromFile("C:/Users/saged/Downloads/type.mp3")) {
+        std::cout << "ERROR: sound\n";
+    }
+
+    typeSound.setBuffer(typeBuffer);
+    typeSound.setVolume(50.f);
 }
 
-void DialogueManager::centerText() {
-    sf::FloatRect nameBounds = nameText.getLocalBounds();
-    nameText.setOrigin(nameBounds.left, nameBounds.top);
+// =====================
+void centerText() {
     nameText.setPosition(910.f, 485.f);
-
-    sf::FloatRect diagBounds = dialogueText.getLocalBounds();
-    dialogueText.setOrigin(diagBounds.left, diagBounds.top);
     dialogueText.setPosition(300.f, 320.f);
 }
 
-void DialogueManager::startDialogue(std::string name, std::string messages[], int count) {
+// =====================
+// AUTO WRAP
+// =====================
+std::string wrapText(const std::string& text) {
+
+    std::stringstream words(text);
+    std::string word;
+    std::string result;
+    std::string line;
+
+    while (words >> word) {
+
+        std::string test = line + word + " ";
+        dialogueText.setString(test);
+
+        if (dialogueText.getGlobalBounds().width > maxWidth) {
+            result += line + "\n";
+            line = word + " ";
+        } else {
+            line = test;
+        }
+    }
+
+    result += line;
+    return result;
+}
+
+// =====================
+// START DIALOGUE
+// =====================
+void startDialogue(std::string name, std::string messages[], int count) {
+
     isOpen = true;
     nameText.setString(name);
+
     totalLines = (count > MAX_DIALOGUE_LINES) ? MAX_DIALOGUE_LINES : count;
     currentLineIdx = 0;
 
-    for (int i = 0; i < totalLines; i++) {
+    for (int i = 0; i < totalLines; i++)
         currentMessages[i] = messages[i];
-    }
 
-    // تجهيز أول سطر
-    fullText = currentMessages[currentLineIdx];
+    fullText = currentMessages[0];
     displayText = "";
     charIdx = 0;
     typeTimer = 0.f;
+
     dialogueText.setString("");
     centerText();
 }
 
-void DialogueManager::nextLine() {
-    // Skip Animation: لو لسه بيكتب، اظهر الكلام كله فوراً
+// =====================
+// NEXT LINE
+// =====================
+void nextLine() {
+
     if (charIdx < fullText.length()) {
         charIdx = fullText.length();
         displayText = fullText;
-        dialogueText.setString(displayText);
+        dialogueText.setString(wrapText(displayText));
         return;
     }
 
     currentLineIdx++;
+
     if (currentLineIdx < totalLines) {
         fullText = currentMessages[currentLineIdx];
         displayText = "";
         charIdx = 0;
         typeTimer = 0.f;
+        soundTimer = 0.f;
+
         dialogueText.setString("");
         centerText();
     } else {
@@ -81,25 +151,53 @@ void DialogueManager::nextLine() {
     }
 }
 
-// 🔥 تنفيذ الدالة بالـ floatdeltaTime
-void DialogueManager::update(float deltaTime) {
+// =====================
+// UPDATE
+// =====================
+void updateDialogue(float deltaTime) {
     if (!isOpen) return;
 
+    // الشرط الأساسي: لسه فيه حروف بتتكتب
     if (charIdx < fullText.length()) {
+
         typeTimer += deltaTime;
+        soundTimer += deltaTime;
+
         if (typeTimer >= typeSpeed) {
             typeTimer = 0.f;
+
             displayText += fullText[charIdx];
             charIdx++;
-            dialogueText.setString(displayText);
+
+            dialogueText.setString(wrapText(displayText));
+
+            // 🔥 التعديل هنا:
+            // بنشغل الصوت "فقط" لو فيه حرف اتكتب وحالياً الـ Timer جاهز
+            if (soundTimer >= soundDelay) {
+                soundTimer = 0.f;
+                // تأكد إننا لسه مخلصناش الجملة عشان الصوت ميكملش فريم زيادة
+                if (typeSound.getStatus() != sf::Sound::Playing) {
+                    typeSound.play();
+                }
+            }
+        }
+    } else {
+        // 🔥 أمان زيادة: لو النص خلص، صفر التايمر ووقف الصوت فوراً
+        soundTimer = 0.f;
+        if (typeSound.getStatus() == sf::Sound::Playing) {
+            typeSound.stop();
         }
     }
 }
 
-void DialogueManager::draw(sf::RenderWindow& window) {
-    if (isOpen) {
-        window.draw(boxSprite);
-        window.draw(nameText);
-        window.draw(dialogueText);
-    }
+// =====================
+// DRAW
+// =====================
+void drawDialogue(sf::RenderWindow& window) {
+
+    if (!isOpen) return;
+
+    window.draw(boxSprite);
+    window.draw(nameText);
+    window.draw(dialogueText);
 }
