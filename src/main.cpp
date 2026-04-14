@@ -99,16 +99,22 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
             }
             else if (gState.currentState == STATE_PLAYING) {
-                if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::E) {
-                        if (dialogueSystem.isDialogueActive()) {
-                            dialogueSystem.nextLine();
-                        } else {
-                            interactWithNPC(player.pos);
-                        }
-                    }
-                }
+    if (event.type == sf::Event::KeyPressed) {
+
+        // 🔥 لو فيه حوار → اسمح بس بـ E
+        if (dialogueSystem.isDialogueActive()) {
+            if (event.key.code == sf::Keyboard::E) {
+                dialogueSystem.nextLine();
             }
+        }
+        else {
+            // 🔥 مفيش حوار → كل الانبوت شغال
+            if (event.key.code == sf::Keyboard::E) {
+                interactWithNPC(player.pos);
+            }
+        }
+    }
+}
         }
 
         // --- UPDATE LOGIC ---
@@ -124,9 +130,10 @@ int main() {
 
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
+            dialogueSystem.update(gState.deltaTime);
             inventory.invt_update(window, gState.currentState);
 
-            if (!gameLogic.isPaused) {
+            if (!gameLogic.isPaused&& !dialogueSystem.isDialogueActive()) {
                 // ════════════════════════════════════════════════════════════════
                 // CHANGE 3: Pass world to updatePlayer for collision
                 // ════════════════════════════════════════════════════════════════
