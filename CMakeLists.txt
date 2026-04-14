@@ -29,7 +29,9 @@ add_executable(LastEcho
         src/NPC.h
         src/NPC.cpp
         src/enemies.cpp
-        src/enemies.h     # ويفضل تضيف الهيدر كمان للتنظيم
+        src/enemies.h
+        src/DialogueManager.h
+        src/DialogueManager.cpp     # ويفضل تضيف الهيدر كمان للتنظيم
 )
 
 target_include_directories(LastEcho PRIVATE
