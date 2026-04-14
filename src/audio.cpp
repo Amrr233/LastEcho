@@ -3,7 +3,7 @@
 AudioManager::AudioManager() {
     if (bgm.openFromFile("assets/audio/BGM.mpeg")) { // أتأكد إن اسم التراك صح عندك
         bgm.setLoop(true);
-        bgm.setVolume(50.f);
+        bgm.setVolume(5.f);
     }
 }
 
