@@ -19,9 +19,14 @@ private:
     int totalLines = 0;
     int currentLineIdx = 0;
 
-    // 🔥 دالة السنترة
-    void centerText();
+    // 🔥 متغيرات أنميشن الكتابة
+    std::string fullText;       // الجملة كاملة
+    std::string displayText;    // الجزء اللي هيظهر تدريجياً
+    float typeTimer = 0.f;
+    float typeSpeed = 0.03f;    // سرعة الكتابة
+    int charIdx = 0 ;
 
+    void centerText();
 public:
     DialogueManager();
     void init();
