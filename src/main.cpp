@@ -12,11 +12,10 @@
 #include "inventory.h"
 #include "XPBar.h"
 #include "NPC.h"
-#include "enemies.h"
-#include "DialogueManager.h"
-
 #include <iostream>
 #include <cmath>
+#include "enemies.h"
+#include "DialogueManager.h"
 
 using namespace sf;
 using namespace std;
@@ -31,8 +30,9 @@ AudioManager audio;
 // GameMap      myMap;        ← REMOVE (old, single map)
 World        world;           // ← ADD (new, all maps)
 Game         gameLogic;
-inventory    inventorySystem;
+inventory    inventory;
 AppState     last_state;
+bool         gameFlags[100] = { false };
 
 // Fade System Variables
 float fadeAlpha = 255.0f;
@@ -40,8 +40,7 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 
 int main() {
-
-    window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
+    window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
     // ════════════════════════════════════════════════════════════════
@@ -71,21 +70,13 @@ int main() {
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
 
-    initPlayer(Vector2f(spawnX, spawnY));
-    initEnemy(0, Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
-
-    // =====================
-    // INIT STATES
-    // =====================
     gState.currentState = STATE_MENU;
-
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
-    inventorySystem.invt_init((float)SCREEN_W, (float)SCREEN_H);
-
+    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
     initNPCs();
-    initDialogue(); // 🔥 بدل dialogueSystem.init()
+    dialogueSystem.init();
 
     Clock clock;
     audio.playBGM();
@@ -95,45 +86,24 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
-
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
         while (window.pollEvent(event)) {
-
-            if (event.type == Event::Closed)
+            if (event.type == sf::Event::Closed)
                 window.close();
-
-            // =====================
-            // MENU
-            // =====================
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
-
-            // =====================
-            // SETTINGS
-            // =====================
             else if (gState.currentState == STATE_SETTINGS) {
                 SettingsUpdate(window, gState.currentState);
             }
-
-            // =====================
-            // GAMEPLAY INPUT
-            // =====================
             else if (gState.currentState == STATE_PLAYING) {
-
-                if (event.type == Event::KeyPressed) {
-
-                    if (event.key.code == Keyboard::E) {
-
-                        // 🔥 لو فيه دايلوج → next line
-                        if (isOpen) {
-                            nextLine();
-                        }
-
-                        // 🔥 لو مفيش → interact
-                        else {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::E) {
+                        if (dialogueSystem.isDialogueActive()) {
+                            dialogueSystem.nextLine();
+                        } else {
                             interactWithNPC(player.pos);
                         }
                     }
@@ -204,19 +174,15 @@ int main() {
             }
         }
 
-        // =====================
-        // DRAW
-        // =====================
+        // --- DRAW LOGIC ---
         window.clear();
 
         if (gState.currentState == STATE_MENU) {
             MenuDraw(window, gState.currentState);
         }
-
         else if (gState.currentState == STATE_SETTINGS) {
             settings.draw(window);
         }
-
         else if (gState.currentState == STATE_PLAYING) {
             // ════════════════════════════════════════════════════════════════
             // CHANGE 5: Draw current map (pointer dereference)
