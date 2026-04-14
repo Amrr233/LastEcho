@@ -7,13 +7,11 @@
 using namespace sf;
 
 extern Player player;
-extern GameMap myMap;
-
 static Sprite playerSprite;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
-    player.speed = 140.f;
+    player.speed = 240.f;
     player.facing = SOUTH;
     player.currentFrame = 0;
     player.animationTimer = 0.f;
@@ -44,7 +42,12 @@ void initPlayer(Vector2f startPos) {
     playerSprite.setOrigin(24.f, 24.f);
 }
 
-void updatePlayer(float dt) {
+void updatePlayer(float dt, World& world) {
+
+    GameMap* currentMapPtr = worldGetCurrentMap(world);
+    if (!currentMapPtr) return;
+    GameMap& myMap = *currentMapPtr;
+
     Vector2f velocity(0.f, 0.f);
 
     // 1. الحركة مسموحة فقط لو مش بنضرب أو نتوجع

@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Data.h"
+#include "world.h"
+
 
 
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
@@ -45,7 +46,7 @@ struct Player {
 // FUNCTION PROTOTYPES
 // ==============================
 void initPlayer(sf::Vector2f startPos);
-void updatePlayer(float dt);
+void updatePlayer(float dt, World& world);  
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();

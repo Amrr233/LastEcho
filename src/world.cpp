@@ -94,7 +94,7 @@ bool worldLoadAllMaps(World& world) {
     }
 
     if (!world.mapLayouts.empty()) {
-        world.currentMapName = world.mapLayouts[0].name;
+        world.currentMapName =  "outside";
         cout << "[SUCCESS] World loaded " << mapCount << " maps. Starting in: "
              << world.currentMapName << endl;
         return true;

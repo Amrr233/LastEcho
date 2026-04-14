@@ -6,6 +6,7 @@
 #include "GameMap.h"
 #include "audio.h"
 #include "Game.h"
+#include "World.h"           // ← ADD THIS (World system)
 #include <iostream>
 #include "healthbar.h"
 #include "inventory.h"
@@ -19,31 +20,53 @@
 using namespace sf;
 using namespace std;
 
+// ==============================
+// GLOBALS
+// ==============================
 RenderWindow window;
 GameState    gState;
 Player       player;
 AudioManager audio;
-GameMap      myMap;
+// GameMap      myMap;        ← REMOVE (old, single map)
+World        world;           // ← ADD (new, all maps)
 Game         gameLogic;
 inventory    inventory;
 AppState     last_state;
 bool         gameFlags[100] = { false };
+
 // Fade System Variables
-float fadeAlpha = 255.0f; // بنبدأ بـ 255 عشان أول ماب تفتح بسواد بيختفي
-bool isFading = true;    // هل إحنا في حالة التلاشي دلوقتي؟
-float fadeSpeed = 180.0f; // سرعة السواد (ممكن تزودها أو تقللها)
+float fadeAlpha = 255.0f;
+bool isFading = true;
+float fadeSpeed = 180.0f;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    // 2. تحميل الماب الافتراضية (البداية)
-    if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+    // ════════════════════════════════════════════════════════════════
+    // CHANGE 1: Load World (all 16 maps) instead of single map
+    // ════════════════════════════════════════════════════════════════
+    // OLD:
+    // if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+    //     return -1;
+    // }
+
+    // NEW:
+    if (!worldLoadAllMaps(world)) {
+        cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
     }
 
-    float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
-    float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
+    GameMap* currentMap = worldGetCurrentMap(world);
+    if (!currentMap) {
+        cout << "CRITICAL ERROR: No current map available!" << endl;
+        return -1;
+    }
+
+    // Spawn coordinates
+    float spawnX = 350;
+    float spawnY = 900 ;
+    // هيعمل سبون قدام السلم
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
 
@@ -87,49 +110,61 @@ int main() {
                 }
             }
         }
+
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            mainView = updateMapView(mainView, myMap, player.pos, gState.deltaTime);
+            // ════════════════════════════════════════════════════════════════
+            // CHANGE 2: Get current map each frame
+            // ════════════════════════════════════════════════════════════════
+            currentMap = worldGetCurrentMap(world);
+            if (!currentMap) {
+                cout << "ERROR: No current map!" << endl;
+                break;
+            }
+
+            mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
-            // tool bar
             inventory.invt_update(window, gState.currentState);
 
             if (!gameLogic.isPaused) {
-                updatePlayer(gState.deltaTime);
-                updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
+                // ════════════════════════════════════════════════════════════════
+                // CHANGE 3: Pass world to updatePlayer for collision
+                // ════════════════════════════════════════════════════════════════
+                updatePlayer(gState.deltaTime, world);  // ← world parameter added
+
+                // NPC update - uses current map name from World
+                updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
+
                 updateEnemies(gState.deltaTime);
-                // ========================================================
-                // سيستم الانتقال بين المابس وحركات وبركات
-                for (auto& p : myMap.portals) {
-                    // هنعمل مربع يدوي للاعب بناءً على مكانه الحالي ومقاسه (48x48)
+
+                // ════════════════════════════════════════════════════════════════
+                // CHANGE 4: Portal system - use worldSetCurrentMap()
+                // ════════════════════════════════════════════════════════════════
+                for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
 
-                    // بنتشيك هل مربع اللاعب بيخبط في مربع البوابة
                     if (playerBounds.intersects(p.bounds)) {
-                        // 1. خزن الإحداثيات والمسار في متغيرات مؤقتة الأول
-                        string nextMap = p.targetMap;
-                        float nextX = p.spawnPos.x;
-                        float nextY = p.spawnPos.y;
+                        // NEW: Use World system for map switching
+                        worldSetCurrentMap(world, p.targetMap);
+                        currentMap = worldGetCurrentMap(world);
 
-                        string fullPath = "assets/maps/" + nextMap + "/" + nextMap + ".json";
+                        // Teleport player to spawn position
+                        player.pos.x = p.spawnPos.x * currentMap->tileSize;
+                        player.pos.y = p.spawnPos.y * currentMap->tileSize;
+                        player.sprite.setPosition(player.pos);
 
-                        // 2. حمل الماب الجديدة
-                        if (loadMapFromJSON(myMap, fullPath)) {
-                            // 3. استخدم المتغيرات المؤقتة اللي خزناها من الـ JSON بتاع الـ outside
-                            player.pos.x = nextX * myMap.tileSize;
-                            player.pos.y = nextY * myMap.tileSize;
-                            player.sprite.setPosition(player.pos);
-                            fadeAlpha = 255.0f; // رجع السواد كامل
-                            isFading = true;    // فعل الـ Fade عشان يبدأ يفتح ببطء
+                        // Fade effect
+                        fadeAlpha = 255.0f;
+                        isFading = true;
 
-                            std::cout << "[Fixed]: Moved to " << nextMap << " at " << player.pos.x << "," << player.pos.y << std::endl;
-                            break;
-                        }
+                        std::cout << "[PORTAL] Moved to " << p.targetMap
+                                  << " at " << player.pos.x << "," << player.pos.y << std::endl;
+                        break;
                     }
                 }
-                // ========================================================
             }
         }
+
         // تحديث قيمة الـ Fade
         if (isFading) {
             fadeAlpha -= fadeSpeed * gState.deltaTime;
@@ -149,35 +184,36 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // تظبيط الكاميرا على الماب الجديدة
+            // ════════════════════════════════════════════════════════════════
+            // CHANGE 5: Draw current map (pointer dereference)
+            // ════════════════════════════════════════════════════════════════
             window.setView(mainView);
-            drawMap(window, myMap);
-            drawNPCs(window, myMap.mapName);
+            drawMap(window, *currentMap);  // ← Dereference pointer
+
+            // Draw NPCs - uses current map name from World
+            drawNPCs(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
+
             // رسم مربعات البوابات للتأكد من مكانها (Debug)
-            for (auto& p : myMap.portals) {
+            for (auto& p : currentMap->portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
                 debugRect.setPosition(p.bounds.left, p.bounds.top);
-                debugRect.setFillColor(sf::Color(255, 0, 0, 100));
+                debugRect.setFillColor(Color(0, 0, 0, 75));
                 window.draw(debugRect);
             }
 
-            // 2. رسم الواجهة (الكاميرا الثابتة)
+            // عودة للـ View الافتراضية لرسم الـ UI
             window.setView(window.getDefaultView());
 
-            // 🔥 هنا اللعبة: لو فيه حوار شغال، اظهر الحوار واخفي الانفنتوري
+            // حوار أم انفنتوري
             if (dialogueSystem.isDialogueActive()) {
                 dialogueSystem.draw(window);
             }
             else {
-                // لو مفيش حوار، اظهر الانفنتوري عادي
                 inventory.invt_draw(window);
             }
 
-            // باقي الـ UI (الهيلث والـ XP يفضلوا ظاهرين أو اخفيهم بنفس الطريقة لو تحب)
-            // العودة للـ View الافتراضية لرسم الـ UI فوق الماب
-            inventory.invt_draw(window);
             drawHealthBar(window);
             drawXPBar(window);
             gameLogic.draw(window);
@@ -185,15 +221,16 @@ int main() {
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+
         if (fadeAlpha > 0) {
             sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
             fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
-
-            // تأكد إننا بنرسم على الـ Default View عشان يغطي الشاشة الثابتة مش الكاميرا المتحركة
             window.setView(window.getDefaultView());
             window.draw(fadeOverlay);
         }
+
         window.display();
     }
+
     return 0;
 }
