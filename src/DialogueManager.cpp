@@ -4,10 +4,10 @@
 
 DialogueManager dialogueSystem;
 
-DialogueManager::DialogueManager() : isOpen(false), totalLines(0), currentLineIdx(0), charIdx(0), typeTimer(0.f) {}
+DialogueManager::DialogueManager() : isOpen(false), totalLines(0), currentLineIdx(0) {}
 
 void DialogueManager::init() {
-    if (!boxTexture.loadFromFile("assets/gameplay/dialogue.png")) {
+    if (!boxTexture.loadFromFile("C:/Users/saged/Downloads/dialogue9.png")) {
         std::cout << "ERROR: Dialogue Box Texture not found!" << std::endl;
     }
     boxSprite.setTexture(boxTexture);
@@ -30,14 +30,18 @@ void DialogueManager::init() {
     dialogueText.setFillColor(sf::Color::White);
 }
 
+// 🔥 التعديل هنا: تثبيت أول حرف (Left Alignment)
 void DialogueManager::centerText() {
+    // 1. تثبيت الاسم من الشمال
+    // بنخلي الـ Origin هو الركن الشمال (Left & Top) عشان أول حرف م يتحركش
     sf::FloatRect nameBounds = nameText.getLocalBounds();
     nameText.setOrigin(nameBounds.left, nameBounds.top);
-    nameText.setPosition(910.f, 485.f);
+    nameText.setPosition(7000.f, 495.f); // أول حرف هيبدأ دايماً هنا
 
+    // 2. تثبيت الحوار من الشمال
     sf::FloatRect diagBounds = dialogueText.getLocalBounds();
     dialogueText.setOrigin(diagBounds.left, diagBounds.top);
-    dialogueText.setPosition(300.f, 320.f);
+    dialogueText.setPosition(300.f, 340.f); // أول حرف هيبدأ دايماً هنا
 }
 
 void DialogueManager::startDialogue(std::string name, std::string messages[], int count) {
@@ -50,51 +54,24 @@ void DialogueManager::startDialogue(std::string name, std::string messages[], in
         currentMessages[i] = messages[i];
     }
 
-    // تجهيز أول سطر
-    fullText = currentMessages[currentLineIdx];
-    displayText = "";
-    charIdx = 0;
-    typeTimer = 0.f;
-    dialogueText.setString("");
+    dialogueText.setString(currentMessages[currentLineIdx]);
+
+    // 🔥 استدعاء الدالة عشان نثبت مكان أول حرف
     centerText();
 }
 
 void DialogueManager::nextLine() {
-    // Skip Animation: لو لسه بيكتب، اظهر الكلام كله فوراً
-    if (charIdx < fullText.length()) {
-        charIdx = fullText.length();
-        displayText = fullText;
-        dialogueText.setString(displayText);
-        return;
-    }
-
     currentLineIdx++;
     if (currentLineIdx < totalLines) {
-        fullText = currentMessages[currentLineIdx];
-        displayText = "";
-        charIdx = 0;
-        typeTimer = 0.f;
-        dialogueText.setString("");
+        dialogueText.setString(currentMessages[currentLineIdx]);
+        // 🔥 إعادة التثبيت مع كل جملة جديدة
         centerText();
     } else {
         isOpen = false;
     }
 }
 
-// 🔥 تنفيذ الدالة بالـ floatdeltaTime
-void DialogueManager::update(float deltaTime) {
-    if (!isOpen) return;
-
-    if (charIdx < fullText.length()) {
-        typeTimer += deltaTime;
-        if (typeTimer >= typeSpeed) {
-            typeTimer = 0.f;
-            displayText += fullText[charIdx];
-            charIdx++;
-            dialogueText.setString(displayText);
-        }
-    }
-}
+void DialogueManager::update() {}
 
 void DialogueManager::draw(sf::RenderWindow& window) {
     if (isOpen) {

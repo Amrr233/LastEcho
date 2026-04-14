@@ -6,6 +6,8 @@
 #include "GameMap.h"
 #include "audio.h"
 #include "Game.h"
+#include "World.h"           // ← ADD THIS (World system)
+#include <iostream>
 #include "healthbar.h"
 #include "inventory.h"
 #include "XPBar.h"
@@ -18,26 +20,53 @@
 using namespace sf;
 using namespace std;
 
+// ==============================
+// GLOBALS
+// ==============================
 RenderWindow window;
 GameState    gState;
 Player       player;
 AudioManager audio;
-GameMap      myMap;
+// GameMap      myMap;        ← REMOVE (old, single map)
+World        world;           // ← ADD (new, all maps)
 Game         gameLogic;
 inventory    inventory;
 AppState     last_state;
 bool         gameFlags[100] = { false };
 
+// Fade System Variables
+float fadeAlpha = 255.0f;
+bool isFading = true;
+float fadeSpeed = 180.0f;
+
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+    // ════════════════════════════════════════════════════════════════
+    // CHANGE 1: Load World (all 16 maps) instead of single map
+    // ════════════════════════════════════════════════════════════════
+    // OLD:
+    // if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+    //     return -1;
+    // }
+
+    // NEW:
+    if (!worldLoadAllMaps(world)) {
+        cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
     }
 
-    float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
-    float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
+    GameMap* currentMap = worldGetCurrentMap(world);
+    if (!currentMap) {
+        cout << "CRITICAL ERROR: No current map available!" << endl;
+        return -1;
+    }
+
+    // Spawn coordinates
+    float spawnX = 350;
+    float spawnY = 900 ;
+    // هيعمل سبون قدام السلم
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
 
@@ -49,16 +78,20 @@ int main() {
     initNPCs();
     dialogueSystem.init();
 
-    sf::Clock clock;
+    Clock clock;
     audio.playBGM();
+
+    // تعريف الفيو
+    View mainView;
+    mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
-        sf::Event event;
+
+        Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -77,19 +110,70 @@ int main() {
                 }
             }
         }
-        // --- داخل main.cpp ---
-        if (gState.currentState == STATE_PLAYING) {
-            gameLogic.update(window, gState.currentState);
-            dialogueSystem.update(gState.deltaTime);
 
-            // 🔥 الشرط السحري: لو مفيش دايلوج شغال، حدث اللاعب والوحوش
-            if (!dialogueSystem.isDialogueActive()) {
-                updatePlayer(gState.deltaTime);
-                updateEnemies(gState.deltaTime);
-                updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
+        // --- UPDATE LOGIC ---
+        if (gState.currentState == STATE_PLAYING) {
+            // ════════════════════════════════════════════════════════════════
+            // CHANGE 2: Get current map each frame
+            // ════════════════════════════════════════════════════════════════
+            currentMap = worldGetCurrentMap(world);
+            if (!currentMap) {
+                cout << "ERROR: No current map!" << endl;
+                break;
             }
-            // لو فيه دايلوج، الـ update مش هيتنده فـ اللاعب هيفضل متثبت مكانه
+
+            mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
+            gameLogic.update(window, gState.currentState);
+            inventory.invt_update(window, gState.currentState);
+
+            if (!gameLogic.isPaused) {
+                // ════════════════════════════════════════════════════════════════
+                // CHANGE 3: Pass world to updatePlayer for collision
+                // ════════════════════════════════════════════════════════════════
+                updatePlayer(gState.deltaTime, world);  // ← world parameter added
+
+                // NPC update - uses current map name from World
+                updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
+
+                updateEnemies(gState.deltaTime);
+
+                // ════════════════════════════════════════════════════════════════
+                // CHANGE 4: Portal system - use worldSetCurrentMap()
+                // ════════════════════════════════════════════════════════════════
+                for (auto& p : currentMap->portals) {
+                    sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
+
+                    if (playerBounds.intersects(p.bounds)) {
+                        // NEW: Use World system for map switching
+                        worldSetCurrentMap(world, p.targetMap);
+                        currentMap = worldGetCurrentMap(world);
+
+                        // Teleport player to spawn position
+                        player.pos.x = p.spawnPos.x * currentMap->tileSize;
+                        player.pos.y = p.spawnPos.y * currentMap->tileSize;
+                        player.sprite.setPosition(player.pos);
+
+                        // Fade effect
+                        fadeAlpha = 255.0f;
+                        isFading = true;
+
+                        std::cout << "[PORTAL] Moved to " << p.targetMap
+                                  << " at " << player.pos.x << "," << player.pos.y << std::endl;
+                        break;
+                    }
+                }
+            }
         }
+
+        // تحديث قيمة الـ Fade
+        if (isFading) {
+            fadeAlpha -= fadeSpeed * gState.deltaTime;
+            if (fadeAlpha <= 0) {
+                fadeAlpha = 0;
+                isFading = false;
+            }
+        }
+
         // --- DRAW LOGIC ---
         window.clear();
 
@@ -100,32 +184,53 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // 1. رسم العالم (الكاميرا المتحركة)
-            window.setView(getMapView(myMap));
-            drawMap(window, myMap);
-            drawNPCs(window, myMap.mapName);
+            // ════════════════════════════════════════════════════════════════
+            // CHANGE 5: Draw current map (pointer dereference)
+            // ════════════════════════════════════════════════════════════════
+            window.setView(mainView);
+            drawMap(window, *currentMap);  // ← Dereference pointer
+
+            // Draw NPCs - uses current map name from World
+            drawNPCs(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
 
-            // 2. رسم الواجهة (الكاميرا الثابتة)
+            // رسم مربعات البوابات للتأكد من مكانها (Debug)
+            for (auto& p : currentMap->portals) {
+                sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
+                debugRect.setPosition(p.bounds.left, p.bounds.top);
+                debugRect.setFillColor(Color(0, 0, 0, 75));
+                window.draw(debugRect);
+            }
+
+            // عودة للـ View الافتراضية لرسم الـ UI
             window.setView(window.getDefaultView());
 
-            // 🔥 هنا اللعبة: لو فيه حوار شغال، اظهر الحوار واخفي الانفنتوري
+            // حوار أم انفنتوري
             if (dialogueSystem.isDialogueActive()) {
                 dialogueSystem.draw(window);
             }
             else {
-                // لو مفيش حوار، اظهر الانفنتوري عادي
                 inventory.invt_draw(window);
             }
 
-            // باقي الـ UI (الهيلث والـ XP يفضلوا ظاهرين أو اخفيهم بنفس الطريقة لو تحب)
             drawHealthBar(window);
             drawXPBar(window);
             gameLogic.draw(window);
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+
+        if (fadeAlpha > 0) {
+            sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
+            fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
+            window.setView(window.getDefaultView());
+            window.draw(fadeOverlay);
+        }
+
         window.display();
     }
+
     return 0;
 }

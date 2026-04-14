@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Data.h"
+#include "world.h"
 
 
 
@@ -11,6 +11,7 @@ struct Player {
     sf::Vector2f pos;
     sf::Vector2f velocity;
     float speed;
+    sf::Sprite sprite;
 
     // البيانات الأساسية
     int hp=100, maxHp=100, xp=0, level=1;
@@ -45,7 +46,7 @@ struct Player {
 // FUNCTION PROTOTYPES
 // ==============================
 void initPlayer(sf::Vector2f startPos);
-void updatePlayer(float dt);
+void updatePlayer(float dt, World& world);  
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();

@@ -3,8 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-#include "Data.h"
 
+#define MAX_DIALOGUE_LINES 10
 
 class DialogueManager {
 private:
@@ -32,11 +32,9 @@ public:
     void init();
     void startDialogue(std::string name, std::string messages[], int count);
     void nextLine();
-
-    // 🔥 التعديل هنا: إضافة float deltaTime
-    void update(float deltaTime);
-
+    void update(); // لو مش محتاجها سيبها فاضية
     void draw(sf::RenderWindow& window);
+
     bool isDialogueActive() const { return isOpen; }
 };
 

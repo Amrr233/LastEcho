@@ -16,7 +16,6 @@ constexpr int MAX_NPCS    = 20;
 constexpr int MAX_ITEMS   = 16;
 constexpr int MAX_PORTALS = 8;
 constexpr int MAX_WAYPOINTS = 100;
-constexpr int MAX_DIALOGUE_LINES = 100;
 
 
 // ==============================
@@ -34,7 +33,7 @@ enum AppState {
 };
 
 
-
+//
 // ==============================
 // STRUCTS
 // ==============================
