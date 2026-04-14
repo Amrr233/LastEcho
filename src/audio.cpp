@@ -8,7 +8,7 @@ AudioManager::AudioManager() {
 }
 
 void AudioManager::playBGM() {
-    bgm.play();
+    //bgm.play();
 }
 void AudioManager::setVolume(float volume) {
     bgm.setVolume(volume); // بتغير صوت المزيكا للرقم الجديد

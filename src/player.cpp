@@ -30,8 +30,7 @@ void initPlayer(Vector2f startPos) {
     player.attackTextures[WEST].loadFromFile("assets/sprites/player/punching/crosspunching.west.png");
     player.attackTextures[EAST].loadFromFile("assets/sprites/player/punching/crosspunching.east.png");
 
-    playerSprite.setScale(1.8f, 1.8f);
-    playerSprite.setOrigin(34.f, 34.f); // نص الـ 68 عشان الدوران والضرب يظبط
+
 
     player.attack_damage = 10;
     player.cooldown_timer = 0.f;
@@ -40,6 +39,9 @@ void initPlayer(Vector2f startPos) {
     player.hurt_timer = 0.f;
     player.isInvincible = false;
     player.currentState = IDLE;
+    playerSprite.setTexture(player.walkTextures[SOUTH]);
+    playerSprite.setScale(1.7f, 1.7f); // التكبير عشان الحجم يظبط مع الماب
+    playerSprite.setOrigin(24.f, 24.f);
 }
 
 void updatePlayer(float dt) {

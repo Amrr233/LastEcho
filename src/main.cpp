@@ -6,6 +6,7 @@
 #include "GameMap.h"
 #include "audio.h"
 #include "Game.h"
+#include <iostream>
 #include "healthbar.h"
 #include "inventory.h"
 #include "XPBar.h"
@@ -27,11 +28,16 @@ Game         gameLogic;
 inventory    inventory;
 AppState     last_state;
 bool         gameFlags[100] = { false };
+// Fade System Variables
+float fadeAlpha = 255.0f; // بنبدأ بـ 255 عشان أول ماب تفتح بسواد بيختفي
+bool isFading = true;    // هل إحنا في حالة التلاشي دلوقتي؟
+float fadeSpeed = 180.0f; // سرعة السواد (ممكن تزودها أو تقللها)
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
+    // 2. تحميل الماب الافتراضية (البداية)
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
         return -1;
     }
@@ -49,16 +55,20 @@ int main() {
     initNPCs();
     dialogueSystem.init();
 
-    sf::Clock clock;
+    Clock clock;
     audio.playBGM();
+
+    // تعريف الفيو
+    View mainView;
+    mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
-        sf::Event event;
+
+        Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -77,15 +87,55 @@ int main() {
                 }
             }
         }
-
+        // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
+            mainView = updateMapView(mainView, myMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
+            // tool bar
             inventory.invt_update(window, gState.currentState);
 
             if (!gameLogic.isPaused) {
                 updatePlayer(gState.deltaTime);
                 updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
                 updateEnemies(gState.deltaTime);
+                // ========================================================
+                // سيستم الانتقال بين المابس وحركات وبركات
+                for (auto& p : myMap.portals) {
+                    // هنعمل مربع يدوي للاعب بناءً على مكانه الحالي ومقاسه (48x48)
+                    sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
+
+                    // بنتشيك هل مربع اللاعب بيخبط في مربع البوابة
+                    if (playerBounds.intersects(p.bounds)) {
+                        // 1. خزن الإحداثيات والمسار في متغيرات مؤقتة الأول
+                        string nextMap = p.targetMap;
+                        float nextX = p.spawnPos.x;
+                        float nextY = p.spawnPos.y;
+
+                        string fullPath = "assets/maps/" + nextMap + "/" + nextMap + ".json";
+
+                        // 2. حمل الماب الجديدة
+                        if (loadMapFromJSON(myMap, fullPath)) {
+                            // 3. استخدم المتغيرات المؤقتة اللي خزناها من الـ JSON بتاع الـ outside
+                            player.pos.x = nextX * myMap.tileSize;
+                            player.pos.y = nextY * myMap.tileSize;
+                            player.sprite.setPosition(player.pos);
+                            fadeAlpha = 255.0f; // رجع السواد كامل
+                            isFading = true;    // فعل الـ Fade عشان يبدأ يفتح ببطء
+
+                            std::cout << "[Fixed]: Moved to " << nextMap << " at " << player.pos.x << "," << player.pos.y << std::endl;
+                            break;
+                        }
+                    }
+                }
+                // ========================================================
+            }
+        }
+        // تحديث قيمة الـ Fade
+        if (isFading) {
+            fadeAlpha -= fadeSpeed * gState.deltaTime;
+            if (fadeAlpha <= 0) {
+                fadeAlpha = 0;
+                isFading = false;
             }
         }
 
@@ -99,12 +149,19 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // 1. رسم العالم (الكاميرا المتحركة)
-            window.setView(getMapView(myMap));
+            // تظبيط الكاميرا على الماب الجديدة
+            window.setView(mainView);
             drawMap(window, myMap);
             drawNPCs(window, myMap.mapName);
             drawEnemy(window);
             drawPlayer(window);
+            // رسم مربعات البوابات للتأكد من مكانها (Debug)
+            for (auto& p : myMap.portals) {
+                sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
+                debugRect.setPosition(p.bounds.left, p.bounds.top);
+                debugRect.setFillColor(sf::Color(255, 0, 0, 100));
+                window.draw(debugRect);
+            }
 
             // 2. رسم الواجهة (الكاميرا الثابتة)
             window.setView(window.getDefaultView());
@@ -119,11 +176,23 @@ int main() {
             }
 
             // باقي الـ UI (الهيلث والـ XP يفضلوا ظاهرين أو اخفيهم بنفس الطريقة لو تحب)
+            // العودة للـ View الافتراضية لرسم الـ UI فوق الماب
+            inventory.invt_draw(window);
             drawHealthBar(window);
             drawXPBar(window);
             gameLogic.draw(window);
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+        if (fadeAlpha > 0) {
+            sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
+            fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
+
+            // تأكد إننا بنرسم على الـ Default View عشان يغطي الشاشة الثابتة مش الكاميرا المتحركة
+            window.setView(window.getDefaultView());
+            window.draw(fadeOverlay);
+        }
         window.display();
     }
     return 0;
