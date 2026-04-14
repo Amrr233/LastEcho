@@ -7,7 +7,7 @@ DialogueManager dialogueSystem;
 DialogueManager::DialogueManager() : isOpen(false), totalLines(0), currentLineIdx(0), charIdx(0), typeTimer(0.f) {}
 
 void DialogueManager::init() {
-    if (!boxTexture.loadFromFile("C:/Users/saged/Downloads/dialogue9.png")) {
+    if (!boxTexture.loadFromFile("assets/gameplay/dialogue.png")) {
         std::cout << "ERROR: Dialogue Box Texture not found!" << std::endl;
     }
     boxSprite.setTexture(boxTexture);
