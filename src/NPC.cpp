@@ -2,6 +2,7 @@
 #include "Data.h"     // بيانات اللعبة
 #include <cmath>      // دوال رياضية
 #include <iostream>   // للطباعة
+#include "DialogueManager.h" // 🔥 المانجر الجديد
 
 // ===============================
 // 🔥 استبدال الـ vector بـ array
@@ -37,7 +38,7 @@ void initNPCs() {
 
     student.pos = student.waypoints[0];
     student.currentMap = "outside";
-    student.dialogues.push_back({"Hey! I'm touring the campus.", -1});
+    student.dialogues.push_back({"Hey! I'm touring the campus \negropergkoperkopgkopergkoepergopk.", -1});
 
     // 🔥 إضافة للـ array
     allNPCs[npcCount++] = student;
@@ -74,20 +75,18 @@ void initNPCs() {
 // UPDATE
 // =====================================
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos) {
+    if (dialogueSystem.isDialogueActive()) return; // 🔥 وقف الحركة وقت الكلام
+
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         if (npc.currentMap != currentMapName) continue;
         if (!npc.isStatic && npc.waypointsCount > 0) {
             sf::Vector2f target = npc.waypoints[npc.currentWaypoint];
             sf::Vector2f moveVec = target - npc.pos;
-            //moveVec.x -> X axes diff
-            //moveVec.y -> Y axes diff
             float distance = std::sqrt(moveVec.x * moveVec.x + moveVec.y * moveVec.y);
             if (distance > 2.0f) {
 
                 sf::Vector2f dir = moveVec / distance;
-                // da normalization 3shan law el distance increased or decreased the moving speed stay constant by converting the direction from an actual distance vector to a unit vector
-
                 sf::Vector2f nextPos = npc.pos + dir * npc.speed * deltaTime;
                 sf::FloatRect npcBounds = npc.sprite.getGlobalBounds();
                 sf::FloatRect playerBounds( //hitbox
@@ -132,7 +131,7 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                     npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
                 }
 
-            } else {npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypointsCount; //لو وصل للبوينت دي يروح للبعدها
+            } else {npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypointsCount;
             }
         }
         else if (npc.isStatic) {
@@ -166,10 +165,7 @@ void interactWithNPC(sf::Vector2f playerPos) {
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
 
-        float dist = std::sqrt(
-            std::pow(npc.pos.x - playerPos.x, 2) +
-            std::pow(npc.pos.y - playerPos.y, 2)
-        );
+        float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
 
         if (dist < 75.0f) {
 
@@ -179,11 +175,16 @@ void interactWithNPC(sf::Vector2f playerPos) {
             } else {
                 npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
             }
-
             npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
 
-            std::cout << npc.name << ": "
-                      << npc.dialogues[0].text << std::endl;
+            // 🔥 الربط مع السيستم الجديد
+            std::string tempLines[MAX_DIALOGUE_LINES];
+            int lineCount = 0;
+            for (const auto& d : npc.dialogues) {
+                if (lineCount < MAX_DIALOGUE_LINES) tempLines[lineCount++] = d.text;
+            }
+
+            if (lineCount > 0) dialogueSystem.startDialogue(npc.name, tempLines, lineCount);
 
             return;
         }

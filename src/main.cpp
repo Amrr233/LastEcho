@@ -13,13 +13,11 @@
 #include <iostream>
 #include <cmath>
 #include "enemies.h"
+#include "DialogueManager.h"
 
 using namespace sf;
 using namespace std;
 
-// ==============================
-// GLOBALS (Definitions)
-// ==============================
 RenderWindow window;
 GameState    gState;
 Player       player;
@@ -27,55 +25,39 @@ AudioManager audio;
 GameMap      myMap;
 Game         gameLogic;
 inventory    inventory;
-AppState    last_state;
+AppState     last_state;
 bool         gameFlags[100] = { false };
 
 int main() {
-    // 1. إنشاء النافذة
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    // 2. تحميل الماب واللاعب
     if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
-        cout << "CRITICAL ERROR: Failed to load map file!" << endl;
         return -1;
     }
 
     float spawnX = (float)(myMap.width * myMap.tileSize) / 2.0f;
     float spawnY = (float)(myMap.height * myMap.tileSize) / 2.0f;
     initPlayer(Vector2f(spawnX, spawnY));
-
-    // مكان العدو قريب منك عشان تشوفه
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
 
-    // 3. إعداد الأنظمة
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
     initNPCs();
+    dialogueSystem.init();
 
     sf::Clock clock;
     audio.playBGM();
 
-    // ==============================
-    // MAIN GAME LOOP
-    // ==============================
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
-
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
-            // تفاعل NPC
-            if (gState.currentState == STATE_PLAYING && event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::E) {
-                    interactWithNPC(player.pos);
-                }
-            }
 
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
@@ -83,9 +65,19 @@ int main() {
             else if (gState.currentState == STATE_SETTINGS) {
                 SettingsUpdate(window, gState.currentState);
             }
+            else if (gState.currentState == STATE_PLAYING) {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::E) {
+                        if (dialogueSystem.isDialogueActive()) {
+                            dialogueSystem.nextLine();
+                        } else {
+                            interactWithNPC(player.pos);
+                        }
+                    }
+                }
+            }
         }
 
-        // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             gameLogic.update(window, gState.currentState);
             inventory.invt_update(window, gState.currentState);
@@ -93,7 +85,7 @@ int main() {
             if (!gameLogic.isPaused) {
                 updatePlayer(gState.deltaTime);
                 updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
-                updateEnemies(gState.deltaTime); // تحديث الأعداء عشان يتحركوا
+                updateEnemies(gState.deltaTime);
             }
         }
 
@@ -107,26 +99,26 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // رسم العالم
+            // 1. رسم العالم (الكاميرا المتحركة)
             window.setView(getMapView(myMap));
             drawMap(window, myMap);
             drawNPCs(window, myMap.mapName);
             drawEnemy(window);
             drawPlayer(window);
 
-            // C. Debug Hitbox (المصلح)
-            if (player.currentState == ATTACKING && player.currentFrame == 3) {
-                sf::FloatRect rect = attackHitBox();
-                sf::RectangleShape debugBox(sf::Vector2f(rect.width, rect.height));
-                debugBox.setPosition(rect.left, rect.top);
-                // التصحيح لـ setFillColor بدل setFillOptions
-                debugBox.setFillColor(sf::Color(255, 0, 0, 120));
-                window.draw(debugBox);
+            // 2. رسم الواجهة (الكاميرا الثابتة)
+            window.setView(window.getDefaultView());
+
+            // 🔥 هنا اللعبة: لو فيه حوار شغال، اظهر الحوار واخفي الانفنتوري
+            if (dialogueSystem.isDialogueActive()) {
+                dialogueSystem.draw(window);
+            }
+            else {
+                // لو مفيش حوار، اظهر الانفنتوري عادي
+                inventory.invt_draw(window);
             }
 
-            // رسم الواجهة
-            window.setView(window.getDefaultView());
-            inventory.invt_draw(window);
+            // باقي الـ UI (الهيلث والـ XP يفضلوا ظاهرين أو اخفيهم بنفس الطريقة لو تحب)
             drawHealthBar(window);
             drawXPBar(window);
             gameLogic.draw(window);
@@ -134,6 +126,5 @@ int main() {
 
         window.display();
     }
-
     return 0;
 }
