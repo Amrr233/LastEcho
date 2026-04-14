@@ -9,6 +9,34 @@ using namespace sf;
 extern Player player;
 static Sprite playerSprite;
 
+// Helper function for collision detection
+bool isColliding(FloatRect rect, GameMap& map) {
+    // بنحول إحداثيات الـ hitbox لإحداثيات تايلات (Tiles)
+    int leftTile   = static_cast<int>(rect.left / map.tileSize);
+    int rightTile  = static_cast<int>((rect.left + rect.width) / map.tileSize);
+    int topTile    = static_cast<int>(rect.top / map.tileSize);
+    int bottomTile = static_cast<int>((rect.top + rect.height) / map.tileSize);
+
+    // بنلف على كل الليرات اللي عندك
+    for (const auto& layer : map.layers) {
+        // بنشيك فقط على الليرات اللي إنت محدد إنها للحوائط أو التصادم
+        // لو لير الأرضية اسمه "Ground" فإحنا مش عاوزين نصطدم بيه
+        if (layer.name == "Ground" || layer.name =="ground" || layer.name=="solid") continue;
+
+        for (int y = topTile; y <= bottomTile; ++y) {
+            for (int x = leftTile; x <= rightTile; ++x) {
+                if (x >= 0 && x < map.width && y >= 0 && y < map.height) {
+                    // هنا بنوصل للداتا الحقيقية من الـ struct بتاعك
+                    if (layer.data[y * map.width + x] != 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
     player.speed = 240.f;
@@ -17,7 +45,6 @@ void initPlayer(Vector2f startPos) {
     player.animationTimer = 0.f;
     player.isMoving = false;
 
-    // تحميل الصور بمسارات صحيحة
     player.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
     player.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
     player.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
@@ -28,8 +55,6 @@ void initPlayer(Vector2f startPos) {
     player.attackTextures[WEST].loadFromFile("assets/sprites/player/punching/crosspunching.west.png");
     player.attackTextures[EAST].loadFromFile("assets/sprites/player/punching/crosspunching.east.png");
 
-
-
     player.attack_damage = 10;
     player.cooldown_timer = 0.f;
     player.cooldown_maxtime = 0.5f;
@@ -38,19 +63,17 @@ void initPlayer(Vector2f startPos) {
     player.isInvincible = false;
     player.currentState = IDLE;
     playerSprite.setTexture(player.walkTextures[SOUTH]);
-    playerSprite.setScale(1.7f, 1.7f); // التكبير عشان الحجم يظبط مع الماب
+    playerSprite.setScale(1.7f, 1.7f);
     playerSprite.setOrigin(24.f, 24.f);
 }
 
 void updatePlayer(float dt, World& world) {
-
     GameMap* currentMapPtr = worldGetCurrentMap(world);
     if (!currentMapPtr) return;
     GameMap& myMap = *currentMapPtr;
 
     Vector2f velocity(0.f, 0.f);
 
-    // 1. الحركة مسموحة فقط لو مش بنضرب أو نتوجع
     if (player.currentState != ATTACKING && player.currentState != HURT) {
         if (Keyboard::isKeyPressed(Keyboard::W)) velocity.y -= 1;
         if (Keyboard::isKeyPressed(Keyboard::S)) velocity.y += 1;
@@ -70,21 +93,41 @@ void updatePlayer(float dt, World& world) {
             player.isMoving = false;
         }
     } else {
-        player.isMoving = false; // لو بيضرب يثبت مكانه
+        player.isMoving = false;
     }
 
-    // 2. تحديث الموقع
-    Vector2f nextPos = player.pos + (velocity * player.speed * dt);
+    // --- COLLISION RESOLUTION ---
+    Vector2f moveStep = velocity * player.speed * dt;
+    float hbWidth = 20.f;
+    float hbHeight = 15.f;
+
+    // 1. Try X movement
+    Vector2f oldPos = player.pos;
+    player.pos.x += moveStep.x;
+    FloatRect hbX(player.pos.x - hbWidth/2 + 20.f, player.pos.y + 41.f, hbWidth, hbHeight);
+    if (isColliding(hbX, myMap)) {
+        player.pos.x = oldPos.x;
+    }
+
+    // 2. Try Y movement
+    player.pos.y += moveStep.y;
+    FloatRect hbY(player.pos.x - hbWidth/2 + 20.f, player.pos.y + 41.f, hbWidth, hbHeight);
+    if (isColliding(hbY, myMap)) {
+        player.pos.y = oldPos.y;
+    }
+
+    // 3. Boundary constraints
     float mapW = (float)(myMap.width * myMap.tileSize);
     float mapH = (float)(myMap.height * myMap.tileSize);
-    if (nextPos.x > 0 && nextPos.x < mapW) player.pos.x = nextPos.x;
-    if (nextPos.y > 0 && nextPos.y < mapH) player.pos.y = nextPos.y;
+    if (player.pos.x < 0) player.pos.x = 0;
+    if (player.pos.x > mapW) player.pos.x = mapW;
+    if (player.pos.y < 0) player.pos.y = 0;
+    if (player.pos.y > mapH) player.pos.y = mapH;
 
-    // 3. معالجة الحالات (الترتيب مهم)
+    // --- REMAINING LOGIC ---
     handlingHurt(dt);
     handlingAttack(dt);
 
-    // 4. منطق الأنيميشن الموحد (تم حل مشكلة التكرار هنا)
     if (player.currentState == ATTACKING) {
         playerSprite.setTexture(player.attackTextures[player.facing]);
     } else {
@@ -100,7 +143,6 @@ void updatePlayer(float dt, World& world) {
         }
     }
 
-    // سطر واحد للكل في الآخر
     playerSprite.setTextureRect(IntRect(player.currentFrame * 68, 0, 68, 68));
 }
 
