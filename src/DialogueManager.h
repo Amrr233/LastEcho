@@ -3,8 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include "Data.h"
 
-#define MAX_DIALOGUE_LINES 10
 
 class DialogueManager {
 private:
@@ -19,7 +19,13 @@ private:
     int totalLines = 0;
     int currentLineIdx = 0;
 
-    // 🔥 دالة السنترة
+    // 🔥 متغيرات أنميشن الكتابة
+    std::string fullText;       // الجملة كاملة
+    std::string displayText;    // الجزء اللي هيظهر تدريجياً
+    float typeTimer = 0.f;
+    float typeSpeed = 0.03f;    // سرعة الكتابة
+    int charIdx = 0;
+
     void centerText();
 
 public:
@@ -27,9 +33,11 @@ public:
     void init();
     void startDialogue(std::string name, std::string messages[], int count);
     void nextLine();
-    void update(); // لو مش محتاجها سيبها فاضية
-    void draw(sf::RenderWindow& window);
 
+    // 🔥 التعديل هنا: إضافة float deltaTime
+    void update(float deltaTime);
+
+    void draw(sf::RenderWindow& window);
     bool isDialogueActive() const { return isOpen; }
 };
 

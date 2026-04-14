@@ -77,18 +77,19 @@ int main() {
                 }
             }
         }
-
+        // --- داخل main.cpp ---
         if (gState.currentState == STATE_PLAYING) {
             gameLogic.update(window, gState.currentState);
-            inventory.invt_update(window, gState.currentState);
+            dialogueSystem.update(gState.deltaTime);
 
-            if (!gameLogic.isPaused) {
+            // 🔥 الشرط السحري: لو مفيش دايلوج شغال، حدث اللاعب والوحوش
+            if (!dialogueSystem.isDialogueActive()) {
                 updatePlayer(gState.deltaTime);
-                updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
                 updateEnemies(gState.deltaTime);
+                updateNPCs(gState.deltaTime, myMap.mapName, player.pos);
             }
+            // لو فيه دايلوج، الـ update مش هيتنده فـ اللاعب هيفضل متثبت مكانه
         }
-
         // --- DRAW LOGIC ---
         window.clear();
 
