@@ -1,0 +1,117 @@
+{
+  "description": "World configuration - all maps with positions in world space",
+  "maps": [
+    {
+      "name": "outside",
+      "worldX": 0,
+      "worldY": 0,
+      "pixelWidth": 960,
+      "pixelHeight": 1120
+    },
+    {
+      "name": "lobby",
+      "worldX": 960,
+      "worldY": 0,
+      "pixelWidth": 1080,
+      "pixelHeight": 954
+    },
+    {
+      "name": "rightPassage",
+      "worldX": 2040,
+      "worldY": 0,
+      "pixelWidth": 752,
+      "pixelHeight": 1056
+    },
+    {
+      "name": "wcm1",
+      "worldX": 2792,
+      "worldY": 0,
+      "pixelWidth": 1404,
+      "pixelHeight": 702
+    },
+    {
+      "name": "wcw",
+      "worldX": 4196,
+      "worldY": 0,
+      "pixelWidth": 1332,
+      "pixelHeight": 720
+    },
+    {
+      "name": "connHall",
+      "worldX": 0,
+      "worldY": 1120,
+      "pixelWidth": 1248,
+      "pixelHeight": 784
+    },
+    {
+      "name": "leftPassage",
+      "worldX": 1248,
+      "worldY": 1120,
+      "pixelWidth": 900,
+      "pixelHeight": 900
+    },
+    {
+      "name": "class7",
+      "worldX": 2148,
+      "worldY": 1120,
+      "pixelWidth": 1024,
+      "pixelHeight": 1056
+    },
+    {
+      "name": "sclab",
+      "worldX": 3172,
+      "worldY": 1120,
+      "pixelWidth": 1200,
+      "pixelHeight": 688
+    },
+    {
+      "name": "wcm2",
+      "worldX": 4372,
+      "worldY": 1120,
+      "pixelWidth": 1404,
+      "pixelHeight": 702
+    },
+    {
+      "name": "hallAfter",
+      "worldX": 0,
+      "worldY": 2020,
+      "pixelWidth": 1200,
+      "pixelHeight": 880
+    },
+    {
+      "name": "vertPassage",
+      "worldX": 1200,
+      "worldY": 2020,
+      "pixelWidth": 630,
+      "pixelHeight": 1026
+    },
+    {
+      "name": "clinic",
+      "worldX": 1830,
+      "worldY": 2020,
+      "pixelWidth": 608,
+      "pixelHeight": 704
+    },
+    {
+      "name": "datacenter",
+      "worldX": 2438,
+      "worldY": 2020,
+      "pixelWidth": 640,
+      "pixelHeight": 704
+    },
+    {
+      "name": "secur",
+      "worldX": 3078,
+      "worldY": 2020,
+      "pixelWidth": 640,
+      "pixelHeight": 672
+    },
+    {
+      "name": "class8",
+      "worldX": 3718,
+      "worldY": 2020,
+      "pixelWidth": 1024,
+      "pixelHeight": 1056
+    }
+  ]
+}

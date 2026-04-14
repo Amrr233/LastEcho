@@ -27,6 +27,7 @@ add_executable(LastEcho
         src/inventory.cpp
         src/inventory.h
         src/world.h
+        src/world.cpp
         # ويفضل تضيف الهيدر كمان للتنظيم
 )
 
