@@ -85,6 +85,14 @@ void updateWeapon(float dt) {
     weapon.weaponShape.setRotation(weapon.weaponRotation);
 }
 
+void weapons::switching(weaponType type) {
+    currentWeapon = type;
+    switch(type) {
+        case WEAPON_FIST:   weaponShape.setSize({8.f, 32.f}); weaponShape.setFillColor(sf::Color::White); weaponShape.setOrigin(4.f, 28.f); break;
+        case WEAPON_BOOK:   weaponShape.setSize({20.f, 20.f}); weaponShape.setFillColor(sf::Color::Blue); weaponShape.setOrigin(10.f, 10.f); break;
+    }
+}
+
 void updatePlayer(float dt, World& world) {
 
     GameMap* currentMapPtr = worldGetCurrentMap(world);

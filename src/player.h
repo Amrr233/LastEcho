@@ -49,6 +49,7 @@ struct weapons {
     //offset from player's pos to player's hand
     sf::Vector2f weaponOffset;
     sf::RectangleShape weaponShape;
+    void switching(weaponType type);
 };
 struct WeaponConfig {
     float width;

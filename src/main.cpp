@@ -108,6 +108,13 @@ int main() {
                             interactWithNPC(player.pos);
                         }
                     }
+                    //switching weapons
+                    if (event.key.code == sf::Keyboard::F) {
+                        weapon.switching(WEAPON_FIST);
+                    }
+                    if (event.key.code == sf::Keyboard::B) {
+                        weapon.switching(WEAPON_BOOK);
+                    }
                 }
             }
         }
