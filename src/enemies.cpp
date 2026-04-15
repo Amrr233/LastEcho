@@ -101,6 +101,10 @@ void checkAttackHits() {
             enemies[i].isInvincible = true;
             enemies[i].hurt_timer = 0.4f;
             if (enemies[i].hp <= 0) enemies[i].isAlive = false;
+        Vector2f pushDir = enemies[i].pos - player.pos;
+        float length = std::sqrt(pushDir.x * pushDir.x + pushDir.y * pushDir.y);
+        pushDir /= length;
+        enemies[i].pos += pushDir * 50.f;
         }
     }
 }

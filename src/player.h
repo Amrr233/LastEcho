@@ -6,6 +6,7 @@
 
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
 enum playerState { IDLE, WALKING  , HURT , ATTACKING , DEAD};
+enum weaponType { WEAPON_FIST , WEAPON_NONE , WEAPON_BOOK , WEAPON_GUITAR};
 
 struct Player {
     sf::Vector2f pos;
@@ -39,7 +40,24 @@ struct Player {
     bool  isInvincible = false;
 };
 
-
+struct weapons {
+    weaponType currentWeapon;
+    sf::Texture weaponTexture;
+    float weaponRotation;
+    float weaponSwingSpeed;
+    float weaponSwingTarget;
+    //offset from player's pos to player's hand
+    sf::Vector2f weaponOffset;
+    sf::RectangleShape weaponShape;
+    void switching(weaponType type);
+};
+struct WeaponConfig {
+    float width;
+    float height;
+    float swingSpeed;
+    float swingTarget;
+    sf::Color color;
+};
 
 
 // ==============================
@@ -50,7 +68,12 @@ void updatePlayer(float dt, World& world);
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
+void initweapon(sf::Vector2f startPos);
+void updateWeapon(float dt);
+void getWeaponOffset ();
 void drawPlayer(sf::RenderWindow& window);
+void drawWeapons(sf::RenderWindow& window);
 
 
 extern Player   player;
+extern weapons weapon;

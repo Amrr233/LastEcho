@@ -38,6 +38,7 @@ void initNPCs() {
     student.dialogues[student.dialogueCount++] = {"This is another long sentence just to test the text wrapping inside the dialogue box width limit system.", -1};
     student.dialogues[student.dialogueCount++] = {"Final line: everything is working fine if you can read this smoothly without overflow.", -1};
 
+
     allNPCs[npcCount++] = student;
 
     // NPC 2: Hadry

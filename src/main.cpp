@@ -63,6 +63,7 @@ int main() {
     // هيعمل سبون قدام السلم
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+    initweapon(Vector2f(spawnX, spawnY));
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -94,23 +95,29 @@ int main() {
             }
             else if (gState.currentState == STATE_PLAYING) {
                 if (event.type == sf::Event::KeyPressed) {
-
-                    // 🔥 لو فيه حوار → اسمح بس بـ E
-                    if (isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
-                        if (event.key.code == sf::Keyboard::E) {
-                            nextLine(); // 🔥 تم التعديل (دالة عادية)
-                        }
-                    }
-                    else {
-                        // 🔥 مفيش حوار → كل الانبوت شغال
-                        if (event.key.code == sf::Keyboard::E) {
+                    if (event.key.code == sf::Keyboard::E) {
+                        if (dialogueSystem.isDialogueActive()) {
+                            dialogueSystem.nextLine();
+                        } else {
                             interactWithNPC(player.pos);
                         }
                     }
+                    //switching weapons
+                    if (event.key.code == sf::Keyboard::F) {
+                        weapon.switching(WEAPON_FIST);
+                    }
+                    if (event.key.code == sf::Keyboard::B) {
+                        weapon.switching(WEAPON_BOOK);
+                    }
+                }
+            }
+            else {
+                // 🔥 مفيش حوار → كل الانبوت شغال
+                if (event.key.code == sf::Keyboard::E) {
+                    interactWithNPC(player.pos);
                 }
             }
         }
-
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             currentMap = worldGetCurrentMap(world);
@@ -129,6 +136,7 @@ int main() {
 
                 // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
+                updateWeapon(gState.deltaTime);
 
                 updateEnemies(gState.deltaTime);
 
@@ -178,6 +186,7 @@ int main() {
             drawNPCs(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
+            drawWeapons(window);
 
             for (auto& p : currentMap->portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
@@ -212,6 +221,5 @@ int main() {
 
         window.display();
     }
-
-    return 0;
+        return 0;
 }
