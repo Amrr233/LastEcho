@@ -117,17 +117,13 @@ int main() {
                     }
                 }
             }
-        }
-        else {
-            // 🔥 مفيش حوار → كل الانبوت شغال
-            if (event.key.code == sf::Keyboard::E) {
-                interactWithNPC(player.pos);
+            else {
+                // 🔥 مفيش حوار → كل الانبوت شغال
+                if (event.key.code == sf::Keyboard::E) {
+                    interactWithNPC(player.pos);
+                }
             }
         }
-    }
-}
-        }
-
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             // ════════════════════════════════════════════════════════════════
@@ -251,6 +247,5 @@ int main() {
 
         window.display();
     }
-
-    return 0;
+        return 0;
 }
