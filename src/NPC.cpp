@@ -37,7 +37,7 @@ void initNPCs() {
     student.waypoints[3]={300, 900};
 
     student.pos = student.waypoints[0];
-    student.currentMap = "outside";
+    student.currentMap = "lobby";
     student.dialogues.push_back({"Hey! I'm touring the campus \negropergkoperkopgkopergkoepergopk.", -1});
 
     // 🔥 إضافة للـ array
