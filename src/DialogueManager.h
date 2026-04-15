@@ -1,45 +1,15 @@
 #ifndef DIALOGUE_MANAGER_H
 #define DIALOGUE_MANAGER_H
-
 #include <SFML/Graphics.hpp>
 #include <string>
 #include "Data.h"
 
-
-class DialogueManager {
-private:
-    sf::Sprite boxSprite;
-    sf::Texture boxTexture;
-    sf::Font font;
-    sf::Text dialogueText;
-    sf::Text nameText;
-
-    bool isOpen = false;
-    std::string currentMessages[MAX_DIALOGUE_LINES];
-    int totalLines = 0;
-    int currentLineIdx = 0;
-
-    // 🔥 متغيرات أنميشن الكتابة
-    std::string fullText;       // الجملة كاملة
-    std::string displayText;    // الجزء اللي هيظهر تدريجياً
-    float typeTimer = 0.f;
-    float typeSpeed = 0.03f;    // سرعة الكتابة
-    int charIdx = 0 ;
-
-    void centerText();
-public:
-    DialogueManager();
-    void init();
-    void startDialogue(std::string name, std::string messages[], int count);
-    void nextLine();
-
-    // 🔥 التعديل هنا: إضافة float deltaTime
-    void update(float deltaTime);
-
-    void draw(sf::RenderWindow& window);
-    bool isDialogueActive() const { return isOpen; }
-};
-
-extern DialogueManager dialogueSystem;
+// الدوال الأساسية للنظام
+void initDialogue();
+void startDialogue(std::string name, std::string messages[], int count);
+void nextLine();
+void updateDialogue(float deltaTime);
+void drawDialogue(sf::RenderWindow& window);
+bool isDialogueActive();
 
 #endif

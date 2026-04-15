@@ -46,12 +46,6 @@ int main() {
     // ════════════════════════════════════════════════════════════════
     // CHANGE 1: Load World (all 16 maps) instead of single map
     // ════════════════════════════════════════════════════════════════
-    // OLD:
-    // if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
-    //     return -1;
-    // }
-
-    // NEW:
     if (!worldLoadAllMaps(world)) {
         cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
@@ -77,7 +71,7 @@ int main() {
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
     initNPCs();
-    dialogueSystem.init();
+    initDialogue(); // 🔥 تم التعديل (دالة عادية)
 
     Clock clock;
     audio.playBGM();
@@ -126,9 +120,6 @@ int main() {
         }
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            // ════════════════════════════════════════════════════════════════
-            // CHANGE 2: Get current map each frame
-            // ════════════════════════════════════════════════════════════════
             currentMap = worldGetCurrentMap(world);
             if (!currentMap) {
                 cout << "ERROR: No current map!" << endl;
@@ -137,14 +128,11 @@ int main() {
 
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
-            dialogueSystem.update(gState.deltaTime);
+            updateDialogue(gState.deltaTime); // 🔥 تم التعديل (دالة عادية)
             inventory.invt_update(window, gState.currentState);
 
-            if (!gameLogic.isPaused&& !dialogueSystem.isDialogueActive()) {
-                // ════════════════════════════════════════════════════════════════
-                // CHANGE 3: Pass world to updatePlayer for collision
-                // ════════════════════════════════════════════════════════════════
-                updatePlayer(gState.deltaTime, world);  // ← world parameter added
+            if (!gameLogic.isPaused && !isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
+                updatePlayer(gState.deltaTime, world);
 
                 // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
@@ -152,23 +140,17 @@ int main() {
 
                 updateEnemies(gState.deltaTime);
 
-                // ════════════════════════════════════════════════════════════════
-                // CHANGE 4: Portal system - use worldSetCurrentMap()
-                // ════════════════════════════════════════════════════════════════
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
 
                     if (playerBounds.intersects(p.bounds)) {
-                        // NEW: Use World system for map switching
                         worldSetCurrentMap(world, p.targetMap);
                         currentMap = worldGetCurrentMap(world);
 
-                        // Teleport player to spawn position
                         player.pos.x = p.spawnPos.x * currentMap->tileSize;
                         player.pos.y = p.spawnPos.y * currentMap->tileSize;
                         player.sprite.setPosition(player.pos);
 
-                        // Fade effect
                         fadeAlpha = 255.0f;
                         isFading = true;
 
@@ -180,7 +162,6 @@ int main() {
             }
         }
 
-        // تحديث قيمة الـ Fade
         if (isFading) {
             fadeAlpha -= fadeSpeed * gState.deltaTime;
             if (fadeAlpha <= 0) {
@@ -199,19 +180,14 @@ int main() {
             settings.draw(window);
         }
         else if (gState.currentState == STATE_PLAYING) {
-            // ════════════════════════════════════════════════════════════════
-            // CHANGE 5: Draw current map (pointer dereference)
-            // ════════════════════════════════════════════════════════════════
             window.setView(mainView);
-            drawMap(window, *currentMap);  // ← Dereference pointer
+            drawMap(window, *currentMap);
 
-            // Draw NPCs - uses current map name from World
             drawNPCs(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
             drawWeapons(window);
 
-            // رسم مربعات البوابات للتأكد من مكانها (Debug)
             for (auto& p : currentMap->portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
                 debugRect.setPosition(p.bounds.left, p.bounds.top);
@@ -219,12 +195,10 @@ int main() {
                 window.draw(debugRect);
             }
 
-            // عودة للـ View الافتراضية لرسم الـ UI
             window.setView(window.getDefaultView());
 
-            // حوار أم انفنتوري
-            if (dialogueSystem.isDialogueActive()) {
-                dialogueSystem.draw(window);
+            if (isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
+                drawDialogue(window); // 🔥 تم التعديل (دالة عادية)
             }
             else {
                 inventory.invt_draw(window);
