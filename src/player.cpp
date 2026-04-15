@@ -7,6 +7,7 @@
 using namespace sf;
 
 extern Player player;
+weapons weapon;
 static Sprite playerSprite;
 
 void initPlayer(Vector2f startPos) {
@@ -40,6 +41,48 @@ void initPlayer(Vector2f startPos) {
     playerSprite.setTexture(player.walkTextures[SOUTH]);
     playerSprite.setScale(1.7f, 1.7f); // التكبير عشان الحجم يظبط مع الماب
     playerSprite.setOrigin(24.f, 24.f);
+}
+void initweapon(Vector2f startPos){
+    weapon.currentWeapon = WEAPON_FIST;
+    weapon.weaponOffset =Vector2f (0.f, 0.f);
+    weapon.weaponRotation =0.f;
+    weapon.weaponSwingSpeed =600.f;
+    weapon.weaponSwingTarget =90.f;
+    // Placeholder weapon shape
+    weapon.weaponShape.setSize(sf::Vector2f(8.f, 32.f));
+    weapon.weaponShape.setFillColor(sf::Color::Red);
+    weapon.weaponShape.setOrigin(28.f, 15.f);
+}
+
+WeaponConfig sword = {15.f, 32.f, 600.f, 90.f, sf::Color::White};
+WeaponConfig book  = {20.f, 20.f, 300.f, 45.f, sf::Color::Blue};
+
+Vector2f getWeaponOffset(Direction dir) {
+    switch (dir) {
+        case SOUTH: return Vector2f(0.f, 10.f);  // Sword is slightly below player center
+        case NORTH: return Vector2f(0.f, -10.f); // Sword is above player center
+        case EAST:  return Vector2f(15.f, 0.f);  // Sword is to the right
+        case WEST:  return Vector2f(-15.f, 0.f);// Sword is to the left
+    }
+    return Vector2f(0.f, 0.f);
+}
+
+void updateWeapon(float dt) {
+    Vector2f offset = getWeaponOffset(player.facing);
+    weapon.weaponShape.setPosition(player.pos.x + offset.x, player.pos.y + offset.y);
+
+    // 2. Swing Logic
+    if (player.currentState == ATTACKING) {
+        weapon.weaponRotation += weapon.weaponSwingSpeed * dt;
+        if (weapon.weaponRotation > weapon.weaponSwingTarget) {
+            weapon.weaponRotation = weapon.weaponSwingTarget;
+        }
+    } else {
+        weapon.weaponRotation = -90.f;
+    }
+
+    // 3. Apply rotation to the shape
+    weapon.weaponShape.setRotation(weapon.weaponRotation);
 }
 
 void updatePlayer(float dt, World& world) {
@@ -158,4 +201,7 @@ sf::FloatRect attackHitBox() {
 void drawPlayer(RenderWindow& window) {
     playerSprite.setPosition(player.pos);
     window.draw(playerSprite);
+}
+void drawWeapons(sf::RenderWindow& window) {
+    window.draw(weapon.weaponShape);
 }
