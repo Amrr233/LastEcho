@@ -69,6 +69,7 @@ int main() {
     // هيعمل سبون قدام السلم
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+    initweapon(Vector2f(spawnX, spawnY));
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -99,12 +100,22 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
             }
             else if (gState.currentState == STATE_PLAYING) {
-    if (event.type == sf::Event::KeyPressed) {
-
-        // 🔥 لو فيه حوار → اسمح بس بـ E
-        if (dialogueSystem.isDialogueActive()) {
-            if (event.key.code == sf::Keyboard::E) {
-                dialogueSystem.nextLine();
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::E) {
+                        if (dialogueSystem.isDialogueActive()) {
+                            dialogueSystem.nextLine();
+                        } else {
+                            interactWithNPC(player.pos);
+                        }
+                    }
+                    //switching weapons
+                    if (event.key.code == sf::Keyboard::F) {
+                        weapon.switching(WEAPON_FIST);
+                    }
+                    if (event.key.code == sf::Keyboard::B) {
+                        weapon.switching(WEAPON_BOOK);
+                    }
+                }
             }
         }
         else {
@@ -141,6 +152,7 @@ int main() {
 
                 // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
+                updateWeapon(gState.deltaTime);
 
                 updateEnemies(gState.deltaTime);
 
@@ -201,6 +213,7 @@ int main() {
             drawNPCs(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
+            drawWeapons(window);
 
             // رسم مربعات البوابات للتأكد من مكانها (Debug)
             for (auto& p : currentMap->portals) {
