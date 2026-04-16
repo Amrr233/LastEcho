@@ -1,167 +1,178 @@
 #include "DialogueManager.h"
 #include "Data.h"
 #include <iostream>
+
 using namespace sf;
 using namespace std;
 
+// =======================
+// GLOBALS
+// =======================
 Sprite boxSprite;
 Texture boxTexture;
+
 Font font;
 Text dialogueText;
 Text nameText;
 
+Texture avatarTexture;
+Sprite avatarSprite;
+
 bool isOpen = false;
 
-// DIALOGUE LINES SYSTEM
-string currentMessages[MAX_DIALOGUE_LINES]; // كل الجمل
-int totalLines = 0;      // عدد الجمل الكلي
-int currentLineIdx = 0;  // الجملة الحالية
+string currentMessages[MAX_DIALOGUE_LINES];
+int totalLines = 0;
+int currentLineIdx = 0;
 
-// TYPEWRITER SYSTEM (حرف حرف)
-string fullText;     // النص الكامل للجملة
-string displayText;   // النص اللي بيظهر تدريجيًا
+string fullText;
+string displayText;
 
-float typeTimer = 0.f; // عداد وقت
-float typeSpeed = 0.03f; // كل قد إيه نضيف حرف
-int charIdx = 0;       // رقم الحرف الحالي
-// TEXT WRAPPING FUNCTION
-// TEXT WRAPPING LIMIT
-float maxWidth = 500.f; // أقصى عرض للسطر داخل الصندوق
-// الفكرة:
-// - نقسم النص لكلمات
-// - نحط كلمة كلمة في سطر
-// - لو السطر طول → ننقل لسطر جديد
+float typeTimer = 0.f;
+float typeSpeed = 0.03f;
+
+int charIdx = 0;
+float maxWidth = 500.f;
+
+
+// =======================
+// FIT SPRITE INSIDE BOX
+// =======================
+void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
+    sf::FloatRect bounds = sprite.getLocalBounds();
+
+    float scaleX = boxSize.x / bounds.width;
+    float scaleY = boxSize.y / bounds.height;
+
+    float scale = std::min(scaleX, scaleY);
+
+    sprite.setScale(scale, scale);
+
+    // center origin
+    bounds = sprite.getLocalBounds();
+    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+}
+
+
+// =======================
+// TEXT WRAP
+// =======================
 string wrapTextSimple(const string& text) {
 
-    string word = "";   // الكلمة الحالية
-    string line = "";   // السطر الحالي
-    string result = ""; // النتيجة النهائية
+    string word = "";
+    string line = "";
+    string result = "";
 
-    // loop على كل حرف في النص
     for (int i = 0; i < text.size(); i++) {
-        // لو الحرف مش مسافة → نبني الكلمة
-        if (text[i] != ' ') {
+
+        if (text[i] != ' ')
             word += text[i];
-        }
-        // لما نوصل لمسافة أو آخر حرف → الكلمة خلصت
+
         if (text[i] == ' ' || i == text.size() - 1) {
-            // نجرب نحط الكلمة في السطر
+
             string testLine = line + word + " ";
-            // نحط النص في SFML عشان نقيس العرض
+
             dialogueText.setString(testLine);
-            // لو السطر أطول من الحد المسموح
+
             if (dialogueText.getGlobalBounds().width > maxWidth) {
-                // ننقل السطر للنتيجة ونبدأ جديد
                 result += line + "\n";
                 line = word + " ";
             }
             else {
-                // نكمل نفس السطر
                 line = testLine;
             }
-            word = ""; // reset للكلمة
+
+            word = "";
         }
     }
+
     return result + line;
 }
 
-// CENTER TEXT (توسيط النص)
+
+// =======================
+// CENTER TEXT
+// =======================
 void centerText() {
 
-    // =========================
-    // NAME TEXT
-    // =========================
-
-    // getLocalBounds():
-    // بترجع حجم النص (width/height)
     FloatRect nameBounds = nameText.getLocalBounds();
-
-    // setOrigin():
-    // بيحدد نقطة الأصل (pivot)
     nameText.setOrigin(nameBounds.left, nameBounds.top);
-
-    // setPosition():
-    // مكان الرسم على الشاشة
     nameText.setPosition(910.f, 485.f);
 
-
-    // =========================
-    // DIALOGUE TEXT
-    // =========================
-
     FloatRect diagBounds = dialogueText.getLocalBounds();
-
     dialogueText.setOrigin(diagBounds.left, diagBounds.top);
-
     dialogueText.setPosition(300.f, 320.f);
 }
 
 
-// ==================================================
-// INIT DIALOGUE SYSTEM
-// ==================================================
+// =======================
+// INIT
+// =======================
 void initDialogue() {
 
-    // تحميل صورة الصندوق
     if (!boxTexture.loadFromFile("assets/gameplay/dialogue.png")) {
         cout << "ERROR: Dialogue Box Texture not found!" << endl;
     }
 
-    // ربط الصورة بالـ sprite
     boxSprite.setTexture(boxTexture);
-
-    // تكبير الصورة
     boxSprite.setScale(1.4f, 1.4f);
 
-    // توسيط الصندوق تحت الشاشة
     float x = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);
     float y = SCREEN_H - boxSprite.getGlobalBounds().height - 20.0f;
 
     boxSprite.setPosition(x, y);
 
 
-    // تحميل الخط
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
         cout << "ERROR: Font not found!" << endl;
     }
 
-    // إعداد اسم NPC
+    if (!avatarTexture.loadFromFile("C:\\Users\\saged's vivobook\\Downloads\\npc1.png")) {
+        cout << "ERROR: NPC Texture not found!" << endl;
+    }
+
+    avatarSprite.setTexture(avatarTexture);
+
+    // 🔥 IMPORTANT: remove fixed scale
+    // avatarSprite.setScale(1.f, 1.f);
+
     nameText.setFont(font);
     nameText.setCharacterSize(26);
     nameText.setFillColor(Color::Black);
 
-    // إعداد نص الحوار
     dialogueText.setFont(font);
     dialogueText.setCharacterSize(22);
     dialogueText.setFillColor(Color::White);
 }
 
 
-// ==================================================
+// =======================
 // START DIALOGUE
-// ==================================================
+// =======================
 void startDialogue(string name, string messages[], int count) {
 
-    isOpen = true; // فتح الديالوج
+    isOpen = true;
+    nameText.setString(name);
 
-    nameText.setString(name); // اسم الـ NPC
+    float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);
+    float boxY = SCREEN_H - boxSprite.getGlobalBounds().height - 20.0f;
 
-    // حماية من overflow
-    totalLines = (count > MAX_DIALOGUE_LINES)
-        ? MAX_DIALOGUE_LINES
-        : count;
+    // avatar position (center of small frame area)
+    avatarSprite.setPosition(boxX + 758.f, boxY + 167.f);
+
+    // 🔥 FIT IMAGE TO FRAME SIZE (change if needed)
+    sf::Vector2f avatarBoxSize(120.f, 120.f);
+    fitSpriteToBox(avatarSprite, avatarBoxSize);
+
+    totalLines = std::min(count, MAX_DIALOGUE_LINES);
 
     currentLineIdx = 0;
 
-    // نسخ الجمل
     for (int i = 0; i < totalLines; i++) {
         currentMessages[i] = messages[i];
     }
 
-    // أول جملة
     fullText = currentMessages[currentLineIdx];
     displayText = "";
-
     charIdx = 0;
     typeTimer = 0.f;
 
@@ -171,12 +182,11 @@ void startDialogue(string name, string messages[], int count) {
 }
 
 
-// ==================================================
+// =======================
 // NEXT LINE
-// ==================================================
+// =======================
 void nextLine() {
 
-    // لو لسه بيكتب → اعرض النص كامل فورًا
     if (charIdx < (int)fullText.length()) {
 
         charIdx = fullText.length();
@@ -186,46 +196,40 @@ void nextLine() {
         return;
     }
 
-    // روح للجملة اللي بعدها
     currentLineIdx++;
 
     if (currentLineIdx < totalLines) {
 
         fullText = currentMessages[currentLineIdx];
-
         displayText = "";
         charIdx = 0;
         typeTimer = 0.f;
 
         dialogueText.setString("");
-
         centerText();
     }
     else {
-        // خلص الحوار
         isOpen = false;
     }
 }
 
 
-// ==================================================
-// UPDATE DIALOGUE (typing effect)
-// ==================================================
+// =======================
+// UPDATE
+// =======================
 void updateDialogue(float deltaTime) {
 
     if (!isOpen) return;
 
-    // لسه في حروف
     if (charIdx < (int)fullText.length()) {
 
         typeTimer += deltaTime;
 
-        // كل typeSpeed نضيف حرف
         if (typeTimer >= typeSpeed) {
 
             typeTimer = 0.f;
 
-            displayText += fullText[charIdx]; // إضافة حرف واحد
+            displayText += fullText[charIdx];
             charIdx++;
 
             dialogueText.setString(wrapTextSimple(displayText));
@@ -234,22 +238,23 @@ void updateDialogue(float deltaTime) {
 }
 
 
-// ==================================================
-// DRAW DIALOGUE
-// ==================================================
+// =======================
+// DRAW
+// =======================
 void drawDialogue(RenderWindow& window) {
 
-    if (isOpen) {
-        window.draw(boxSprite);
-        window.draw(nameText);
-        window.draw(dialogueText);
-    }
+    if (!isOpen) return;
+
+    window.draw(boxSprite);
+    window.draw(nameText);
+    window.draw(dialogueText);
+    window.draw(avatarSprite);
 }
 
 
-// ==================================================
-// CHECK IF DIALOGUE IS ACTIVE
-// ==================================================
+// =======================
+// STATE
+// =======================
 bool isDialogueActive() {
     return isOpen;
 }

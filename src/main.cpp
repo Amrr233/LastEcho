@@ -96,8 +96,8 @@ int main() {
             else if (gState.currentState == STATE_PLAYING) {
                 if (event.type == sf::Event::KeyPressed) {
                     if (event.key.code == sf::Keyboard::E) {
-                        if (dialogueSystem.isDialogueActive()) {
-                            dialogueSystem.nextLine();
+                        if (isDialogueActive()) {
+                            nextLine();
                         } else {
                             interactWithNPC(player.pos);
                         }
