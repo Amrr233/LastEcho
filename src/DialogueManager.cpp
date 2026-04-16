@@ -2,6 +2,7 @@
 #include "Data.h"
 #include <iostream>
 
+
 DialogueManager dialogueSystem;
 
 DialogueManager::DialogueManager() : isOpen(false), totalLines(0), currentLineIdx(0), charIdx(0), typeTimer(0.f) {}

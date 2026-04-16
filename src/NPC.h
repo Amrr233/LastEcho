@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
+#include "world.h"
 
 struct Dialogue {
     std::string text;
@@ -38,9 +39,10 @@ struct NPC {
 //flags in data.h
 
 // الدوال الأساسية
-void initNPCs();
+void initNPCs(World& world);
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos);
-void drawNPCs(sf::RenderWindow& window, std::string currentMapName);
+void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase);
 void interactWithNPC(sf::Vector2f playerPos);
+std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap);
 
 #endif
