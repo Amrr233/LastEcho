@@ -180,43 +180,65 @@ void drawMap(sf::RenderWindow& window, const GameMap& map) {
 }
 
 bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapName) {
-    // لو مش اوتسايد، الماب كلها walkable
-    if (mapName != "outside") return true;
-
     int tileX = (int)x / map.tileSize;
     int tileY = (int)y / map.tileSize;
 
     if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) return false;
-
     int index = tileY * map.width + tileX;
 
-    for (const auto& layer : map.layers) {
-        if (index < 0 || index >= (int)layer.data.size()) continue;
-        int gid = layer.data[index];
-
-        if (gid != 0) {
-            if (layer.name == "Ground") continue;
-            return false; // أي لير تانية في اوتسايد تعتبر حيطة
+    // --- لوجيك الاوتسايد ---
+    if (mapName == "outside") {
+        for (const auto& layer : map.layers) {
+            if (index >= 0 && index < (int)layer.data.size()) {
+                if (layer.data[index] != 0 && layer.name != "Ground") {
+                    return false;
+                }
+            }
         }
+        return true;
     }
+
+    // --- لوجيك اللوبي ---
+    if (mapName == "lobby") {
+        for (const auto& layer : map.layers) {
+            if (index >= 0 && index < (int)layer.data.size()) {
+                if (layer.data[index] != 0 && layer.name != "ground") {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     return true;
 }
 
 bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std::string& mapName) {
-    // الشرط اللي إنت عايزه: لو مش ماب اوتسايد، فكك من الكوليجن
-    if (mapName != "outside") {
-        return false;
-    }
 
-    // الحسابات بتاعتك للهيت بوكس الأحمر (هتتنفذ في اوتسايد بس)
+    // حسابات الهيت بوكس الأحمر بتاعك
     float hbW = playerBounds.width * 0.6f - 42.f;
     float hbH = playerBounds.height * 0.3f - 20.f;
-
     float hbLeft = playerBounds.left + (playerBounds.width - hbW) / 2.f + 2.f;
     float hbTop = playerBounds.top + (playerBounds.height - hbH) - 23.f;
 
-    return !mapIsWalkable(map, hbLeft, hbTop, mapName) ||
-           !mapIsWalkable(map, hbLeft + hbW, hbTop, mapName) ||
-           !mapIsWalkable(map, hbLeft, hbTop + hbH, mapName) ||
-           !mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName);
+    // --- ماب الاوتسايد لوحدها تماماً ---
+    if (mapName == "outside") {
+        if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName)) return true;
+        return false;
+    }
+
+    // --- ماب اللوبي لوحدها تماماً ---
+    if (mapName == "lobby") {
+        if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName)) return true;
+        return false;
+    }
+
+    // أي ماب تانية مش مذكورة فوق، مفيش كوليجن
+    return false;
 }
