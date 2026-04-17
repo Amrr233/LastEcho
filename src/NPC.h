@@ -4,6 +4,8 @@
 #include "Data.h"
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <vector>
+#include "world.h"
 
 struct Dialogue {
     std::string text;
@@ -12,10 +14,14 @@ struct Dialogue {
 
 struct NPC {
     std::string name;
-    sf::Sprite sprite;
-    sf::Texture walkTextures[4];
-    sf::Vector2f pos;
-    std::string currentMap;
+    Sprite sprite;
+    Texture texture;
+    Texture walkTextures[4];
+    float waitTimer = 0.f;      // العداد الحالي
+    float waitTime = 10.f;     // الوقت المطلوب للانتظار (10 ثواني)
+    bool isWaiting = true;     // هل هو حالياً في حالة انتظار؟
+    Vector2f pos;
+    std::string currentMap; // الماب اللي الـ NPC موجود فيها حالياً
 
     bool isStatic;
     sf::Vector2f waypoints[MAX_WAYPOINTS];
@@ -30,9 +36,13 @@ struct NPC {
     int currentFrame = 0;
 };
 
-void initNPCs();
+//flags in data.h
+
+// الدوال الأساسية
+void initNPCs(World& world);
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos);
-void drawNPCs(sf::RenderWindow& window, std::string currentMapName);
+void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase);
 void interactWithNPC(sf::Vector2f playerPos);
+std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap);
 
 #endif

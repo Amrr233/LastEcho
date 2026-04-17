@@ -3,66 +3,60 @@
 #include <cmath>
 #include <iostream>
 #include "DialogueManager.h"
+#include "world.h"
+#include "Phase.h"
 
 NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
 
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
 
-void initNPCs() {
+// =====================================
+// INIT
+// =====================================
+void initNPCs(World& world) {
     npcCount = 0;
 
-    // NPC 1: Student
-    NPC student;
-    student.name = "Student";
-    student.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
-    student.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
-    student.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
-    student.walkTextures[EAST].loadFromFile("assets/sprites/player/walking/walking.east.png");
-    student.isStatic = false;
-    student.speed = 90.f;
-    student.waypointsCount = 4;
-    student.waypoints[0] = {300, 800};
-    student.waypoints[1] = {600, 800};
-    student.waypoints[2] = {600, 900};
-    student.waypoints[3] = {300, 900};
-    student.pos = student.waypoints[0];
-    student.currentMap = "outside";
-    student.dialogueCount = 0;
+    // 1. الصاحب (Friend_NPC)
+    NPC friendNPC;
+    friendNPC.name = "Friend_NPC";
+    friendNPC.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/fares/walking-south.png");
+    friendNPC.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/fares/walking-north.png");
+    friendNPC.walkTextures[WEST].loadFromFile("assets/sprites/npcs/fares/walking-west.png");
+    friendNPC.walkTextures[EAST].loadFromFile("assets/sprites/npcs/fares/walking-east.png");
 
-    // 🔥 Expanded dialogues for testing E + wrapping + pages
-    student.dialogues[student.dialogueCount++] = {"Hey! I'm touring the campus.", -1};
-    student.dialogues[student.dialogueCount++] = {"This place is really huge and full of secrets you can explore.", -1};
-    student.dialogues[student.dialogueCount++] = {"If you keep walking around, you might find hidden areas or NPCs you didn't expect.", -1};
-    student.dialogues[student.dialogueCount++] = {"Also, the dialogue system supports multiple pages like this one, try pressing E!", -1};
-    student.dialogues[student.dialogueCount++] = {"This is another long sentence just to test the text wrapping inside the dialogue box width limit system.", -1};
-    student.dialogues[student.dialogueCount++] = {"Final line: everything is working fine if you can read this smoothly without overflow.", -1};
+    friendNPC.isStatic = false;
+    friendNPC.speed = 90.f;
+    friendNPC.currentMap = "outside";
 
+    // --- إعدادات الانتظار ---
+    friendNPC.waitTimer = 0.f;     // العداد بيبدأ من صفر
+    friendNPC.waitTime = 6.5f;    // هينتظر   ثواني
+    friendNPC.isWaiting = true;   // هيبدأ اللعبة وهو مستني
 
-    allNPCs[npcCount++] = student;
+    friendNPC.waypointsCount = 4;
+    friendNPC.waypoints[0] = {300, 800};
+    friendNPC.waypoints[1] = {600, 800};
+    friendNPC.waypoints[2] = {600, 900};
+    friendNPC.waypoints[3] = {300, 900};
+    friendNPC.pos = friendNPC.waypoints[0];
+    friendNPC.currentWaypoint = 0;
 
-    // NPC 2: Hadry
-    NPC hadry_static;
-    hadry_static.name = "hadry";
-    hadry_static.walkTextures[SOUTH].loadFromFile("assets/sprites/player/walking/walking.south.png");
-    hadry_static.walkTextures[NORTH].loadFromFile("assets/sprites/player/walking/walking.north.png");
-    hadry_static.walkTextures[WEST].loadFromFile("assets/sprites/player/walking/walking.west.png");
-    hadry_static.walkTextures[EAST].loadFromFile("assets/sprites/player/walking/walking.east.png");
-    hadry_static.isStatic = true;
-    hadry_static.pos = {800, 800};
-    hadry_static.currentMap = "outside";
-    hadry_static.dialogueCount = 0;
+    allNPCs[npcCount++] = friendNPC;
 
-    // 🔥 Expanded static NPC dialogue too
-    hadry_static.dialogues[hadry_static.dialogueCount++] = {"Welcome to the Faculty.", -1};
-    hadry_static.dialogues[hadry_static.dialogueCount++] = {"You can interact with multiple NPCs across the map.", -1};
-    hadry_static.dialogues[hadry_static.dialogueCount++] = {"Try pressing E near different characters to test the system.", -1};
-    hadry_static.dialogues[hadry_static.dialogueCount++] = {"This system also supports multi-line wrapping and pagination.", -1};
-    hadry_static.dialogues[hadry_static.dialogueCount++] = {"If this text breaks nicely, your wrapText function is working correctly.", -1};
+    // 2. الأمن (Security_Guard)
+    NPC guard;
+    guard.name = "Security_Guard";
+    guard.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/security/security.png");
+    for(int i=1; i<4; i++) guard.walkTextures[i] = guard.walkTextures[SOUTH];
 
-    allNPCs[npcCount++] = hadry_static;
+    guard.isStatic = true;
+    guard.isWaiting = false; // الأمن مش محتاج ينتظر لأنه ثابت أصلاً
+    guard.pos = {500, 600};
+    guard.currentMap = "outside";
+    allNPCs[npcCount++] = guard;
 
-    // setup sprites
+    // تهيئة السبرايتس
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         npc.sprite.setTexture(npc.walkTextures[SOUTH]);
@@ -74,7 +68,7 @@ void initNPCs() {
 }
 
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos) {
-    if (isDialogueActive()) return;
+    if (dialogueSystem.isDialogueActive()) return;
 
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
@@ -83,8 +77,35 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
         float distToPlayer = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) +
                                         std::pow(npc.pos.y - playerPos.y, 2));
 
+        // --- منطق الـ Moving NPC ---
         if (!npc.isStatic && npc.waypointsCount > 0) {
 
+            // 1. فحص حالة الانتظار أولاً
+            if (npc.isWaiting) {
+                npc.waitTimer += deltaTime;
+
+                // لو اللاعب قرب وهو لسه مستني، يلف يبص عليه بس ميمشيش
+                if (distToPlayer < 80.0f) {
+                    sf::Vector2f diff = playerPos - npc.pos;
+                    if (std::abs(diff.x) > std::abs(diff.y))
+                        npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
+                    else
+                        npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+                } else {
+                    // الوضع الطبيعي وهو واقف (فريم الثبات)
+                    npc.sprite.setTexture(npc.walkTextures[SOUTH]);
+                }
+                npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
+                npc.sprite.setPosition(npc.pos);
+
+                // لو الوقت خلص، ابدأ الحركة
+                if (npc.waitTimer >= npc.waitTime) {
+                    npc.isWaiting = false;
+                }
+                continue; // تخطي باقي كود الحركة طول ما هو مستني
+            }
+
+            // 2. كمل كود الحركة الأصلي بتاعك
             sf::Vector2f target = npc.waypoints[npc.currentWaypoint];
             sf::Vector2f moveVec = target - npc.pos;
             float distance = std::sqrt(moveVec.x * moveVec.x + moveVec.y * moveVec.y);
@@ -112,24 +133,24 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                     npc.animTimer = 0.f;
                     npc.currentFrame = (npc.currentFrame + 1) % 6;
                 }
-
                 npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
             }
             else {
                 npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypointsCount;
+                // ملحوظة: لو عايزه يستنى 10 ثواني عند كل نقطة يوصلها، ضيف السطرين دول هنا:
+                npc.isWaiting = true;
+                npc.waitTimer = 0.f;
             }
         }
+        // --- منطق الـ Static NPC ---
         else if (npc.isStatic) {
-
             if (distToPlayer < 120.0f) {
                 sf::Vector2f diff = playerPos - npc.pos;
-
                 if (std::abs(diff.x) > std::abs(diff.y))
                     npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
                 else
                     npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
-            }
-            else {
+            } else {
                 npc.sprite.setTexture(npc.walkTextures[SOUTH]);
             }
 
@@ -179,4 +200,27 @@ void interactWithNPC(sf::Vector2f playerPos) {
             return;
         }
     }
+}
+
+// =====================================
+// INTERACTION
+// =====================================
+std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
+    for (int i = 0; i < npcCount; i++) {
+        NPC& npc = allNPCs[i];
+        if (npc.currentMap == currentMap) {
+            float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
+            if (dist < 75.0f) {
+                sf::Vector2f diff = playerPos - npc.pos;
+                if (std::abs(diff.x) > std::abs(diff.y))
+                    npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
+                else
+                    npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+
+                npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
+                return npc.name;
+            }
+        }
+    }
+    return "";
 }

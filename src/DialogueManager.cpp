@@ -5,6 +5,8 @@
 using namespace sf;
 using namespace std;
 
+DialogueManager dialogueSystem;
+
 // =======================
 // GLOBALS
 // =======================

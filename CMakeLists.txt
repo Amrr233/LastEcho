@@ -34,6 +34,8 @@ add_executable(LastEcho
         src/DialogueManager.cpp     # ويفضل تضيف الهيدر كمان للتنظيم
         src/world.h
         src/world.cpp
+        src/phase.h
+        src/phase.cpp
         # ويفضل تضيف الهيدر كمان للتنظيم
 
 )

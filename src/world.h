@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include "GameMap.h"
+#include "phase.h"
 
 using namespace sf;
 using namespace std;
@@ -66,6 +67,7 @@ struct World {
 
     // Which map player is in NOW
     string currentMapName;
+    PhaseSystem phaseSys;
 };
 
 // ============================================
