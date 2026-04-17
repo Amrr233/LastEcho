@@ -68,7 +68,7 @@ void initNPCs(World& world) {
 }
 
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos) {
-    if (dialogueSystem.isDialogueActive()) return;
+    if ( isDialogueActive() ) return;
 
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
@@ -161,7 +161,7 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
     }
 }
 
-void drawNPCs(sf::RenderWindow& window, std::string currentMapName) {
+void drawNPCs(sf::RenderWindow& window, std::string currentMapName,int currentPhase) {
     for (int i = 0; i < npcCount; i++) {
         if (allNPCs[i].currentMap == currentMapName)
             window.draw(allNPCs[i].sprite);

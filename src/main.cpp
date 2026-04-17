@@ -83,9 +83,8 @@ int main() {
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
-    initNPCs();
+    initNPCs(world);
     initDialogue(); // 🔥 تم التعديل (دالة عادية)
-    dialogueSystem.init();
 
     Clock clock;
     audio.playBGM();
@@ -109,8 +108,8 @@ int main() {
             }
             else if (gState.currentState == STATE_PLAYING) {
                 if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                    if (dialogueSystem.isDialogueActive()) {
-                        dialogueSystem.nextLine(); // لو فيه حوار، قلب الصفحة
+                    if (isDialogueActive()) {
+                        nextLine(); // لو فيه حوار، قلب الصفحة
                     }
                     else {
                         // ابحث عن NPC قريب (هتستخدم دالة التفاعل بتاعتك)

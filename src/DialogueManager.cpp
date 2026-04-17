@@ -5,7 +5,7 @@
 using namespace sf;
 using namespace std;
 
-DialogueManager dialogueSystem;
+
 
 // =======================
 // GLOBALS
@@ -13,7 +13,7 @@ DialogueManager dialogueSystem;
 Sprite boxSprite;
 Texture boxTexture;
 
-Font font;
+extern Font font;
 Text dialogueText;
 Text nameText;
 

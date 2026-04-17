@@ -24,22 +24,22 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
         if (npcName == "Friend_NPC") {
             if (!(ps.gameFlags[0])) { // لو لسه مخدتش الكارنيه
                 std::string lines[] = {"Oh! Your ID card is here.", "Take it and go to the gate."};
-                dialogueSystem.startDialogue("Friend", lines, 2);
+                startDialogue("Friend", lines, 2);
                 ps.gameFlags[0] = true; // رفعت علم "معايا الكارنيه"
                 ps.allPhases[0].currentQuestIdx = 1;
             } else {
                 std::string lines[] = {"Go! The security is waiting."};
-                dialogueSystem.startDialogue("Friend", lines, 1);
+                startDialogue("Friend", lines, 1);
             }
         }
         else if (npcName == "Security_Guard") {
             if (ps.gameFlags[0]) { // لو معاك الكارنيه
                 std::string lines[] = {"Valid ID. Welcome to FCIS!", "You can enter now."};
-                dialogueSystem.startDialogue("Security", lines, 2);
+                startDialogue("Security", lines, 2);
                 ps.currentPhaseIdx = 1; // انقل لـ Phase 1 (مقابلة عمرو)
             } else {
                 std::string lines[] = {"No ID, No entry!", "Go find your ID first."};
-                dialogueSystem.startDialogue("Security", lines, 2);
+                startDialogue("Security", lines, 2);
             }
         }
     }
