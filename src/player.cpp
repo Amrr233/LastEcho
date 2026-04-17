@@ -9,6 +9,7 @@ using namespace sf;
 extern Player player;
 weapons weapon;
 static Sprite playerSprite;
+static sf::RectangleShape hitboxDebug;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
@@ -41,6 +42,11 @@ void initPlayer(Vector2f startPos) {
     playerSprite.setTexture(player.walkTextures[SOUTH]);
     playerSprite.setScale(1.7f, 1.7f); // التكبير عشان الحجم يظبط مع الماب
     playerSprite.setOrigin(24.f, 24.f);
+
+    //hitbox
+    hitboxDebug.setFillColor(sf::Color(255, 0, 0, 100)); // أحمر شفاف
+    hitboxDebug.setOutlineColor(sf::Color::Red);
+    hitboxDebug.setOutlineThickness(1.f);
 }
 void initweapon(Vector2f startPos){
     weapon.currentWeapon = WEAPON_FIST;
@@ -94,14 +100,13 @@ void weapons::switching(weaponType type) {
 }
 
 void updatePlayer(float dt, World& world) {
-
     GameMap* currentMapPtr = worldGetCurrentMap(world);
     if (!currentMapPtr) return;
     GameMap& myMap = *currentMapPtr;
 
     Vector2f velocity(0.f, 0.f);
 
-    // 1. الحركة مسموحة فقط لو مش بنضرب أو نتوجع
+    // 1. الحركة (نفس كودك الأصلي)
     if (player.currentState != ATTACKING && player.currentState != HURT) {
         if (Keyboard::isKeyPressed(Keyboard::W)) velocity.y -= 1;
         if (Keyboard::isKeyPressed(Keyboard::S)) velocity.y += 1;
@@ -121,21 +126,40 @@ void updatePlayer(float dt, World& world) {
             player.isMoving = false;
         }
     } else {
-        player.isMoving = false; // لو بيضرب يثبت مكانه
+        player.isMoving = false;
     }
 
-    // 2. تحديث الموقع
-    Vector2f nextPos = player.pos + (velocity * player.speed * dt);
+    // 2. تحديث الموقع مع فحص التصادم (ده الجزء اللي بيخلي الصندوق الأحمر يصد)
+    Vector2f movement = velocity * player.speed * dt;
+    Vector2f oldPos = player.pos;
+
+    // جرب تمشي في X
+    player.pos.x += movement.x;
+    playerSprite.setPosition(player.pos);
+    // بيبعت اسم الماب عشان يطبق الكوليجن على outside بس
+    if (mapCheckCollision(myMap, playerSprite.getGlobalBounds(), world.currentMapName)) {
+        player.pos.x = oldPos.x;
+    }
+
+    // جرب تمشي في Y
+    player.pos.y += movement.y;
+    playerSprite.setPosition(player.pos);
+    if (mapCheckCollision(myMap, playerSprite.getGlobalBounds(), world.currentMapName)) {
+        player.pos.y = oldPos.y;
+    }
+
+    // حدود الماب (Clamping)
     float mapW = (float)(myMap.width * myMap.tileSize);
     float mapH = (float)(myMap.height * myMap.tileSize);
-    if (nextPos.x > 0 && nextPos.x < mapW) player.pos.x = nextPos.x;
-    if (nextPos.y > 0 && nextPos.y < mapH) player.pos.y = nextPos.y;
+    if (player.pos.x < 0) player.pos.x = 0;
+    if (player.pos.x > mapW) player.pos.x = mapW;
+    if (player.pos.y < 0) player.pos.y = 0;
+    if (player.pos.y > mapH) player.pos.y = mapH;
 
-    // 3. معالجة الحالات (الترتيب مهم)
+    // 3. الأنيميشن والضرب (نفس كودك)
     handlingHurt(dt);
     handlingAttack(dt);
 
-    // 4. منطق الأنيميشن الموحد (تم حل مشكلة التكرار هنا)
     if (player.currentState == ATTACKING) {
         playerSprite.setTexture(player.attackTextures[player.facing]);
     } else {
@@ -151,10 +175,19 @@ void updatePlayer(float dt, World& world) {
         }
     }
 
-    // سطر واحد للكل في الآخر
     playerSprite.setTextureRect(IntRect(player.currentFrame * 68, 0, 68, 68));
-}
 
+    // 4. تحديث مكان الصندوق الأحمر (عشان يفضل مرسوم صح وأنت بتتحرك)
+    sf::FloatRect bounds = playerSprite.getGlobalBounds();
+    float hbW = bounds.width * 0.6f - 42.f;
+    float hbH = bounds.height * 0.3f - 20.f;
+
+    hitboxDebug.setSize(sf::Vector2f(hbW, hbH));
+    hitboxDebug.setPosition(
+        bounds.left + (bounds.width - hbW) / 2.f + 2.f,
+        bounds.top + (bounds.height - hbH) - 23.f
+    );
+}
 void handlingAttack(float dt) {
     if (player.currentState == ATTACKING) {
         player.animationTimer += dt;
@@ -209,6 +242,7 @@ sf::FloatRect attackHitBox() {
 void drawPlayer(RenderWindow& window) {
     playerSprite.setPosition(player.pos);
     window.draw(playerSprite);
+    window.draw(hitboxDebug);
 }
 void drawWeapons(sf::RenderWindow& window) {
     window.draw(weapon.weaponShape);

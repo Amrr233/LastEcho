@@ -179,32 +179,44 @@ void drawMap(sf::RenderWindow& window, const GameMap& map) {
     }
 }
 
-bool mapIsWalkable(const GameMap& map, float x, float y) {
+bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapName) {
+    // لو مش اوتسايد، الماب كلها walkable
+    if (mapName != "outside") return true;
+
     int tileX = (int)x / map.tileSize;
     int tileY = (int)y / map.tileSize;
 
-    // Out of bounds
-    if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) {
+    if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) return false;
+
+    int index = tileY * map.width + tileX;
+
+    for (const auto& layer : map.layers) {
+        if (index < 0 || index >= (int)layer.data.size()) continue;
+        int gid = layer.data[index];
+
+        if (gid != 0) {
+            if (layer.name == "Ground") continue;
+            return false; // أي لير تانية في اوتسايد تعتبر حيطة
+        }
+    }
+    return true;
+}
+
+bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std::string& mapName) {
+    // الشرط اللي إنت عايزه: لو مش ماب اوتسايد، فكك من الكوليجن
+    if (mapName != "outside") {
         return false;
     }
 
-    // Find "ground" layer بالتحديد
-    for (const auto& layer : map.layers) {
-        if (layer.name == "ground") {  // ← شيك الـ ground layer بس
-            int index = tileY * map.width + tileX;
-            if (index >= 0 && index < (int)layer.data.size()) {
-                int gid = layer.data[index];
-                return gid != 0;  // non-zero = ground tile, 0 = empty/not walkable
-            }
-        }
-    }
+    // الحسابات بتاعتك للهيت بوكس الأحمر (هتتنفذ في اوتسايد بس)
+    float hbW = playerBounds.width * 0.6f - 42.f;
+    float hbH = playerBounds.height * 0.3f - 20.f;
 
-    return false;  // Default not walkable
-}
+    float hbLeft = playerBounds.left + (playerBounds.width - hbW) / 2.f + 2.f;
+    float hbTop = playerBounds.top + (playerBounds.height - hbH) - 23.f;
 
-bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds) {
-    return !mapIsWalkable(map, playerBounds.left, playerBounds.top) ||
-           !mapIsWalkable(map, playerBounds.left + playerBounds.width, playerBounds.top) ||
-           !mapIsWalkable(map, playerBounds.left, playerBounds.top + playerBounds.height) ||
-           !mapIsWalkable(map, playerBounds.left + playerBounds.width, playerBounds.top + playerBounds.height);
+    return !mapIsWalkable(map, hbLeft, hbTop, mapName) ||
+           !mapIsWalkable(map, hbLeft + hbW, hbTop, mapName) ||
+           !mapIsWalkable(map, hbLeft, hbTop + hbH, mapName) ||
+           !mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName);
 }
