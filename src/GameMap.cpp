@@ -5,7 +5,6 @@
 
 // 1. دالة التحميل: بتملأ الـ struct بالبيانات وبتحفظ اسم الماب للـ NPCs
 bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
-
     std::ifstream file(jsonPath);
     if (!file.is_open()) {
         std::cerr << "[Error]: Could not open JSON file at " << jsonPath << std::endl;
@@ -20,85 +19,115 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         return false;
     }
 
+    // تنظيف البيانات القديمة
     map.layers.clear();
     map.portals.clear();
+    map.tileProperties.clear();
+
+    // التأكد من أن الملف عبارة عن "خريطة" وليس مجرد "تايلست"
+    if (!mapData.contains("width") || !mapData.contains("tileheight")) {
+        std::cerr << "[Error]: " << jsonPath << " is not a valid Tiled Map (missing width/height)!" << std::endl;
+        return false;
+    }
 
     map.width = mapData["width"];
     map.height = mapData["height"];
     map.tileSize = mapData["tileheight"];
 
-    // تظبيط مسارات الصور
+    // 1. قراءة الـ Tile Properties (الجزء اللي بيخلي الحيطان ناشفة)
+    if (mapData.contains("tilesets")) {
+        for (const auto& tileset : mapData["tilesets"]) {
+            if (!tileset.contains("firstgid")) continue;
+            int firstGid = tileset["firstgid"];
+
+            if (tileset.contains("tiles")) {
+                for (const auto& tileJson : tileset["tiles"]) {
+                    if (!tileJson.contains("id")) continue;
+                    int localId = tileJson["id"];
+                    int globalId = firstGid + localId;
+
+                    if (tileJson.contains("properties")) {
+                        for (const auto& prop : tileJson["properties"]) {
+                            if (!prop.contains("name") || !prop.contains("value")) continue;
+
+                            std::string pName = prop["name"];
+                            if (pName == "solid") {
+                                bool isSolid = false;
+                                if (prop["value"].is_boolean())
+                                    isSolid = prop["value"].get<bool>();
+                                else if (prop["value"].is_string())
+                                    isSolid = (prop["value"].get<std::string>() == "true");
+
+                                map.tileProperties[globalId][pName] = isSolid ? "true" : "false";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. تظبيط مسارات الصور
     std::string folderPath = "";
     size_t lastSlashJson = jsonPath.find_last_of("/\\");
     if (lastSlashJson != std::string::npos) {
         folderPath = jsonPath.substr(0, lastSlashJson + 1);
     }
 
-    std::string textureName = mapData["tilesets"][0]["image"];
-    size_t lastSlashImg = textureName.find_last_of("/\\");
-    if (lastSlashImg != std::string::npos) {
-        textureName = textureName.substr(lastSlashImg + 1);
-    }
+    if (!mapData["tilesets"].empty()) {
+        std::string textureName = mapData["tilesets"][0]["image"];
+        size_t lastSlashImg = textureName.find_last_of("/\\");
+        if (lastSlashImg != std::string::npos) {
+            textureName = textureName.substr(lastSlashImg + 1);
+        }
 
-    std::string fullPath = folderPath + textureName;
-
-    if (!map.tilesetTexture.loadFromFile(fullPath)) {
-        std::cerr << "[Error]: Texture not found at " << fullPath << std::endl;
-        return false;
+        std::string fullPath = folderPath + textureName;
+        if (!map.tilesetTexture.loadFromFile(fullPath)) {
+            std::cerr << "[Error]: Texture not found at " << fullPath << std::endl;
+            return false;
+        }
     }
     map.tilesetTexture.setSmooth(false);
 
-    // قراءة الليرات والبوابات
+    // 3. قراءة الليرات والبوابات
     for (auto& layer : mapData["layers"]) {
+        // قراءة البوابات
         if (layer["type"] == "objectgroup" && layer["name"] == "Portals") {
             for (auto& obj : layer["objects"]) {
                 Portal p;
-                // إعطاء قيم افتراضية واضحة للـ Debug
                 p.spawnPos = sf::Vector2f(0.0f, 0.0f);
-
                 p.bounds = sf::FloatRect(obj["x"].get<float>(), obj["y"].get<float>(),
                                         obj["width"].get<float>(), obj["height"].get<float>());
 
                 if (obj.contains("properties")) {
                     for (auto& prop : obj["properties"]) {
-                        string key = prop["name"];
+                        if (!prop.contains("name") || prop["value"].is_null()) continue;
+                        std::string key = prop["name"];
                         auto value = prop["value"];
 
-                        if (value.is_null()) continue;
-
-                        if (key == "targetMap") {
-                            p.targetMap = value.get<std::string>();
-                        }
-                        else if (key == "spawnX") {
-                            p.spawnPos.x = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
-                            std::cout << "[JSON Debug]: Found spawnX = " << p.spawnPos.x << " for portal to " << p.targetMap << std::endl;
-                        }
-                        else if (key == "spawnY") {
-                            p.spawnPos.y = value.is_number() ? value.get<float>() : std::stof(value.get<string>());
-                            std::cout << "[JSON Debug]: Found spawnY = " << p.spawnPos.y << " for portal to " << p.targetMap << std::endl;
-                        }
+                        if (key == "targetMap") p.targetMap = value.get<std::string>();
+                        else if (key == "spawnX") p.spawnPos.x = value.is_number() ? value.get<float>() : std::stof(value.get<std::string>());
+                        else if (key == "spawnY") p.spawnPos.y = value.is_number() ? value.get<float>() : std::stof(value.get<std::string>());
                     }
                 }
-
-                // لو القيم لسه أصفار، طبع تحذير
-                if (p.spawnPos.x == 0.0f && p.spawnPos.y == 0.0f) {
-                    std::cout << "[Warning]: Portal to " << p.targetMap << " has spawnPos (0,0). Check Tiled properties (spawnX/spawnY)!" << std::endl;
-                }
-
                 map.portals.push_back(p);
             }
         }
 
+        // قراءة ليرات التايلات
         if (layer["type"] == "tilelayer") {
             MapLayer ml;
             ml.name = layer["name"];
-            ml.visible = layer["visible"];
-            ml.data = layer["data"].get<std::vector<int>>();
+            ml.visible = layer.value("visible", true);
+            if (layer.contains("data")) {
+                ml.data = layer["data"].get<std::vector<int>>();
+            }
             map.layers.push_back(ml);
         }
     }
 
     std::cout << "[Success]: Map loaded " << jsonPath << std::endl;
+    std::cout << "DEBUG: Map loaded from " << jsonPath << " | Properties count: " << map.tileProperties.size() << std::endl;
     return true;
 }
 
@@ -186,42 +215,60 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
     if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) return false;
     int index = tileY * map.width + tileX;
 
-    // --- لوجيك الاوتسايد ---
+    // --- ماب الـ outside لوحدها ---
     if (mapName == "outside") {
         for (const auto& layer : map.layers) {
             if (index >= 0 && index < (int)layer.data.size()) {
-                if (layer.data[index] != 0 && layer.name != "Ground") {
-                    return false;
-                }
+                if (layer.data[index] != 0 && layer.name != "Ground") return false;
             }
         }
         return true;
     }
 
-    // --- لوجيك اللوبي ---
+    // --- ماب الـ lobby لوحدها ---
     if (mapName == "lobby") {
         for (const auto& layer : map.layers) {
             if (index >= 0 && index < (int)layer.data.size()) {
-                if (layer.data[index] != 0 && layer.name != "ground") {
-                    return false;
-                }
+                if (layer.data[index] != 0 && layer.name != "ground") return false;
             }
         }
         return true;
     }
 
+    // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
+    if (mapName == "leftPassage") {
+    for (const auto& layer : map.layers) {
+        if (index < 0 || index >= (int)layer.data.size()) continue;
+
+        int gid = layer.data[index];
+        if (gid == 0) continue; // لو التايلة فاضية كمل للطبقة اللي بعدها
+
+        // هل الرقم ده متسجل له خواص؟
+        if (map.tileProperties.count(gid)) {
+            // بنقرأ قيمة solid
+            if (map.tileProperties.at(gid).count("solid")) {
+                std::string isSolid = map.tileProperties.at(gid).at("solid");
+
+                // ركز هنا: مش هنوقف اللاعب إلا لو لقى كلمة "true" صريحة
+                    return false;
+            }
+        }
+    }
+    // لو خلص كل الطبقات ومالقاش ولا واحدة "true" يبقى يمشي عادي
+    return true;
+}
     return true;
 }
 
 bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std::string& mapName) {
 
-    // حسابات الهيت بوكس الأحمر بتاعك
+    // حسابات الهيت بوكس (زي ما هي)
     float hbW = playerBounds.width * 0.6f - 42.f;
     float hbH = playerBounds.height * 0.3f - 20.f;
     float hbLeft = playerBounds.left + (playerBounds.width - hbW) / 2.f + 2.f;
     float hbTop = playerBounds.top + (playerBounds.height - hbH) - 23.f;
 
-    // --- ماب الاوتسايد لوحدها تماماً ---
+    // --- ماب الاوتسايد ---
     if (mapName == "outside") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
@@ -230,7 +277,7 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
         return false;
     }
 
-    // --- ماب اللوبي لوحدها تماماً ---
+    // --- ماب اللوبي ---
     if (mapName == "lobby") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
@@ -239,6 +286,14 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
         return false;
     }
 
-    // أي ماب تانية مش مذكورة فوق، مفيش كوليجن
+    // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
+    if (mapName == "leftPassage") {
+        if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
+        if (!mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName)) return true;
+        return false;
+    }
+
     return false;
 }

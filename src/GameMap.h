@@ -34,6 +34,7 @@ struct GameMap {
     sf::Texture tilesetTexture;      // الصورة المستخدمة
     vector<MapLayer> layers;
     vector<Portal> portals;// ليرات الماب (Ground, Staircase, etc.)
+    std::map<int, std::map<std::string, std::string>> tileProperties;
 };
 
 // 3. الدوال المسؤولة عن العمليات (بتاخد الماب كـ reference)
