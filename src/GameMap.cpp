@@ -236,7 +236,7 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
     }
 
     // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
-    if (mapName == "leftPassage") {
+    if (mapName == "leftPassage" || mapName == "rightPassage") {
     for (const auto& layer : map.layers) {
         if (index < 0 || index >= (int)layer.data.size()) continue;
 
@@ -287,7 +287,7 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
     }
 
     // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
-    if (mapName == "leftPassage") {
+    if (mapName == "leftPassage" || mapName == "rightPassage") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
