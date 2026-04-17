@@ -236,14 +236,10 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
     }
 
     // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
-    if (mapName == "leftPassage" || mapName == "rightPassage") {
-    for (const auto& layer : map.layers) {
-        if (index < 0 || index >= (int)layer.data.size()) continue;
-
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic") {
+     for (const auto& layer : map.layers) {
         int gid = layer.data[index];
-        if (gid == 0) continue; // لو التايلة فاضية كمل للطبقة اللي بعدها
-
-        // هل الرقم ده متسجل له خواص؟
+    //     // هل الرقم ده متسجل له خواص؟
         if (map.tileProperties.count(gid)) {
             // بنقرأ قيمة solid
             if (map.tileProperties.at(gid).count("solid")) {
@@ -287,7 +283,7 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
     }
 
     // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
-    if (mapName == "leftPassage" || mapName == "rightPassage") {
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
