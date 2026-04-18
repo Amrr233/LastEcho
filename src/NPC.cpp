@@ -10,10 +10,23 @@ NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
 
 enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
-
+static sf::RectangleShape npcHitboxDebug;
 // =====================================
 // INIT
 // =====================================
+sf::FloatRect getNPCHitbox(const NPC& npc) {
+    sf::FloatRect bounds = npc.sprite.getGlobalBounds();
+
+    float w = bounds.width * 0.3f;
+    float h = bounds.height * 0.6f;
+
+    return sf::FloatRect(
+        (bounds.left + (bounds.width - w) / 2.f)-5.f,
+        bounds.top + bounds.height - h,
+        w,
+        h
+    );
+}
 void initNPCs(World& world) {
     npcCount = 0;
 
@@ -161,10 +174,15 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
     }
 }
 
-void drawNPCs(sf::RenderWindow& window, std::string currentMapName,int currentPhase) {
+void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase) {
     for (int i = 0; i < npcCount; i++) {
-        if (allNPCs[i].currentMap == currentMapName)
-            window.draw(allNPCs[i].sprite);
+
+        NPC& npc = allNPCs[i];
+
+        if (npc.currentMap != currentMapName) continue;
+
+        // رسم الـ NPC
+        window.draw(npc.sprite);
     }
 }
 
@@ -223,4 +241,17 @@ std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
         }
     }
     return "";
+}
+
+bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap) {
+    for (int i = 0; i < npcCount; i++) {
+        NPC& npc = allNPCs[i];
+
+        if (npc.currentMap != currentMap) continue;
+
+        if (playerBounds.intersects(getNPCHitbox(npc))) {
+            return true;
+        }
+    }
+    return false;
 }

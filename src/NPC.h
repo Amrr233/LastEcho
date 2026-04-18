@@ -43,6 +43,7 @@ void initNPCs(World& world);
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos);
 void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase);
 void interactWithNPC(sf::Vector2f playerPos);
+bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap);
 std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap);
 
 #endif
