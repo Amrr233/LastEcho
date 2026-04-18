@@ -208,7 +208,7 @@ void handlingAttack(float dt) {
     if (player.cooldown_timer > 0.f)
         player.cooldown_timer -= dt;
 
-    if (Keyboard::isKeyPressed(Keyboard::Space) && player.cooldown_timer <= 0.f) {
+    if (Mouse::isButtonPressed(Mouse::Left) && player.cooldown_timer <= 0.f) {
         player.currentState = ATTACKING;
         player.cooldown_timer = player.cooldown_maxtime;
         player.currentFrame = 0;

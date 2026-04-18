@@ -28,7 +28,7 @@ Player       player;
 AudioManager audio;
 World        world;
 Game         gameLogic;
-inventory    inventory;
+inventory    inv;
 AppState     last_state;
 bool         gameFlags[100] = { false };
 Text warningMessage;
@@ -38,6 +38,9 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
+
+
+
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -82,12 +85,12 @@ int main() {
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
-    inventory.invt_init((float)SCREEN_W, (float)SCREEN_H);
+    inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
     initNPCs(world);
     initDialogue(); // 🔥 تم التعديل (دالة عادية)
 
     Clock clock;
-    audio.playBGM();
+    // audio.playBGM();
 
     // تعريف الفيو
     View mainView;
@@ -144,10 +147,11 @@ int main() {
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
             updateDialogue(gState.deltaTime); // 🔥 تم التعديل (دالة عادية)
-            inventory.invt_update(window, gState.currentState);
+            inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
             if (!gameLogic.isPaused && !isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
                 updatePlayer(gState.deltaTime, world);
+                checkDialogueReward(world.phaseSys);
 
                 // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
@@ -216,6 +220,12 @@ int main() {
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawEnemy(window);
             drawPlayer(window);
+            if (inv.feedbackTimer > 0) {
+                window.draw(inv.feedbackSprite);
+                for (int i = 0; i < 5; i++) {
+                    window.draw(inv.sparkles[i]);
+                }
+            }
             drawWeapons(window);
 
             for (auto& p : currentMap->portals) {
@@ -227,11 +237,11 @@ int main() {
 
             window.setView(window.getDefaultView());
 
-            if (isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
-                drawDialogue(window); // 🔥 تم التعديل (دالة عادية)
+            if (isDialogueActive()) {
+                drawDialogue(window);
             }
             else {
-                inventory.invt_draw(window);
+                inv.invt_draw(window);
             }
 
             drawHealthBar(window);
@@ -270,6 +280,14 @@ int main() {
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+            inv.triggerPickupEffect("assets/items/idcard.png");
+            inv.addItem("id_card", "assets/items/idcard.png");;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+            inv.triggerPickupEffect("assets/items/sword.png");
+            inv.addItem("sword", "assets/items/sword.png");;
+        }
 
         if (fadeAlpha > 0) {
             sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));

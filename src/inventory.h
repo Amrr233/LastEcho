@@ -7,14 +7,29 @@ struct inventory {
     sf::Sprite invBar;
     sf::Texture invTex;
     sf::RectangleShape selector; // المربع اللي بيحدد إنت واقف فين
-
+    sf::Texture itemTextures[6];
+    sf::Sprite itemSprites[6];
+    std::string itemNames[6];
+    bool hasItem[6] = { false };
     int selectedSlot = 0; // الخانة المختارة من 0 لـ 5
+    int itemQuantity[6] = { 0 }; // مصفوفة لتخزين عدد كل آيتم
+    sf::Font font;               // فونت الأرقام
+    sf::Text countText;          // نص الرقم
+    // first time taking item effect ======
+    sf::Sprite feedbackSprite;
+    sf::Texture feedbackTex;
+    float feedbackTimer = 0.0f;
+    bool isFirstTimeItem = false;
+    sf::CircleShape sparkles[5];
+    float sparkleAlphas[5] = {255, 200, 150, 100, 50};
+    //================
+
 
     void invt_init(float W, float H);
-    void invt_update(sf::RenderWindow& window, AppState& currentState);
-    void invt_pickup(sf::RenderWindow& window, AppState& currentState);
-    void invt_throw(sf::RenderWindow& window, AppState& currentState);
+    bool addItem(std::string name, std::string texturePath); // دالة جديدة للإضافة
+    void invt_update(sf::RenderWindow& window, AppState& currentState, sf::Vector2f playerPos, float dt);
     void invt_draw(sf::RenderWindow& window);
+    void triggerPickupEffect(std::string texturePath);
 };
 
 #endif //LASTECHO_INVENTORY_H
