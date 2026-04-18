@@ -1,5 +1,7 @@
 #include "Phase.h"
 #include "DialogueManager.h"
+#include "inventory.h"
+extern inventory inv;
 
 void phaseInit(PhaseSystem& ps) {
     ps.currentPhaseIdx = 0;
@@ -24,6 +26,8 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
         if (npcName == "Friend_NPC") {
             if (!(ps.gameFlags[0])) { // لو لسه مخدتش الكارنيه
                 std::string lines[] = {"Oh! Your ID card is here.", "Take it and go to the gate."};
+                inv.addItem("id_card", "assets/items/idcard.png");
+                ps.pendingItemTexture = "assets/items/idcard.png";
                 startDialogue("Friend", lines, 2);
                 ps.gameFlags[0] = true; // رفعت علم "معايا الكارنيه"
                 ps.allPhases[0].currentQuestIdx = 1;
@@ -44,4 +48,16 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
         }
     }
     // هنا هتضيف Phase 1 و 2 بنفس الطريقة...
+}
+
+
+void checkDialogueReward(PhaseSystem& ps) {
+    // لو فيه أيتم مستني، والديالوج مخلص (مش اكتيف)
+    if (ps.pendingItemTexture != "" && !isDialogueActive()) {
+        // شغل الإيفكت فوراً
+        inv.triggerPickupEffect(ps.pendingItemTexture);
+
+        // صفر المتغير عشان ميتكررش
+        ps.pendingItemTexture = "";
+    }
 }

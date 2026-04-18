@@ -230,13 +230,14 @@
         }
     }
 
-    void handlingHurt(float dt) {
-        if (player.currentState != HURT) return;
-        player.hurt_timer -= dt;
-        if (player.hurt_timer <= 0.f) {
-            player.isInvincible = false;
-            player.currentState = IDLE;
-        }
+    if (player.cooldown_timer > 0.f)
+        player.cooldown_timer -= dt;
+
+    if (Mouse::isButtonPressed(Mouse::Left) && player.cooldown_timer <= 0.f) {
+        player.currentState = ATTACKING;
+        player.cooldown_timer = player.cooldown_maxtime;
+        player.currentFrame = 0;
+        player.animationTimer = 0.f;
     }
 
     sf::FloatRect attackHitBox() {
