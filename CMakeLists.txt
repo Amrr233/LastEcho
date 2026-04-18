@@ -36,6 +36,8 @@ add_executable(LastEcho
         src/world.cpp
         src/phase.h
         src/phase.cpp
+        src/thelich.cpp
+        src/thelich.h
         # ويفضل تضيف الهيدر كمان للتنظيم
 
 )

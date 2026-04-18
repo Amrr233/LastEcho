@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "thelich.h"
+
 #define MAX_FLAGS 100
 
 struct Quest {
@@ -21,6 +23,12 @@ struct PhaseSystem {
     int currentPhaseIdx = 0;
     bool gameFlags[MAX_FLAGS] = { false }; // مخزن الأحداث (0: كارنيه، 1: بوابة، الخ)
     std::string pendingItemTexture = ""; // مسار صورة الأيتم اللي مستني الديالوج يخلص
+
+    //phase(7)the lich
+    int killedsold=0;
+    bool spawnedboss = false;
+    Lich finalboss;
+
 };
 
 // تعريف الدوال
