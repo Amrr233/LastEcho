@@ -1,17 +1,21 @@
 #include "Phase.h"
 #include "DialogueManager.h"
 #include "inventory.h"
+#include "NPC.h"
+
 extern inventory inv;
+extern NPC allNPCs[MAX_NPCS]; // مهم
 
 void phaseInit(PhaseSystem& ps) {
-    ps.currentPhaseIdx = 0;
-    for(int i=0; i<MAX_FLAGS; i++) ps.gameFlags[i] = false;
 
-    // المرحلة 0: يوم الكارنيه
+    ps.currentPhaseIdx = 0;
+
+    for (int i = 0; i < MAX_FLAGS; i++)
+        ps.gameFlags[i] = false;
+
     ps.allPhases[0].phaseTitle = "Amr's Magical Guitar";
     ps.allPhases[0].quests[0] = { "Find your ID with your friend" };
     ps.allPhases[0].quests[1] = { "Show ID to Security" };
-
 
     ps.allPhases[1].phaseTitle = "Saged's";
     ps.allPhases[1].quests[0] = { "Look for Amr in the hallway" };
@@ -19,45 +23,64 @@ void phaseInit(PhaseSystem& ps) {
 }
 
 void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
+
     int pIdx = ps.currentPhaseIdx;
 
-    // --- منطق المرحلة 0 ---
     if (pIdx == 0) {
+
         if (npcName == "Friend_NPC") {
-            if (!(ps.gameFlags[0])) { // لو لسه مخدتش الكارنيه
-                std::string lines[] = {"Oh! Your ID card is here.", "Take it and go to the gate."};
+
+            std::string lines1[] = {
+                "Oh! Your ID card is here.",
+                "Take it and go to the gate."
+            };
+
+            std::string lines2[] = {
+                "Go! The security is waiting."
+            };
+
+            if (!ps.gameFlags[0]) {
+
                 inv.addItem("id_card", "assets/items/idcard.png");
                 ps.pendingItemTexture = "assets/items/idcard.png";
-                startDialogue("Friend", lines, 2);
-                ps.gameFlags[0] = true; // رفعت علم "معايا الكارنيه"
+
+                startDialogue("Friend", lines1, 2, allNPCs[0].avatarTexture);
+
+                ps.gameFlags[0] = true;
                 ps.allPhases[0].currentQuestIdx = 1;
+
             } else {
-                std::string lines[] = {"Go! The security is waiting."};
-                startDialogue("Friend", lines, 1);
+                startDialogue("Friend", lines2, 1, allNPCs[0].avatarTexture);
             }
         }
+
         else if (npcName == "Security_Guard") {
-            if (ps.gameFlags[0]) { // لو معاك الكارنيه
-                std::string lines[] = {"Valid ID. Welcome to FCIS!", "You can enter now."};
-                startDialogue("Security", lines, 2);
-                ps.currentPhaseIdx = 1; // انقل لـ Phase 1 (مقابلة عمرو)
+
+            std::string ok[] = {
+                "Valid ID. Welcome to FCIS!",
+                "You can enter now."
+            };
+
+            std::string no[] = {
+                "No ID, No entry!",
+                "Go find your ID first."
+            };
+
+            if (ps.gameFlags[0]) {
+                startDialogue("Security", ok, 2, allNPCs[0].avatarTexture);
+                ps.currentPhaseIdx = 1;
             } else {
-                std::string lines[] = {"No ID, No entry!", "Go find your ID first."};
-                startDialogue("Security", lines, 2);
+                startDialogue("Security", no, 2, allNPCs[0].avatarTexture);
             }
         }
     }
-    // هنا هتضيف Phase 1 و 2 بنفس الطريقة...
 }
 
-
 void checkDialogueReward(PhaseSystem& ps) {
-    // لو فيه أيتم مستني، والديالوج مخلص (مش اكتيف)
-    if (ps.pendingItemTexture != "" && !isDialogueActive()) {
-        // شغل الإيفكت فوراً
-        inv.triggerPickupEffect(ps.pendingItemTexture);
 
-        // صفر المتغير عشان ميتكررش
+    if (ps.pendingItemTexture != "" && !isDialogueActive()) {
+
+        inv.triggerPickupEffect(ps.pendingItemTexture);
         ps.pendingItemTexture = "";
     }
 }

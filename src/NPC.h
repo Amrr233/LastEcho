@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "world.h"
-
+extern int npcCount;
 struct Dialogue {
     std::string text;
     int requiredFlag;
@@ -17,11 +17,14 @@ struct NPC {
     Sprite sprite;
     Texture texture;
     Texture walkTextures[4];
+    Texture avatarTexture;
+    Sprite avatarSprite;
+    string avatarPath;
     float waitTimer = 0.f;      // العداد الحالي
     float waitTime = 10.f;     // الوقت المطلوب للانتظار (10 ثواني)
     bool isWaiting = true;     // هل هو حالياً في حالة انتظار؟
     Vector2f pos;
-    std::string currentMap; // الماب اللي الـ NPC موجود فيها حالياً
+    string currentMap; // الماب اللي الـ NPC موجود فيها حالياً
 
     bool isStatic;
     sf::Vector2f waypoints[MAX_WAYPOINTS];
@@ -35,7 +38,7 @@ struct NPC {
     float animTimer = 0.f;
     int currentFrame = 0;
 };
-
+extern NPC allNPCs[MAX_NPCS];
 //flags in data.h
 
 // الدوال الأساسية
