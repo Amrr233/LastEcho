@@ -8,7 +8,6 @@
 #include "player.h"
 NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
-
 static sf::RectangleShape npcHitboxDebug;
 // =====================================
 // INIT
@@ -36,7 +35,9 @@ void initNPCs(World& world) {
     friendNPC.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/fares/walking-north.png");
     friendNPC.walkTextures[WEST].loadFromFile("assets/sprites/npcs/fares/walking-west.png");
     friendNPC.walkTextures[EAST].loadFromFile("assets/sprites/npcs/fares/walking-east.png");
-
+    friendNPC.avatarPath = "assets/sprites/NPCS/fares/fares_avatar.png";
+friendNPC.avatarTexture.loadFromFile(friendNPC.avatarPath);
+friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     friendNPC.isStatic = false;
     friendNPC.speed = 90.f;
     friendNPC.currentMap = "outside";
@@ -51,6 +52,13 @@ void initNPCs(World& world) {
     friendNPC.waypoints[1] = {600, 800};
     friendNPC.waypoints[2] = {600, 900};
     friendNPC.waypoints[3] = {300, 900};
+    friendNPC.avatarPath = "assets/sprites/NPCS/fares/fares_avatar.png";
+
+    if (!friendNPC.avatarTexture.loadFromFile(friendNPC.avatarPath)) {
+        std::cout << "FAILED TO LOAD NPC AVATAR\n";
+    }
+
+    friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture, true);
     friendNPC.pos = friendNPC.waypoints[0];
     friendNPC.currentWaypoint = 0;
 
@@ -236,7 +244,7 @@ void interactWithNPC(sf::Vector2f playerPos) {
             }
 
             if (lineCount > 0)
-                startDialogue(npc.name, tempLines, lineCount);
+                startDialogue(npc.name, tempLines, lineCount, npc.avatarTexture);
 
             return;
         }

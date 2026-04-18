@@ -6,7 +6,10 @@
 
 // الدوال الأساسية للنظام
 void initDialogue();
-void startDialogue(std::string name, std::string messages[], int count);
+void startDialogue(std::string name,
+                   std::string messages[],
+                   int count,
+                   sf::Texture& avatarTexture);
 void nextLine();
 void updateDialogue(float deltaTime);
 void drawDialogue(sf::RenderWindow& window);
