@@ -5,11 +5,10 @@
 #include "DialogueManager.h"
 #include "world.h"
 #include "Phase.h"
-
+#include "player.h"
 NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
 
-enum Direction { SOUTH = 0, NORTH = 1, WEST = 2, EAST = 3 };
 static sf::RectangleShape npcHitboxDebug;
 // =====================================
 // INIT
@@ -81,49 +80,59 @@ void initNPCs(World& world) {
 }
 
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos) {
-    if ( isDialogueActive() ) return;
+    if (isDialogueActive()) return;
 
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         if (npc.currentMap != currentMapName) continue;
 
-        float distToPlayer = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) +
-                                        std::pow(npc.pos.y - playerPos.y, 2));
+        float distToPlayer = std::sqrt(
+            std::pow(npc.pos.x - playerPos.x, 2) +
+            std::pow(npc.pos.y - playerPos.y, 2)
+        );
 
-        // --- منطق الـ Moving NPC ---
+        // ===== PLAYER HITBOX (FIXED) =====
+        float px = playerPos.x;
+        float py = playerPos.y;
+
+        sf::FloatRect playerBox(
+            px - 15.f,
+            py + 10.f,
+            30.f,
+            20.f
+        );
+
+        // ===== MOVING NPC =====
         if (!npc.isStatic && npc.waypointsCount > 0) {
 
-            // 1. فحص حالة الانتظار أولاً
             if (npc.isWaiting) {
                 npc.waitTimer += deltaTime;
 
-                // لو اللاعب قرب وهو لسه مستني، يلف يبص عليه بس ميمشيش
-                if (distToPlayer < 80.0f) {
+                if (distToPlayer < 100.0f) {
                     sf::Vector2f diff = playerPos - npc.pos;
                     if (std::abs(diff.x) > std::abs(diff.y))
                         npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
                     else
                         npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
                 } else {
-                    // الوضع الطبيعي وهو واقف (فريم الثبات)
                     npc.sprite.setTexture(npc.walkTextures[SOUTH]);
                 }
+
                 npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
                 npc.sprite.setPosition(npc.pos);
 
-                // لو الوقت خلص، ابدأ الحركة
                 if (npc.waitTimer >= npc.waitTime) {
                     npc.isWaiting = false;
                 }
-                continue; // تخطي باقي كود الحركة طول ما هو مستني
+
+                continue;
             }
 
-            // 2. كمل كود الحركة الأصلي بتاعك
             sf::Vector2f target = npc.waypoints[npc.currentWaypoint];
             sf::Vector2f moveVec = target - npc.pos;
             float distance = std::sqrt(moveVec.x * moveVec.x + moveVec.y * moveVec.y);
 
-            if (distToPlayer < 80.0f) {
+            if (distToPlayer < 100.0f) {
                 sf::Vector2f diff = playerPos - npc.pos;
                 if (std::abs(diff.x) > std::abs(diff.y))
                     npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
@@ -133,9 +142,22 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                 npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
             }
             else if (distance > 2.0f) {
+
                 sf::Vector2f dir = moveVec / distance;
+
+                // 🔥 IMPORTANT PART (ANTI-FREEZE)
+                sf::Vector2f oldPos = npc.pos;
                 npc.pos += dir * npc.speed * deltaTime;
 
+                npc.sprite.setPosition(npc.pos);
+                sf::FloatRect npcBox = getNPCHitbox(npc);
+
+                // لو خبط في اللاعب → رجع مكانه
+                if (npcBox.intersects(playerBox)) {
+                    npc.pos = oldPos;
+                }
+
+                // direction sprite
                 if (std::abs(dir.x) > std::abs(dir.y))
                     npc.sprite.setTexture(dir.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
                 else
@@ -146,16 +168,17 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                     npc.animTimer = 0.f;
                     npc.currentFrame = (npc.currentFrame + 1) % 6;
                 }
+
                 npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
             }
             else {
                 npc.currentWaypoint = (npc.currentWaypoint + 1) % npc.waypointsCount;
-                // ملحوظة: لو عايزه يستنى 10 ثواني عند كل نقطة يوصلها، ضيف السطرين دول هنا:
                 npc.isWaiting = true;
                 npc.waitTimer = 0.f;
             }
         }
-        // --- منطق الـ Static NPC ---
+
+        // ===== STATIC NPC =====
         else if (npc.isStatic) {
             if (distToPlayer < 120.0f) {
                 sf::Vector2f diff = playerPos - npc.pos;
