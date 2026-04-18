@@ -15,6 +15,7 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
+#include "boss.h"
 
 using namespace sf;
 using namespace std;
@@ -78,6 +79,10 @@ int main() {
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+    initBoss();
+    // To test right now — remove this line later when cutscene triggers it
+    // Init section — replace spawnBoss with:
+    startRound(1);
     initNPCs(world);
     initweapon(Vector2f(spawnX, spawnY));
 
@@ -156,7 +161,9 @@ int main() {
                 // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                 updateWeapon(gState.deltaTime);
-
+                updateBoss(gState.deltaTime);
+                // Update block — add next to updateBoss:
+                updateRounds(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
 
                 for (auto& p : currentMap->portals) {
@@ -220,6 +227,7 @@ int main() {
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawEnemy(window);
             drawPlayer(window);
+            drawBoss(window);
             if (inv.feedbackTimer > 0) {
                 window.draw(inv.feedbackSprite);
                 for (int i = 0; i < 5; i++) {

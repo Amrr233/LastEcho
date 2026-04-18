@@ -3,6 +3,7 @@
 #include <Data.h>
 #include <player.h>
 #include <SFML/Graphics.hpp>
+#include "boss.h"
 
 using namespace sf;
 enemy enemies[MAX_ENEMIES];
@@ -50,6 +51,7 @@ void initEnemy(int index, Vector2f startPos, EnemyType type) {
     enemySprite.setOrigin(34.f, 34.f); // Half of 68
     enemyCount++;
 }
+
 
 void updateEnemies(float dt) {
     for (int i = 0; i < enemyCount; i++) {
@@ -105,6 +107,22 @@ void checkAttackHits() {
         float length = std::sqrt(pushDir.x * pushDir.x + pushDir.y * pushDir.y);
         pushDir /= length;
         enemies[i].pos += pushDir * 50.f;
+        }
+    }
+    // Check if player hit the boss
+    if (boss.isActive && boss.isAlive && !boss.isInvincible) {
+        sf::FloatRect bossBounds(
+            boss.pos.x - 34, boss.pos.y - 34, 68, 68);
+        if (hitbox.intersects(bossBounds)) {
+            boss.hp -= player.attack_damage;
+            boss.currentState = BOSS_HURT;
+            boss.isInvincible = true;
+            boss.hurtTimer    = 0.4f;
+            if (boss.hp <= 0) {
+                boss.isAlive   = false;
+                boss.isActive  = false;
+                boss.currentState = BOSS_DEAD;
+            }
         }
     }
 }

@@ -49,6 +49,19 @@ struct GameState {
     // إضافة الـ MapLoaded هنا عشان الليدر يتحكم في الـ Loading بسهولة
     bool     mapLoaded;
 };
+enum BossPhase {
+    BOSS_PHASE_1,   // 100% to 66% HP
+    BOSS_PHASE_2,   // 66% to 33% HP
+    BOSS_PHASE_3    // 33% to 0% HP
+};
+
+enum BossState {
+    BOSS_IDLE,
+    BOSS_WALKING,
+    BOSS_ATTACKING,
+    BOSS_HURT,
+    BOSS_DEAD
+};
 
 // ==============================
 // GLOBALS — (Declaration Only)
