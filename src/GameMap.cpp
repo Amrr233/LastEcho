@@ -236,7 +236,7 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
     }
 
     // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
-    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"|| mapName == "sclab"|| mapName == "datacenter"|| mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter") {
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"|| mapName == "sclab"|| mapName == "datacenter"|| mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw") {
      for (const auto& layer : map.layers) {
         int gid = layer.data[index];
     //     // هل الرقم ده متسجل له خواص؟
@@ -283,7 +283,7 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
     }
 
     // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
-    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"||mapName == "sclab"||mapName == "datacenter"||mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter") {
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"||mapName == "sclab"||mapName == "datacenter"||mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
