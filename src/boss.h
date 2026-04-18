@@ -78,6 +78,7 @@ void drawBoss(sf::RenderWindow& window);
 void checkBossPhase();
 void startRound(int round);
 void updateRounds(float dt);
+void checkBossPlayerCollision();
 extern Boss boss;
 extern BossConfig bossConfig;
 

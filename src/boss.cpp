@@ -6,6 +6,7 @@
 #include "player.h"
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <iostream>
 BossConfig bossConfig;
 Boss boss;
 
@@ -34,16 +35,19 @@ void initBoss() {
 }
 
 void spawnBoss(sf::Vector2f guidePos) {
-    // Spawn offset from guide — change bossConfig.spawnOffset to move spawn point
-    boss.pos      = guidePos + bossConfig.spawnOffset;
-    boss.speed    = bossConfig.speedPhase1;
-    boss.damage   = bossConfig.damagePhase1;
-    boss.scale    = bossConfig.scalePhase1;
-    boss.hp       = bossConfig.maxHp;
-    boss.isAlive  = true;
-    boss.isActive = true;
+    boss.pos          = guidePos + bossConfig.spawnOffset;
+    boss.speed        = bossConfig.speedPhase1;
+    boss.damage       = bossConfig.damagePhase1;
+    boss.scale        = bossConfig.scalePhase1;
+    boss.hp           = bossConfig.maxHp;
+    boss.maxHp        = bossConfig.maxHp;  // ← add this
+    boss.isAlive      = true;
+    boss.isActive     = true;
     boss.currentPhase = BOSS_PHASE_1;
-    boss.currentState = BOSS_IDLE;
+    boss.currentState = BOSS_IDLE;         // ← reset state
+    boss.isInvincible = false;             // ← reset invincibility
+    boss.hurtTimer    = 0.f;              // ← reset hurt timer
+    boss.attackTimer  = 0.f;             // ← reset attack timer
     boss.sprite.setScale(boss.scale, boss.scale);
 }
 void checkBossPhase() {
@@ -70,7 +74,9 @@ void checkBossPhase() {
 void updateBoss(float dt) {
     if (!boss.isActive || !boss.isAlive) return;
 
-    // Hurt timer
+    // 1. نادي دالة التصادم هنا أول حاجة
+    checkBossPlayerCollision();
+
     if (boss.currentState == BOSS_HURT) {
         boss.hurtTimer -= dt;
         if (boss.hurtTimer <= 0.f) {
@@ -80,29 +86,34 @@ void updateBoss(float dt) {
         return;
     }
 
-    // Check phase transitions
     checkBossPhase();
 
-    // Move toward player
     sf::Vector2f dir = player.pos - boss.pos;
     float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
     if (dist < boss.detectionRange) {
-        boss.currentState = BOSS_WALKING;
-        if (dist > boss.attackRange) {
+        // بنجيب حدود البوس واللاعب الفعلية
+        sf::FloatRect bossBounds = boss.sprite.getGlobalBounds();
+        sf::FloatRect playerBounds = player.sprite.getGlobalBounds();
+
+        // لو مش لامسين بعض (مع ترك مسافة أمان صغيرة للهجوم)
+        if (dist > (bossBounds.width / 2.0f) + 5.f) {
+            boss.currentState = BOSS_WALKING;
             dir /= dist;
             boss.pos += dir * boss.speed * dt;
-        } else {
-            // Attack player
+        }
+        else {
+            // هنا اللحظة اللي البوس لمس فيها اللاعب
             boss.currentState = BOSS_ATTACKING;
             boss.attackTimer += dt;
             if (boss.attackTimer >= boss.attackCooldown) {
                 boss.attackTimer = 0.f;
                 if (!player.isInvincible) {
-                    player.hp        -= boss.damage;
+                    player.hp -= boss.damage;
                     player.currentState = HURT;
-                    player.hurt_timer   = 0.4f;
+                    player.hurt_timer = 0.4f;
                     player.isInvincible = true;
+                    std::cout << "Player Damaged! HP: " << player.hp << std::endl;
                 }
             }
         }
@@ -110,14 +121,14 @@ void updateBoss(float dt) {
         boss.currentState = BOSS_IDLE;
     }
 
-    // Animation
+    // تحديث مكان السبرايت والأنيميشن
     boss.animTimer += dt;
     if (boss.animTimer >= 0.15f) {
         boss.animTimer = 0.f;
         boss.currentFrame = (boss.currentFrame + 1) % 6;
     }
-    boss.sprite.setTextureRect(
-        sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
+    boss.sprite.setTextureRect(sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
+    boss.sprite.setPosition(boss.pos);
 }
 void drawBoss(sf::RenderWindow& window) {
     if (!boss.isActive || !boss.isAlive) return;
@@ -160,14 +171,13 @@ void startRound(int round) {
 
 void updateRounds(float dt) {
     // Boss died — round won
-    if (!boss.isAlive && boss.isActive && !roundMan.roundOver) {
+    if (!boss.isAlive && !roundMan.roundOver && !roundMan.inBreak) {
         roundMan.roundOver = true;
-        boss.isActive = false;
 
         if (roundMan.currentRound >= roundMan.maxRounds) {
-            roundMan.playerWon = true; // player beat all 3 rounds
+            roundMan.playerWon = true;
         } else {
-            roundMan.inBreak  = true;
+            roundMan.inBreak    = true;
             roundMan.breakTimer = 0.f;
         }
     }
@@ -187,4 +197,21 @@ void updateRounds(float dt) {
         }
     }
 }
+void checkBossPlayerCollision() {
+    sf::FloatRect b = boss.sprite.getGlobalBounds();
+    sf::FloatRect p = player.sprite.getGlobalBounds();
 
+    if (b.intersects(p)) {
+        sf::Vector2f pushDir = player.pos - boss.pos;
+        float length = std::sqrt(pushDir.x * pushDir.x + pushDir.y * pushDir.y);
+        if (length > 0) {
+            pushDir /= length;
+            // الدفع لبره حدود البوس تماماً
+            float minSafeDist = (b.width / 2.0f) + 15.f;
+            player.pos = boss.pos + pushDir * minSafeDist;
+
+            // مهم جداً: حدّث مكان سبرايت اللاعب فوراً بعد الدفع
+            player.sprite.setPosition(player.pos);
+        }
+    }
+}
