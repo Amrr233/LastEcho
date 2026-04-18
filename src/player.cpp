@@ -222,23 +222,22 @@
         if (player.cooldown_timer > 0.f)
             player.cooldown_timer -= dt;
 
-        if (Keyboard::isKeyPressed(Keyboard::Space) && player.cooldown_timer <= 0.f) {
+        if (Mouse::isButtonPressed(Mouse::Left) && player.cooldown_timer <= 0.f) {
             player.currentState = ATTACKING;
             player.cooldown_timer = player.cooldown_maxtime;
             player.currentFrame = 0;
             player.animationTimer = 0.f;
         }
     }
-
-    if (player.cooldown_timer > 0.f)
-        player.cooldown_timer -= dt;
-
-    if (Mouse::isButtonPressed(Mouse::Left) && player.cooldown_timer <= 0.f) {
-        player.currentState = ATTACKING;
-        player.cooldown_timer = player.cooldown_maxtime;
-        player.currentFrame = 0;
-        player.animationTimer = 0.f;
+void handlingHurt(float dt) {
+        if (player.currentState != HURT) return;
+        player.hurt_timer -= dt;
+        if (player.hurt_timer <= 0.f) {
+            player.isInvincible = false;
+            player.currentState = IDLE;
+        }
     }
+
 
     sf::FloatRect attackHitBox() {
         float x = player.pos.x;
