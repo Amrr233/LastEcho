@@ -13,7 +13,7 @@ static sf::RectangleShape hitboxDebug;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
-    player.speed = 240.f;
+    player.speed = 1000.f;
     player.facing = SOUTH;
     player.currentFrame = 0;
     player.animationTimer = 0.f;
