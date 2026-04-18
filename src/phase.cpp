@@ -23,6 +23,8 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
 
     // --- منطق المرحلة 0 ---
     if (pIdx == 0) {
+
+
         if (npcName == "Friend_NPC") {
             if (!(ps.gameFlags[0])) { // لو لسه مخدتش الكارنيه
                 std::string lines[] = {"Oh! Your ID card is here.", "Take it and go to the gate."};
