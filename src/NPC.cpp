@@ -18,31 +18,29 @@ void initNPCs(World& world) {
     npcCount = 0;
 
     // 1. الصاحب (Friend_NPC)
-    NPC friendNPC;
-    friendNPC.name = "Friend_NPC";
-    friendNPC.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/fares/walking-south.png");
-    friendNPC.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/fares/walking-north.png");
-    friendNPC.walkTextures[WEST].loadFromFile("assets/sprites/npcs/fares/walking-west.png");
-    friendNPC.walkTextures[EAST].loadFromFile("assets/sprites/npcs/fares/walking-east.png");
+    NPC fares;
+    fares.name = "fares";
+    fares.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/fares/walking-south.png");
+    fares.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/fares/walking-north.png");
+    fares.walkTextures[WEST].loadFromFile("assets/sprites/npcs/fares/walking-west.png");
+    fares.walkTextures[EAST].loadFromFile("assets/sprites/npcs/fares/walking-east.png");
 
-    friendNPC.isStatic = false;
-    friendNPC.speed = 90.f;
-    friendNPC.currentMap = "outside";
+    fares.isStatic = false;
+    fares.speed = 90.f;
+    fares.currentMap = "outside";
 
     // --- إعدادات الانتظار ---
-    friendNPC.waitTimer = 0.f;     // العداد بيبدأ من صفر
-    friendNPC.waitTime = 6.5f;    // هينتظر   ثواني
-    friendNPC.isWaiting = true;   // هيبدأ اللعبة وهو مستني
-
-    friendNPC.waypointsCount = 4;
-    friendNPC.waypoints[0] = {300, 800};
-    friendNPC.waypoints[1] = {600, 800};
-    friendNPC.waypoints[2] = {600, 900};
-    friendNPC.waypoints[3] = {300, 900};
-    friendNPC.pos = friendNPC.waypoints[0];
-    friendNPC.currentWaypoint = 0;
-
-    allNPCs[npcCount++] = friendNPC;
+    fares.waitTimer = 0.f;     // العداد بيبدأ من صفر
+    fares.waitTime = 6.5f;    // هينتظر   ثواني
+    fares.isWaiting = true;   // هيبدأ اللعبة وهو مستني
+    fares.waypointsCount = 4;
+    fares.waypoints[0] = {300, 800};
+    fares.waypoints[1] = {600, 800};
+    fares.waypoints[2] = {600, 900};
+    fares.waypoints[3] = {300, 900};
+    fares.pos = fares.waypoints[0];
+    fares.currentWaypoint = 0;
+    allNPCs[npcCount++] = fares;
 
     // 2. الأمن (Security_Guard)
     NPC guard;
@@ -55,6 +53,30 @@ void initNPCs(World& world) {
     guard.pos = {500, 600};
     guard.currentMap = "outside";
     allNPCs[npcCount++] = guard;
+
+    NPC amr;
+    amr.name = "amr";
+    amr.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/amr/walking-south.png");
+    amr.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/amr/walking-north.png");
+    amr.walkTextures[WEST].loadFromFile("assets/sprites/npcs/amr/walking-west.png");
+    amr.walkTextures[EAST].loadFromFile("assets/sprites/npcs/amr/walking-east.png");
+
+    amr.isStatic = false;
+    amr.speed = 90.f;
+    amr.currentMap = "vertPassage";
+
+    // --- إعدادات الانتظار ---
+    amr.waitTimer = 0.f;     // العداد بيبدأ من صفر
+    amr.waitTime = 6.5f;    // هينتظر   ثواني
+    amr.isWaiting = true;   // هيبدأ اللعبة وهو مستني
+    amr.waypointsCount = 1;
+    amr.waypoints[0] = {300, 800};
+    // Amr.waypoints[1] = {600, 800};
+    // Amr.waypoints[2] = {600, 900};
+    // Amr.waypoints[3] = {300, 900};
+    amr.pos = amr.waypoints[0];
+    amr.currentWaypoint = 0;
+    allNPCs[npcCount++] = amr;
 
     // تهيئة السبرايتس
     for (int i = 0; i < npcCount; i++) {
