@@ -120,21 +120,26 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
                 steps.push_back(s12);
 
                 // --- Transition to wcm2 ---
+                // --- Transition to wcm2 ---
                 CutsceneAction s13; s13.type = CUTSCENE_CHANGE_MAP; s13.characterName = "amr";
-                s13.targetMap = "wcm2"; s13.spawnPos = {619.198f, 542.879f};
+                s13.targetMap = "wcm2";
+                s13.spawnPos = {340.0f, 542.879f}; // نقطة بداية منطقية أكتر في نص الماب
                 steps.push_back(s13);
 
                 CutsceneAction s14; s14.type = CUTSCENE_PLAYER_TELEPORT;
-                s14.targetMap = "wcm2"; s14.spawnPos = {706.589f, 542.879f}; // متشفت يمين عشان الزحمة
+                s14.targetMap = "wcm2";
+                s14.spawnPos = {380.0f, 542.879f}; // اللاعب وراه بـ 40 بكسل بس
                 steps.push_back(s14);
 
                 // حركة لفوق سيكا قبل الكسرة شمال (عشان الماب ضيقة)
                 CutsceneAction moveUpAmr; moveUpAmr.type = CUTSCENE_MOVE; moveUpAmr.characterName = "amr";
-                moveUpAmr.targetX = 217.911; moveUpAmr.targetY = 542.879f;
+                moveUpAmr.targetX = 150.0f; // يكسر شمال أكتر
+                moveUpAmr.targetY = 542.879f;
                 steps.push_back(moveUpAmr);
 
                 CutsceneAction moveUpPlayer; moveUpPlayer.type = CUTSCENE_PLAYER_MOVE;
-                moveUpPlayer.targetX = 302.281; moveUpPlayer.targetY = 575.539f;
+                moveUpPlayer.targetX = 200.0f; // يوقف ورا عمرو بـ 50 بكسل بس
+                moveUpPlayer.targetY = 542.879f;
                 steps.push_back(moveUpPlayer);
 
 
@@ -143,7 +148,7 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
                 s16.type = CUTSCENE_EMOTION;
                 s16.characterName = "amr";
                 s16.emotion = EMOTION_SAD;
-                s16.emotionDuration = 3.0f;
+                s16.emotionDuration = 5.0f;
                 steps.push_back(s16);
 
                 CutsceneAction s17; s17.type = CUTSCENE_SPEAK; s17.characterName = "amr";
