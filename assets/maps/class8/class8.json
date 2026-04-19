@@ -67,7 +67,7 @@
                         {
                          "name":"spawnY",
                          "type":"float",
-                         "value":70
+                         "value":50
                         }, 
                         {
                          "name":"targetMap",
