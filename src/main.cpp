@@ -6,7 +6,7 @@
 #include "GameMap.h"
 #include "audio.h"
 #include "Game.h"
-#include "World.h"           // ← ADD THIS (World system)
+#include "World.h"
 #include <iostream>
 #include "healthbar.h"
 #include "inventory.h"
@@ -15,6 +15,7 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
+#include "TheLich.h" // ← 1. التأكد من تضمين الهيدر
 
 using namespace sf;
 using namespace std;
@@ -39,22 +40,9 @@ float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
 
-
-
-
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
-
-    // ════════════════════════════════════════════════════════════════
-    // CHANGE 1: Load World (all 16 maps) instead of single map
-    // ════════════════════════════════════════════════════════════════
-    // OLD:
-    // if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
-    //     return -1;
-    // }
-
-    // NEW:
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
         std::cout << "ERROR: Font not found!" << std::endl;
@@ -73,10 +61,14 @@ int main() {
 
     // Spawn coordinates
     float spawnX = 350;
-    float spawnY = 900 ;
-    // هيعمل سبون قدام السلم
+    float spawnY = 900;
+
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
+
+    // ← 2. استدعاء الليتش وتحديده في مكان قريب منك (مثلاً بعيد عنك بـ 200 بكسل)
+    initLich(sf::Vector2f(spawnX + 200.f, spawnY - 100.f));
+
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initNPCs(world);
     initweapon(Vector2f(spawnX, spawnY));
@@ -86,13 +78,9 @@ int main() {
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
-    initNPCs(world);
-    initDialogue(); // 🔥 تم التعديل (دالة عادية)
+    initDialogue();
 
     Clock clock;
-    // audio.playBGM();
-
-    // تعريف الفيو
     View mainView;
     mainView.setSize(SCREEN_W, SCREEN_H);
 
@@ -112,83 +100,60 @@ int main() {
             else if (gState.currentState == STATE_PLAYING) {
                 if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                     if (isDialogueActive()) {
-                        nextLine(); // لو فيه حوار، قلب الصفحة
+                        nextLine();
                     }
                     else {
-                        // ابحث عن NPC قريب (هتستخدم دالة التفاعل بتاعتك)
                         string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-
                         if (npcName != "") {
-                            // 3. ابعت الاسم لـ Phase.cpp وهو هيقرر يفتح أنهي ديالوج بناءً على الـ Flags
                             updatePhaseLogic(world.phaseSys, npcName);
                         }
                     }
                 }
             }
         }
+
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
 
-            statusTrackerText.setString(
-    "Phase: " + cp.phaseTitle + "\n" +
-    "Quest: " + cq.title
-);
-            // ════════════════════════════════════════════════════════════════
-            // CHANGE 2: Get current map each frame
-            // ════════════════════════════════════════════════════════════════
+            statusTrackerText.setString("Phase: " + cp.phaseTitle + "\nQuest: " + cq.title);
+
             currentMap = worldGetCurrentMap(world);
-            if (!currentMap) {
-                cout << "ERROR: No current map!" << endl;
-                break;
-            }
+            if (!currentMap) break;
 
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
-            updateDialogue(gState.deltaTime); // 🔥 تم التعديل (دالة عادية)
+            updateDialogue(gState.deltaTime);
             inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-            if (!gameLogic.isPaused && !isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
+            if (!gameLogic.isPaused && !isDialogueActive()) {
                 updatePlayer(gState.deltaTime, world);
                 checkDialogueReward(world.phaseSys);
 
-                // NPC update - uses current map name from World
+                // ← 3. تحديث الليتش (كود الملاحقة والضرب)
+                sf::FloatRect playerHitbox = player.sprite.getGlobalBounds();
+                updateLich(gState.deltaTime, player.pos, playerHitbox);
+
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                 updateWeapon(gState.deltaTime);
-
                 updateEnemies(gState.deltaTime);
 
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
-
                     if (playerBounds.intersects(p.bounds)) {
-                        // تشيك: لو بيحاول يدخل وهو لسه مخلصش المهمة
                         if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0) {
-
-                            // 🔥 التعديل هنا: بدل الديالوج، هنظهر رسالة Pop-up سريعة
-                            // أو نغير قيمة الـ String في نص الشاشة
-                            warningMessage.setString("The gate is locked. Talk to the security guard!") ;
-                            warningTimer = 1.0f; // الرسالة هتفضل ظاهرة لثانيتين
-
-                            // ممكن تعمل صوت "تيت" بسيط هنا برضه
-                            // audio.playErrorSound();
-
-                            break; // اخرج من اللوب وما تنقلش الماب
+                            warningMessage.setString("The gate is locked. Talk to the security guard!");
+                            warningTimer = 1.5f;
+                            break;
                         }
-
                         worldSetCurrentMap(world, p.targetMap);
                         currentMap = worldGetCurrentMap(world);
-
                         player.pos.x = p.spawnPos.x * currentMap->tileSize;
                         player.pos.y = p.spawnPos.y * currentMap->tileSize;
                         player.sprite.setPosition(player.pos);
-
                         fadeAlpha = 255.0f;
                         isFading = true;
-
-                        std::cout << "[PORTAL] Moved to " << p.targetMap
-                                  << " at " << player.pos.x << "," << player.pos.y << std::endl;
                         break;
                     }
                 }
@@ -197,10 +162,7 @@ int main() {
 
         if (isFading) {
             fadeAlpha -= fadeSpeed * gState.deltaTime;
-            if (fadeAlpha <= 0) {
-                fadeAlpha = 0;
-                isFading = false;
-            }
+            if (fadeAlpha <= 0) { fadeAlpha = 0; isFading = false; }
         }
 
         // --- DRAW LOGIC ---
@@ -216,87 +178,57 @@ int main() {
             window.setView(mainView);
             drawMap(window, *currentMap);
 
-            // Draw NPCs - uses current map name from World
+            // ← 4. رسم الليتش (بعد الماب وقبل اللاعب والـ UI)
+            drawLich(window);
+
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawEnemy(window);
             drawPlayer(window);
+
             if (inv.feedbackTimer > 0) {
                 window.draw(inv.feedbackSprite);
-                for (int i = 0; i < 5; i++) {
-                    window.draw(inv.sparkles[i]);
-                }
+                for (int i = 0; i < 5; i++) window.draw(inv.sparkles[i]);
             }
             drawWeapons(window);
 
-            for (auto& p : currentMap->portals) {
-                sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
-                debugRect.setPosition(p.bounds.left, p.bounds.top);
-                debugRect.setFillColor(Color(0, 0, 0, 75));
-                window.draw(debugRect);
-            }
-
             window.setView(window.getDefaultView());
-
-            if (isDialogueActive()) {
-                drawDialogue(window);
-            }
-            else {
-                inv.invt_draw(window);
-            }
+            if (isDialogueActive()) drawDialogue(window);
+            else inv.invt_draw(window);
 
             drawHealthBar(window);
             if (warningTimer > 0) {
                 sf::Text popUp;
-                popUp.setFont(font); // استخدم الفونت بتاعك
+                popUp.setFont(font);
                 popUp.setString("The gate is locked. Talk to the security guard!");
                 popUp.setCharacterSize(24);
                 popUp.setFillColor(sf::Color::Red);
-                popUp.setOutlineColor(sf::Color::Black);
-                popUp.setOutlineThickness(2);
-
-                // سنتر الرسالة في نص الشاشة فوق شوية
                 popUp.setPosition(SCREEN_W/2.0f - popUp.getGlobalBounds().width/2.0f, 200.f);
-
                 window.draw(popUp);
-
-                // نقص التايمر عشان تختفي
                 warningTimer -= gState.deltaTime;
             }
             drawXPBar(window);
             gameLogic.draw(window);
         }
 
-        // تأكد إنك فاتح الـ DefaultView عشان التيكست ميمشيش مع الكاميرا
         window.setView(window.getDefaultView());
-
-        statusTrackerText.setFont(font); // استخدم الفونت بتاعك
+        statusTrackerText.setFont(font);
         statusTrackerText.setCharacterSize(20);
-        statusTrackerText.setFillColor(sf::Color::White); // لون رايق يبان على أي خلفية
+        statusTrackerText.setFillColor(sf::Color::White);
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
-
         window.draw(statusTrackerText);
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
-            inv.triggerPickupEffect("assets/items/idcard.png");
-            inv.addItem("id_card", "assets/items/idcard.png");;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
-            inv.triggerPickupEffect("assets/items/sword.png");
-            inv.addItem("sword", "assets/items/sword.png");;
-        }
 
         if (fadeAlpha > 0) {
             sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
             fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
-            window.setView(window.getDefaultView());
             window.draw(fadeOverlay);
         }
 
         window.display();
     }
-        return 0;
+    return 0;
 }
