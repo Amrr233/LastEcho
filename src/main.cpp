@@ -15,7 +15,8 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
-#include "TheLich.h" // ← 1. التأكد من تضمين الهيدر
+#include "thelich.h"
+
 
 using namespace sf;
 using namespace std;
