@@ -48,5 +48,10 @@ void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentP
 void interactWithNPC(sf::Vector2f playerPos);
 bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap);
 std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap);
-
+sf::Vector2f getNPCPosition(std::string name);
+void updateNPCPosition(std::string name, sf::Vector2f newPos);
+// دالة مساعدة عشان نجيب التكستشر بتاع الأفاتار للديالوج
+sf::Texture& getNPCAvatar(std::string name);
+void updateNPCAnimation(std::string name, int direction, float dt);
+void setNPCFrame(std::string name, int frame);
 #endif

@@ -73,7 +73,7 @@ void updateWeapon(float dt);
 void getWeaponOffset ();
 void drawPlayer(sf::RenderWindow& window);
 void drawWeapons(sf::RenderWindow& window);
-
+void updatePlayerAnimation(Direction dir, float dt, bool moving);
 
 extern Player   player;
 extern weapons weapon;

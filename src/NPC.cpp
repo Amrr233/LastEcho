@@ -76,6 +76,39 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     guard.currentMap = "outside";
     allNPCs[npcCount++] = guard;
 
+
+    NPC amr;
+    amr.name = "amr";
+    amr.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/amr/walking-south.png");
+    amr.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/amr/walking-north.png");
+    amr.walkTextures[WEST].loadFromFile("assets/sprites/npcs/amr/walking-west.png");
+    amr.walkTextures[EAST].loadFromFile("assets/sprites/npcs/amr/walking-east.png");
+    amr.avatarPath = "assets/sprites/npcs/amr/amr_avatar.png";
+    amr.avatarTexture.loadFromFile(amr.avatarPath);
+    amr.avatarSprite.setTexture(amr.avatarTexture);
+    amr.isStatic = true;
+    amr.speed = 90.f;
+    amr.currentMap = "hallAfter";
+
+    // --- إعدادات الانتظار ---
+    amr.waitTimer = 0.f;     // العداد بيبدأ من صفر
+    amr.waitTime = 6.5f;    // هينتظر   ثواني
+    amr.isWaiting = true;   // هيبدأ اللعبة وهو مستني
+
+    amr.waypointsCount = 1;
+    amr.waypoints[0] = {400, 400};
+    amr.avatarPath = "assets/sprites/npcs/amr/walking-east.png";
+
+    if (!friendNPC.avatarTexture.loadFromFile(amr.avatarPath)) {
+        std::cout << "FAILED TO LOAD NPC AVATAR\n";
+    }
+
+    amr.avatarSprite.setTexture(amr.avatarTexture, true);
+    amr.pos = amr.waypoints[0];
+    amr.currentWaypoint = 0;
+
+    allNPCs[npcCount++] = amr;
+
     // تهيئة السبرايتس
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
@@ -285,4 +318,67 @@ bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap) {
         }
     }
     return false;
+}
+
+sf::Vector2f getNPCPosition(std::string name) {
+    for (int i = 0; i < npcCount; i++) {
+        if (allNPCs[i].name == name) {
+            return allNPCs[i].pos;
+        }
+    }
+    return { 0.f, 0.f };
+}
+
+void updateNPCPosition(std::string name, sf::Vector2f newPos) {
+    for (int i = 0; i < npcCount; i++) {
+        if (allNPCs[i].name == name) {
+            allNPCs[i].pos = newPos;
+            allNPCs[i].sprite.setPosition(newPos);
+            break;
+        }
+    }
+}
+
+// دالة مساعدة عشان نجيب التكستشر بتاع الأفاتار للديالوج
+sf::Texture& getNPCAvatar(std::string name) {
+    for (int i = 0; i < npcCount; i++) {
+        if (allNPCs[i].name == name) {
+            return allNPCs[i].avatarTexture;
+        }
+    }
+    // لو مش لاقي، هيرجع أي حاجة مؤقتاً عشان ميعملش Crash
+    return allNPCs[0].avatarTexture;
+}
+
+
+void updateNPCAnimation(std::string name, int direction, float dt) {
+    for (int i = 0; i < npcCount; i++) {
+        if (allNPCs[i].name == name) {
+            NPC& npc = allNPCs[i];
+
+            // تغيير التكستشر للاتجاه الصح
+            npc.sprite.setTexture(npc.walkTextures[direction]);
+
+            // تحديث العداد
+            npc.animTimer += dt;
+            if (npc.animTimer >= 0.1f) {
+                npc.animTimer = 0.f;
+                npc.currentFrame = (npc.currentFrame + 1) % 6; // عندك 6 فريمات
+            }
+
+            // تحديث المربع اللي بيتقطع من الصورة
+            npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
+            break;
+        }
+    }
+}
+
+// دالة تخلي الـ NPC يقف (Idle)
+void setNPCFrame(std::string name, int frame) {
+    for (int i = 0; i < npcCount; i++) {
+        if (allNPCs[i].name == name) {
+            allNPCs[i].sprite.setTextureRect(sf::IntRect(frame * 68, 0, 68, 68));
+            break;
+        }
+    }
 }

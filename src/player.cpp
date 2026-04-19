@@ -4,6 +4,7 @@
     #include <cmath>
     #include "enemies.h"
     #include "NPC.h"
+#include  "Cutscene.h"
     using namespace sf;
 
     extern Player player;
@@ -100,6 +101,12 @@
     }
 
     void updatePlayer(float dt, World& world) {
+        // 🔥 إضافة السطر ده: لو فيه كت سين، اخرج ومتحسبش حركة الكيبورد
+        // (الكت سين هي اللي هتحرك الـ player.pos مباشرة)
+        if (isCutsceneActive()) {
+            playerSprite.setPosition(player.pos); // بس حدث مكان السبرايت
+            return;
+        }
         GameMap* currentMapPtr = worldGetCurrentMap(world);
         if (!currentMapPtr) return;
         GameMap& myMap = *currentMapPtr;
@@ -260,4 +267,22 @@ void handlingHurt(float dt) {
     }
     void drawWeapons(sf::RenderWindow& window) {
         window.draw(weapon.weaponShape);
+    }
+
+// دالة لتحديث أنيميشن اللاعب من بره (للجت سين)
+    void updatePlayerAnimation(Direction dir, float dt, bool moving) {
+        player.facing = dir;
+        player.isMoving = moving;
+        playerSprite.setTexture(player.walkTextures[player.facing]);
+
+        if (moving) {
+            player.animationTimer += dt;
+            if (player.animationTimer >= 0.1f) {
+                player.animationTimer = 0.f;
+                player.currentFrame = (player.currentFrame + 1) % 6;
+            }
+        } else {
+            player.currentFrame = 0;
+        }
+        playerSprite.setTextureRect(IntRect(player.currentFrame * 68, 0, 68, 68));
     }
