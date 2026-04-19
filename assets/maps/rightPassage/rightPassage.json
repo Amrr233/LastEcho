@@ -223,12 +223,12 @@
                         {
                          "name":"spawnX",
                          "type":"string",
-                         "value":"50"
+                         "value":"20"
                         }, 
                         {
                          "name":"spawnY",
                          "type":"string",
-                         "value":"30"
+                         "value":"10"
                         }, 
                         {
                          "name":"targetMap",
