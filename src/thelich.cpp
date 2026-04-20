@@ -16,6 +16,18 @@ sf::Texture lichAttack[4];
 
 Projectile lichProjectile;
 
+// نظام التحذير
+sf::RectangleShape lichWarningBeam;
+float lichWarningTimer = 0.f;
+const float WARNING_DURATION = 0.8f;
+bool isWarning = false;
+
+// متغيرات التحكم (القيم اللي طلبتها)
+const float SHOOT_COOLDOWN = 5.0f;       // الوقت بين الضربات
+const float MAX_PROJECTILE_DIST = 300.f; // مدى الكورة
+const float LICH_SPEED = 90.f;           // سرعة مشي الوحش
+const float BALL_SPEED = 300.f;          // سرعة الكورة
+
 float lichAnimTimer = 0.f;
 int lichFrame = 0;
 
@@ -23,6 +35,7 @@ int lichFrame = 0;
 void initLich(sf::Vector2f pos) {
     lichPos = pos;
 
+    // تحميل الصور
     lichIdle[L_SOUTH].loadFromFile("assets/thelich/thelichidle/idlesouth.png");
     lichIdle[L_NORTH].loadFromFile("assets/thelich/thelichidle/idlenorth.png");
     lichIdle[L_EAST].loadFromFile("assets/thelich/thelichidle/idleeast.png");
@@ -43,23 +56,27 @@ void initLich(sf::Vector2f pos) {
     lichSprite.setOrigin(60.f,60.f);
     lichSprite.setScale(1.8f,1.8f);
 
-    lichProjectile.shape.setRadius(10.f);
-    lichProjectile.shape.setOrigin(10.f,10.f);
-    lichProjectile.speed = 420.f;
+    // إعداد شعاع التحذير
+    lichWarningBeam.setSize({ 350.f, 15.f });
+    lichWarningBeam.setOrigin(-5.f, 7.5f);
+    lichWarningBeam.setFillColor(sf::Color(255, 0, 0, 150));
+
+    // إعداد الكورة
+    lichProjectile.shape.setRadius(12.f);
+    lichProjectile.shape.setOrigin(12.f,12.f);
+    lichProjectile.speed = BALL_SPEED;
     lichProjectile.active = false;
+    lichProjectile.shape.setFillColor(sf::Color::Green);
 }
 
 // ================= PLAYER HIT =================
 void hitPlayer(int dmg, sf::Vector2f dir) {
     if (player.isInvincible) return;
-
     player.hp -= dmg;
     if (player.hp < 0) player.hp = 0;
-
     player.currentState = HURT;
     player.hurt_timer = 0.5f;
     player.isInvincible = true;
-
     player.pos += dir * 25.f;
 }
 
@@ -76,40 +93,58 @@ void shoot(sf::Vector2f target) {
 
 // ================= UPDATE =================
 void updateLich(float dt, sf::Vector2f playerPos, sf::FloatRect playerBounds) {
-
     sf::Vector2f diff = playerPos - lichPos;
     float dist = std::sqrt(diff.x*diff.x + diff.y*diff.y);
-
     sf::Vector2f dir = (dist != 0) ? diff / dist : sf::Vector2f(0,1);
-    sf::Vector2f perp(-dir.y, dir.x);
 
-    // ===== DIRECTION =====
+    // تحديد الاتجاه
     if (std::abs(dir.x) > std::abs(dir.y))
         lichDir = (dir.x > 0) ? L_EAST : L_WEST;
     else
         lichDir = (dir.y > 0) ? L_SOUTH : L_NORTH;
 
-    float speed = 140.f;
-
-    // ===== AI =====
+    // ===== AI LOGIC =====
     if (dist > 450.f) {
         lichState = L_IDLE;
+        isWarning = false;
     }
-    else if (dist > 200.f) {
+    else if (dist > 250.f && !isWarning) {
         lichState = L_WALK;
-        lichPos += dir * speed * dt;
+        lichPos += dir * LICH_SPEED * dt;
     }
     else {
-        lichState = L_ATTACK;
-        lichPos += perp * 60.f * dt;
+        // إدارة الحالة (Idle أثناء الانتظار، Attack أثناء التحذير)
+        if (!isWarning) {
+            lichState = L_IDLE;
+        } else {
+            lichState = L_ATTACK;
+        }
 
-        // 🔥 FIXED SHOOT (NO ONE-BULLET BUG)
-        static float timer = 0.f;
-        timer += dt;
+        static float shootCooldownTimer = 0.f;
+        shootCooldownTimer += dt;
 
-        if (timer >= 1.2f) {
-            shoot(playerPos);
-            timer = 0.f;
+        if (shootCooldownTimer >= SHOOT_COOLDOWN) {
+            isWarning = true;
+            lichWarningTimer = 0.f;
+            shootCooldownTimer = 0.f;
+            lichFrame = 0; // تصفير الفريم لضمان بداية الأنميشن صح
+        }
+
+        if (isWarning) {
+            lichWarningTimer += dt;
+            lichWarningBeam.setPosition(lichPos);
+            float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
+            lichWarningBeam.setRotation(angle);
+
+            // وميض الشعاع
+            int alpha = (int(lichWarningTimer * 12) % 2 == 0) ? 40 : 200;
+            lichWarningBeam.setFillColor(sf::Color(255, 0, 0, alpha));
+
+            if (lichWarningTimer >= WARNING_DURATION) {
+                shoot(playerPos);
+                isWarning = false;
+                lichState = L_IDLE; // العودة للثبات بعد الضرب
+            }
         }
     }
 
@@ -131,18 +166,18 @@ void updateLich(float dt, sf::Vector2f playerPos, sf::FloatRect playerBounds) {
 
     lichSprite.setTextureRect(sf::IntRect(lichFrame*120,0,120,120));
 
-    // ===== PROJECTILE =====
+    // ===== PROJECTILE (التحكم في المدى) =====
     if (lichProjectile.active) {
         lichProjectile.shape.move(lichProjectile.dir * lichProjectile.speed * dt);
 
-        // ✔ FIXED HITBOX (NO SPRITE BUG)
-        sf::FloatRect p(
-            player.pos.x - 20.f,
-            player.pos.y - 20.f,
-            40.f,
-            40.f
-        );
+        sf::Vector2f dVec = lichProjectile.shape.getPosition() - lichPos;
+        float traveled = std::sqrt(dVec.x*dVec.x + dVec.y*dVec.y);
 
+        if (traveled > MAX_PROJECTILE_DIST) {
+            lichProjectile.active = false;
+        }
+
+        sf::FloatRect p(player.pos.x - 20.f, player.pos.y - 20.f, 40.f, 40.f);
         if (lichProjectile.shape.getGlobalBounds().intersects(p)) {
             hitPlayer(20, lichProjectile.dir);
             lichProjectile.active = false;
@@ -152,8 +187,7 @@ void updateLich(float dt, sf::Vector2f playerPos, sf::FloatRect playerBounds) {
 
 // ================= DRAW =================
 void drawLich(sf::RenderWindow& window) {
+    if (isWarning) window.draw(lichWarningBeam);
     window.draw(lichSprite);
-
-    if (lichProjectile.active)
-        window.draw(lichProjectile.shape);
+    if (lichProjectile.active) window.draw(lichProjectile.shape);
 }
