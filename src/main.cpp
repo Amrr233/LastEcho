@@ -40,6 +40,10 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
+sf::Texture interactBoxTex;
+sf::Sprite  interactBoxSprite;
+sf::Text    interactPrompt;
+bool        interactAssetsLoaded = false;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -59,6 +63,21 @@ int main() {
         cout << "CRITICAL ERROR: No current map available!" << endl;
         return -1;
     }
+    interactBoxTex.loadFromFile("assets/sprites/items/Text_Box.png");
+    interactBoxSprite.setTexture(interactBoxTex);
+    interactBoxSprite.setScale(0.35f, 0.35f); // عدل الحجم حسب ذوقك
+
+    // تحت اليمين
+    float boxW = interactBoxSprite.getGlobalBounds().width;
+    float boxH = interactBoxSprite.getGlobalBounds().height;
+    interactBoxSprite.setPosition(SCREEN_W - boxW - 170.f, SCREEN_H - boxH - 20.f);
+
+    interactPrompt.setFont(font);
+    interactPrompt.setString("Press E to interact");
+    interactPrompt.setCharacterSize(16);
+    interactPrompt.setFillColor(sf::Color(60, 30, 10)); // لون داكن يناسب الـ box
+    interactPrompt.setOutlineColor(sf::Color::Black);
+    interactPrompt.setOutlineThickness(1);
 
     // Spawn coordinates
     float spawnX = 350;
@@ -209,6 +228,26 @@ int main() {
             drawWeapons(window);
 
             window.setView(window.getDefaultView());
+            bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
+            bool nearChest = !gameChest.isOpen &&
+                             std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
+                                       std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
+                             gameChest.mapName == world.currentMapName;
+
+            if ((nearNPC || nearChest) && !isDialogueActive()) {
+                // رسم الـ box
+                window.draw(interactBoxSprite);
+
+                // تسنيت النص في نص الـ box
+                sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
+                sf::FloatRect textBounds = interactPrompt.getLocalBounds();
+                interactPrompt.setPosition(
+                    boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f - textBounds.left,
+                    boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - textBounds.top - 5.f
+                );
+
+                window.draw(interactPrompt);
+            }
 
             if (isDialogueActive()) {
                 drawDialogue(window);
