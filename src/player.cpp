@@ -1,9 +1,9 @@
-    #include "player.h"
-    #include "GameMap.h"
-    #include <SFML/Graphics.hpp>
-    #include <cmath>
-    #include "enemies.h"
-    #include "NPC.h"
+#include "player.h"
+#include "GameMap.h"
+#include <SFML/Graphics.hpp>
+#include <cmath>
+#include "enemies.h"
+#include "NPC.h"
 #include  "Cutscene.h"
     using namespace sf;
 

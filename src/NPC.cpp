@@ -27,7 +27,24 @@ sf::FloatRect getNPCHitbox(const NPC& npc) {
 }
 void initNPCs(World& world) {
     npcCount = 0;
+    // Key Keeper NPC
+    NPC keyKeeper;
+    keyKeeper.name = "Key_Keeper";
+    keyKeeper.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
+    keyKeeper.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
+    keyKeeper.walkTextures[WEST].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
+    keyKeeper.walkTextures[EAST].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
+    keyKeeper.avatarPath = "assets/sprites/npcs/key_keeper/key_keeper_avatar.jpg";
+    keyKeeper.avatarTexture.loadFromFile(keyKeeper.avatarPath);
+    keyKeeper.avatarSprite.setTexture(keyKeeper.avatarTexture);
+    keyKeeper.avatarSprite.setScale(3.f, 1.f);
+    keyKeeper.isStatic = true;
+    keyKeeper.isWaiting = false;
+    keyKeeper.currentMap = "clinic";
+    keyKeeper.pos = {190.0f, 300.0f}; // ← غير الإحداثيات حسب الماب
+    keyKeeper.waypointsCount = 0;
 
+    allNPCs[npcCount++] = keyKeeper;
     // 1. الصاحب (Friend_NPC)
     NPC friendNPC;
     friendNPC.name = "Friend_NPC";

@@ -3,6 +3,8 @@
 #include "inventory.h"
 #include "NPC.h"
 #include "Cutscene.h"
+#include "Player.h"
+#include "chest.h"
 
 extern inventory inv;
 extern NPC allNPCs[MAX_NPCS];
@@ -170,6 +172,35 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
                     }
                 }
                 ps.allPhases[0].currentQuestIdx = 3;
+            }
+        }
+        else if (npcName == "Key_Keeper") {
+            // Quest 3 must be active
+            if (ps.allPhases[0].currentQuestIdx < 3) {
+                std::string notYet[] = { "I don't know you yet.", "Come back later." };
+                startDialogue("Stranger", notYet, 2, getNPCAvatar("Key_Keeper"));
+            }
+            else if (!ps.gameFlags[1]) {
+                // First time → give the key
+                std::string giveKey[] = {
+                    "So... Amr sent you.",
+                    "I've been keeping this safe for a long time.",
+                    "Take it. The chest is somewhere in this building.",
+                    "Find the strings inside. Amr needs them."
+                };
+                inv.addItem("key", "assets/sprites/items/key.png");
+                ps.pendingItemTexture = "assets/items/key.png";
+                player.hasChestKey = false;     // flag on player
+                ps.gameFlags[1] = true;          // flag on phase system
+                startDialogue("Keeper", giveKey, 4, getNPCAvatar("Key_Keeper"));
+            }
+            else {
+                // Already gave key
+                std::string already[] = {
+                    "You already have the key.",
+                    "Go find the chest."
+                };
+                startDialogue("Keeper", already, 2, getNPCAvatar("Key_Keeper"));
             }
         }
     }

@@ -38,6 +38,8 @@ add_executable(LastEcho
         src/phase.cpp
         src/Cutscene.cpp
         src/Cutscene.h
+        src/chest.cpp
+        src/chest.h
         # ويفضل تضيف الهيدر كمان للتنظيم
 
 )

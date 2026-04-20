@@ -16,6 +16,7 @@
 #include "DialogueManager.h"
 #include "phase.h"
 #include "Cutscene.h" // ← ضيفنا الهيدر الجديد
+#include "chest.h"
 
 using namespace sf;
 using namespace std;
@@ -69,6 +70,7 @@ int main() {
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initNPCs(world);
+    initChest(sf::Vector2f(100.f, 150.f), "sclab"); // ← adjust position
     initweapon(Vector2f(spawnX, spawnY));
 
     gState.currentState = STATE_MENU;
@@ -103,6 +105,9 @@ int main() {
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                         if (isDialogueActive()) {
                             nextLine();
+                        }
+                        else if (tryOpenChest(player.pos, world.currentMapName)) {
+                            // chest opened, nothing extra needed
                         }
                         else {
                             string npcName = getNearbyNPCName(player.pos, world.currentMapName);
@@ -146,6 +151,7 @@ int main() {
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                 updateWeapon(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
+                updateChest(gState.deltaTime, world.currentMapName);
 
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
@@ -189,6 +195,7 @@ int main() {
             window.setView(mainView);
             drawMap(window, *currentMap);
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
+            drawChest(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
 

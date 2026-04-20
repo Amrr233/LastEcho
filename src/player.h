@@ -31,6 +31,9 @@ struct Player {
     int frameWidth = 48;
     int frameHeight = 48;
 
+    // Quest Data
+    int stringsCollected = 0;
+    bool hasChestKey = false;  // ← already there!
     // Combat Logic
     int   attack_damage = 10;
     float cooldown_timer;

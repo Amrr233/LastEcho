@@ -76,48 +76,41 @@ void inventory::invt_draw(sf::RenderWindow& window) {
     window.draw(invBar);
     window.draw(selector);
 
-    // --- إعدادات التظبيط اليدوي (عدل هنا فقط) ---
     float offsetX = 60.f;
     float offsetY = 70.f;
-    float gap = 70.5f;
-    // ------------------------------------------
+    float gap     = 70.5f;
 
     for (int i = 0; i < 6; i++) {
-        if (hasItem[i]) {
-            // توحيد السنتر للأيتم
-            itemSprites[i].setOrigin(itemTextures[i].getSize().x / 2.0f, itemTextures[i].getSize().y / 2.0f);
+        if (!hasItem[i]) continue;
 
-            // الحساب مع مراعاة السكيل (0.5)
-            float startX = invBar.getPosition().x - (invBar.getGlobalBounds().width / 2.0f);
-            float startY = invBar.getPosition().y - (invBar.getGlobalBounds().height / 2.0f);
+        // center origin
+        itemSprites[i].setOrigin(
+            itemTextures[i].getSize().x / 2.0f,
+            itemTextures[i].getSize().y / 2.0f
+        );
 
-            itemSprites[i].setPosition(
-                startX + offsetX + (i * gap),
-                invBar.getPosition().y - offsetY
+        float startX = invBar.getPosition().x - (invBar.getGlobalBounds().width / 2.0f);
+
+        itemSprites[i].setPosition(
+            startX + offsetX + (i * gap),
+            invBar.getPosition().y - offsetY
+        );
+
+        window.draw(itemSprites[i]);
+
+        // draw counter if more than 1
+        if (itemQuantity[i] > 1) {
+            countText.setString(std::to_string(itemQuantity[i]));
+
+            sf::Vector2f itemPos = itemSprites[i].getPosition();
+
+            // bottom-right corner of slot like minecraft
+            countText.setPosition(
+                itemPos.x + 10.f,
+                itemPos.y + 12.f
             );
 
-            window.draw(itemSprites[i]);
-
-
-            // جوه invt_draw
-            for (int i = 0; i < 6; i++) {
-                if (hasItem[i]) {
-                    // ... كود رسم السبرايت القديم ...
-                    window.draw(itemSprites[i]);
-
-                    // رسم الرقم لو أكتر من 1
-                    if (itemQuantity[i] > 1) {
-                        countText.setString(std::to_string(itemQuantity[i]));
-
-                        // تحديد مكان الرقم (الركن الشمال التحتاني للخانة)
-                        // هنرحل الرقم بالنسبة لبوزيشن السبرايت
-                        sf::Vector2f itemPos = itemSprites[i].getPosition();
-                        countText.setPosition(itemPos.x - 15.f, itemPos.y + 5.f);
-
-                        window.draw(countText);
-                    }
-                }
-            }
+            window.draw(countText);
         }
     }
 }
@@ -138,13 +131,21 @@ bool inventory::addItem(std::string name, std::string texturePath) {
         if (!hasItem[i]) {
             if (itemTextures[i].loadFromFile(texturePath)) {
                 itemSprites[i].setTexture(itemTextures[i]);
-                itemSprites[i].setScale(0.8f, 0.8f);
+                // Auto-fit item to slot size (max 40x40)
+                float maxSize = 40.f;
+                float texW = (float)itemTextures[i].getSize().x;
+                float texH = (float)itemTextures[i].getSize().y;
+                float scale = std::min(maxSize / texW, maxSize / texH);
+                itemSprites[i].setScale(scale, scale);
                 itemNames[i] = name; // خزن الاسم عشان نعرفه المرة الجاية
                 itemQuantity[i] = 1; // ابدأ بـ 1
                 hasItem[i] = true;
                 return true;
             }
         }
+        // strings are not usable, key is usable
+        if (name == "guitar_string") isUsable[i] = false;
+        else isUsable[i] = true;
     }
     return false;
 }

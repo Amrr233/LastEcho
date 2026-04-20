@@ -22,6 +22,7 @@ struct inventory {
     bool isFirstTimeItem = false;
     sf::CircleShape sparkles[5];
     float sparkleAlphas[5] = {255, 200, 150, 100, 50};
+    bool isUsable[6] = { true }; // default all usable
     //================
 
 
