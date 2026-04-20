@@ -15,6 +15,7 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
+#include "BTDminigame.h"
 
 using namespace sf;
 using namespace std;
@@ -38,6 +39,8 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
+BinaryGameData myBinaryGame; // بنعرف الـ Data
+
 
 
 
@@ -55,6 +58,10 @@ int main() {
     // }
 
     // NEW:
+
+
+    initBinaryGame(myBinaryGame);
+
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
         std::cout << "ERROR: Font not found!" << std::endl;
@@ -103,6 +110,7 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
+            
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
@@ -110,6 +118,10 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
             }
             else if (gState.currentState == STATE_PLAYING) {
+                handleBinaryInput(myBinaryGame, event);
+                if (event.type == Event::KeyPressed && event.key.code == Keyboard::M) {
+                    myBinaryGame.active = !myBinaryGame.active; // بيفتح ويقفل بـ M
+                }
                 if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                     if (isDialogueActive()) {
                         nextLine(); // لو فيه حوار، قلب الصفحة
@@ -125,11 +137,14 @@ int main() {
                     }
                 }
             }
+
         }
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
+
+            updateBinaryGame(myBinaryGame);
 
             statusTrackerText.setString(
     "Phase: " + cp.phaseTitle + "\n" +
@@ -235,7 +250,9 @@ int main() {
                 window.draw(debugRect);
             }
 
+
             window.setView(window.getDefaultView());
+            drawBinaryGame(window, myBinaryGame);
 
             if (isDialogueActive()) {
                 drawDialogue(window);
@@ -243,8 +260,11 @@ int main() {
             else {
                 inv.invt_draw(window);
             }
+            if (!myBinaryGame.active) {
+                drawHealthBar(window);
+            }
 
-            drawHealthBar(window);
+
             if (warningTimer > 0) {
                 sf::Text popUp;
                 popUp.setFont(font); // استخدم الفونت بتاعك
@@ -262,7 +282,10 @@ int main() {
                 // نقص التايمر عشان تختفي
                 warningTimer -= gState.deltaTime;
             }
-            drawXPBar(window);
+            if (!myBinaryGame.active) {
+                drawXPBar(window);
+            }
+            
             gameLogic.draw(window);
         }
 
@@ -275,8 +298,9 @@ int main() {
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
-
-        window.draw(statusTrackerText);
+        if (!myBinaryGame.active) {
+            window.draw(statusTrackerText);
+        }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);

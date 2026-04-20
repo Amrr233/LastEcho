@@ -5,29 +5,33 @@
 #include <iostream>
 
 // --- تجهيز شكل شاشة الكمبيوتر في معمل الـ SC Lab ---
-void initBinaryGame(BinaryGameData& data, sf::Font& font) {
-    if (!data.terminalFont.loadFromFile("assets/fonts/terminal_pixel.ttf")) {
-        std::cout << "Error: Could not load hacker font!" << std::endl;
+void initBinaryGame(BinaryGameData& data) {
+    if (!data.terminalFont.loadFromFile("assets/fonts/terminalfont.ttf")) {
+        std::cout << "Error: Font not found!" << std::endl;
     }
 
-    // ربط النصوص بالخط اللي حملناه
     data.promptText.setFont(data.terminalFont);
     data.inputText.setFont(data.terminalFont);
-    // الخلفية السودة الشفافة اللي بتغطي الماب
-    data.overlay.setSize(sf::Vector2f(800, 600));
-    data.overlay.setFillColor(sf::Color(0, 0, 0, 220));
 
-    // إعداد نص السيستم (الرسائل الغامضة)
+    // 1. خليه ياخد مقاس الشاشة بالظبط (افترضي 800x600 أو استخدمي SCREEN_W/H)
+    data.overlay.setSize(sf::Vector2f(800.f, 600.f));
 
-    data.promptText.setCharacterSize(22);
-    data.promptText.setFillColor(sf::Color::Green); // لون أخضر زي شاشات زمان
-    data.promptText.setPosition(100, 150);
+    // 2. أهم سطرين: صفرنا الـ Origin والـ Position عشان يبدأ من (0,0) الشاشة
+    data.overlay.setOrigin(0.f, 0.f);
+    data.overlay.setPosition(0.f, 0.f);
 
-    // إعداد مكان كتابة الكود (Input)
+    // 3. اللون (أسود غامق جداً عشان يفصل اللاعب عن الماب)
+    data.overlay.setFillColor(sf::Color(0, 0, 0, 250));
 
-    data.inputText.setCharacterSize(28);
+    // 4. تظبيط أماكن الكلام (Positions)
+    // هنخلي الكلام يبدأ من مسافة 50 بكسل من الشمال عشان ميبقاش لازق في الحافة
+    data.promptText.setCharacterSize(24);
+    data.promptText.setFillColor(sf::Color::Green);
+    data.promptText.setPosition(60.f, 80.f);
+
+    data.inputText.setCharacterSize(30);
     data.inputText.setFillColor(sf::Color::White);
-    data.inputText.setPosition(100, 300);
+    data.inputText.setPosition(60.f, 450.f); // الـ Input تحت شوية
 }
 
 // --- التعامل مع الكيبورد والـ Hacking Logic ---

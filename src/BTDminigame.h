@@ -24,8 +24,8 @@ struct BinaryGameData {
     sf::Font terminalFont;
 };
 
-// Functions عادية بتشتغل على الـ struct ده
-void initBinaryGame(BinaryGameData& data, sf::Font& font);
+
+void initBinaryGame(BinaryGameData& data);
 void handleBinaryInput(BinaryGameData& data, sf::Event& event);
 void updateBinaryGame(BinaryGameData& data);
 void drawBinaryGame(sf::RenderWindow& window, BinaryGameData& data);
