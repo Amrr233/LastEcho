@@ -1,0 +1,274 @@
+{
+  "pre_phase": {
+    "npcs": {
+      "guard": {
+        "dialogue": [
+          "Morning.",
+          "It looks like the perfect day to sit and enjoy my tea.",
+          "But remember... not everything in this place is truly like how it seems."
+        ]
+      },
+      "student_lobby": {
+        "dialogue": [
+          "You look new here.",
+          "Take care... some doors are better left unopened."
+        ]
+      },
+      "janitor_old_lady": {
+        "dialogue": ["Son, you need to pay attention to what others ignore."]
+      }
+    }
+  },
+  "phase1_magical_guitar": {
+    "guides": {
+      "amr": {
+        "intro"        : [
+          "So… you can see me.",
+          "Good. That means you're not like the others.",
+          "This place wasn't always like this.",
+          "Something broke and now things are slipping through.",
+          "And somehow you got pulled into all of this."
+        ],
+        "quest"        : [
+          "I can't fight like this.",
+          "My power... it's tied to my guitar.",
+          "It was shattered. The strings were scattered.",
+          "Find them... all of them.",
+          "Then come back to me."
+        ],
+        "after_collect": [
+          "You actually did it?",
+          "Impressive.",
+          "Now listen carefully...",
+          "This curse... it's out of this world.",
+          "This guitar is more than just an instrument.",
+          "Play it.",
+          "Let it choose you."
+        ],
+        "after_play"   : [
+          "...you hear it, don’t you?",
+          "That resonance...",
+          "You didn’t just play a song.",
+          "You did something phenomenal."
+        ]
+      }
+    }
+  },
+  "phase2_system_cracker": {
+    "guides" : {
+      "saged": {
+        "intro"      : [
+          "As you see, things are getting worse here.",
+          "And it's your mission to finish what you started."
+        ],
+        "quest"      : [
+          "There's something buried in the system.",
+          "The terminal in the SC Lab will ask you for a code.",
+          "You need to translate it correctly.",
+          "Good luck, and don't stay there for too long.",
+          "Remember to look at numbers differently.",
+          "Not everything is read the same way."
+        ],
+        "after_quest": [
+          "Albert?... The nameless monster has a name now.",
+          "I'm not sure you can handle what's coming next.",
+          "But there's no choice but to move forward.",
+          "Go ahead, chase the unknown."
+        ]
+      }
+    },
+    "systems": {
+      "sc_lab_terminal": {
+        "access_prompt": ["Enter access key:", "01000011"],
+        "wrong_code"   : [
+          "Access denied.",
+          "Try converting the code to something else."
+        ],
+        "success"      : [
+          "Access granted.",     "Decrypting files...", "Find Albert."
+        ]
+      }
+    },
+    "npcs"   : {
+      "guardian_of_secrets": {
+        "intro" : [
+          "Stop.",
+          "You're not supposed to be here.",
+          "This system was sealed for a reason."
+        ],
+        "defeat": ["...it's too late.", "You already woke it up."]
+      }
+    }
+  },
+  "phase3_broken_genius" : {
+    "guides"   : {
+      "ahtx": {
+        "intro": [
+          "You made it further than anyone else.",
+          "Most people would have stopped by now...",
+          "or worse...disappeared.",
+          "That means the sound didn't break you.",
+          "...not yet."
+        ],
+        "quest": {
+          "start"           : [
+            "There's someone you need to see.",
+            "Or what's left of him...",
+            "Class 8. They keep him there.",
+            "He used to be exceptional.",
+            "For three years he was ahead of everyone.",
+            "Now?",
+            "He no longer speaks.",
+            "Or maybe he speaks in a language no one understands.",
+            "He writes... endlessly.",
+            "Symbols, fragments, things that don't make sense.",
+            "Or maybe they do..."
+          ],
+          "find_paper"      : [
+            "You won’t understand them like this.",
+            "Look around.",
+            "There must be something that helps you read it."
+          ],
+          "after_find_paper": [
+            "Try to understand what he's saying.",
+            "Piece the symbols together."
+          ],
+          "after_decoding"  : [
+            "They named it Echo?",
+            "That's their first mistake.",
+            "Names make things easier to find.",
+            "And some of these things should never be found.",
+            "You'll know more soon...",
+            "Just find...The Words Hunter."
+          ]
+        }
+      }
+    },
+    "npcs"     : {
+      "albert": {
+        "wall_writings": [
+          ".--. .-. --- .--- . -.-. - / . -.-. .... ---",
+          ".. / .... . .- .-. -.. / .. - / -.. .. ..-. ..-. . .-. . -. - .-.. -.--"
+        ]
+      }
+    },
+    "documents": {
+      "morse_paper": {
+        "content": [
+          "A .-",
+          "B -...",
+          "C -.-.",
+          "D -..",
+          "E .",
+          "F ..-.",
+          "G --.",
+          "H ....",
+          "I ..",
+          "J .---",
+          "K -.-",
+          "L .-..",
+          "M --",
+          "N -.",
+          "O ---",
+          "P .--.",
+          "Q --.-",
+          "R .-.",
+          "S ...",
+          "T -",
+          "U ..-",
+          "V ...-",
+          "W .--",
+          "X -..-",
+          "Y -.--",
+          "Z --..",
+          "",
+          "/ = space between words",
+          ""
+        ]
+      }
+    }
+  },
+  "phase4_words_hunter"  : {
+    "guides": {
+      "farida": {
+        "intro"      : [
+          "Memories don't just disappear.",
+          "They leave echoes of what once existed.",
+          "And this includes all of what happened in this place."
+        ],
+        "quest"      : [
+          "What you're about to see are not just movie reviews.",
+          "They were altered... on purpose.",
+          "Some words are missing.",
+          "Not erased...hidden.",
+          "Each missing word is a piece of something bigger.",
+          "Piece them all together.",
+          "Each one brings you closer to the truth...",
+          "The truth that has been leashed for too long."
+        ],
+        "after_quest": [
+          "A GATEWAY TO THE UNKNOWN?",
+          "People think discovering the truth brings clarity.",
+          "But sometimes it only makes thoughts louder in your head.",
+          "Be careful of what's coming your way.",
+          "Nothing here is predictable."
+        ]
+      }
+    }
+  },
+  "phase5_yagami": {
+    "guides": {
+      "deeba": {
+        "intro": [
+          "You felt it, didn't you?",
+          "Something changed when you said that sentence.",
+          "That was a trigger to something beyond"
+        ],
+        "quest": [
+          "The Great Warrior, Yagami",
+          "He's one of the guardians of this secret",
+          "He doesn't appear unless something goes wrong",
+          "And obviously something did.",
+          "At this point...he already noticed what happened",
+          "He's on the way, be ready.",
+          "And you must always remember one thing.",
+          "All actions have consequences."
+        ],
+        "after_quest":[
+        "...You defeated him",
+        "That wasn't supposed to happen.",
+          "Yagami doesn't lose",
+          "And yet..you somehow did it",
+          "This changes things.",
+          "Maybe everything.",
+          "Go to the Data Center to find out how will you end this mess."
+        ]
+        
+      }
+    }
+  },
+  "phase6_the_traitor":{
+    "guides":{
+      "farah":{
+        "intro":[
+
+          
+          
+        ]
+      }
+    }
+  },
+  "phase7_the_lich":{
+    "guides":{
+      "hadry":{
+        "intro":[
+
+          
+          
+        ]
+      }
+      
+    }
+    
+  }
+}

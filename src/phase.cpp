@@ -202,6 +202,11 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
                 };
                 startDialogue("Keeper", already, 2, getNPCAvatar("Key_Keeper"));
             }
+        }else if (npcName == "Receptionist") {
+            std::string liness[] = {"Morning.",
+            "It looks like the perfect day to sit and enjoy my tea.",
+            "But remember... not everything in this place is truly like how it seems." };
+            startDialogue("Receptionist", liness, 3, getNPCAvatar("Receptionist"));
         }
     }
 }

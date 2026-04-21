@@ -45,6 +45,27 @@ void initNPCs(World& world) {
     keyKeeper.waypointsCount = 0;
 
     allNPCs[npcCount++] = keyKeeper;
+
+
+    npcCount = 0;
+    // Receptionist NPC
+    NPC Receptionist;
+    Receptionist.name = "Receptionist";
+    Receptionist.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/receptionist/receptionist.png");
+    Receptionist.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/receptionist/receptionist.png");
+    Receptionist.walkTextures[WEST].loadFromFile("assets/sprites/npcs/receptionist/receptionist.png");
+    Receptionist.walkTextures[EAST].loadFromFile("assets/sprites/npcs/receptionist/receptionist.png");
+    Receptionist.avatarPath = ("assets/sprites/npcs/receptionist/avatar.png");
+    Receptionist.avatarTexture.loadFromFile(Receptionist.avatarPath);
+    Receptionist.avatarSprite.setTexture(Receptionist.avatarTexture);
+    Receptionist.avatarSprite.setScale(3.f, 1.f);
+    Receptionist.isStatic = true;
+    Receptionist.isWaiting = false;
+    Receptionist.currentMap = "lobby";
+    Receptionist.pos = {200.0f, 680.0f}; // ← غير الإحداثيات حسب الماب
+    Receptionist.waypointsCount = 0;
+
+    allNPCs[npcCount++] = Receptionist;
     // 1. الصاحب (Friend_NPC)
     NPC friendNPC;
     friendNPC.name = "Friend_NPC";
