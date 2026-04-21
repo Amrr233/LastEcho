@@ -30,6 +30,7 @@ struct BinaryGameData {
 void initBinaryGame(BinaryGameData& data);
 void handleBinaryInput(BinaryGameData& data, sf::Event& event);
 void updateBinaryGame(BinaryGameData& data, float deltaTime);
+void restartBinaryGame(BinaryGameData& data);
 void drawBinaryGame(sf::RenderWindow& window, BinaryGameData& data);
 
 

@@ -57,9 +57,8 @@ void handleBinaryInput(BinaryGameData& data, sf::Event& event) {
                 }
 
                 if (std::stoi(data.userInput) == data.targetDecimal) {
-                    // حالة النجاح: بنغير الرسالة ونعلم إنها خلصت بس بنسيب active = true
-                    data.statusMessage = "Access granted.\nDecrypting files...\nFind Albert.";
                     data.completed = true;
+                    data.displayTimer = 0.0f;
                     data.userInput = ""; // نمسح المدخلات عشان نعرض جملة الـ Press Enter
                 } else {
                     data.statusMessage = "Access denied.\nTry converting the code to something else.";
@@ -90,6 +89,8 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
             data.messageStep = 2; // عشان نبقى عارفين إننا خلصنا
         }
 
+
+
         // --- التصحيح هنا: نبعت الـ finalMsg مش الـ statusMessage ---
         data.promptText.setString(finalMsg);
         data.promptText.setFillColor(sf::Color::Cyan);
@@ -103,6 +104,18 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
         data.inputText.setString("> " + data.userInput + "_");
         data.promptText.setFillColor(sf::Color::Green);
     }
+}
+void restartBinaryGame(BinaryGameData& data) {
+    data.active = false;
+    data.completed = false;
+    data.displayTimer = 0.0f;     // نصفر التايمر عشان الأنيميشن يبدأ من الأول
+    data.messageStep = 0;
+    data.userInput = "";
+    data.statusMessage = "Enter access key:"; // نرجع الرسالة لأصلها
+
+    data.promptText.setString(data.statusMessage + "\n\nID: " + data.targetBinary);
+    data.promptText.setFillColor(sf::Color::Green);
+    data.inputText.setString("> ");
 }
 
 // --- رسم كل حاجة في الويندوز ---

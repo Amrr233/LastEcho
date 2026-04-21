@@ -121,6 +121,10 @@ int main() {
                 handleBinaryInput(myBinaryGame, event);
                 if (event.type == Event::KeyPressed && event.key.code == Keyboard::M) {
                     myBinaryGame.active = !myBinaryGame.active; // بيفتح ويقفل بـ M
+
+                    if (!myBinaryGame.active) {
+                        restartBinaryGame(myBinaryGame);
+                    }
                 }
                 if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                     if (isDialogueActive()) {
