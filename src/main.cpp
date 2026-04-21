@@ -15,15 +15,13 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
-#include "Cutscene.h" // ← ضيفنا الهيدر الجديد
 #include "chest.h"
+#include "Cutscene.h"
+#include "GuitarMiniGame.h"
 
 using namespace sf;
 using namespace std;
 
-// ==============================
-// GLOBALS
-// ==============================
 RenderWindow window;
 GameState    gState;
 Player       player;
@@ -44,6 +42,7 @@ sf::Texture interactBoxTex;
 sf::Sprite  interactBoxSprite;
 sf::Text    interactPrompt;
 bool        interactAssetsLoaded = false;
+extern GuitarGame g_guitar;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -79,18 +78,17 @@ int main() {
     interactPrompt.setOutlineColor(sf::Color::Black);
     interactPrompt.setOutlineThickness(1);
 
-    // Spawn coordinates
     float spawnX = 350;
-    float spawnY = 900 ;
+    float spawnY = 900;
 
-    // Initializations
-    initCutsceneSystem(); // 🔥 تهيئة نظام الكت سين
+    initCutsceneSystem();
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initNPCs(world);
     initChest(sf::Vector2f(100.f, 150.f), "sclab"); // ← adjust position
     initweapon(Vector2f(spawnX, spawnY));
+    initGuitar();
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -104,11 +102,49 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
-        std::cout << "X: " << player.pos.x << " Y: " << player.pos.y << std::endl;
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
         while (window.pollEvent(event)) {
+            // ════════════════════════════════════════════════════════════════
+            // GUITAR CONTROLS
+            // ════════════════════════════════════════════════════════════════
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                if (isGuitarOpen()) {
+                    // بنبعت الـ window ومكان الماوس بالبكسل عشان الـ View تحولها صح
+                    handleGuitarClick(window, sf::Mouse::getPosition(window));
+                }
+            }
+
+            if (event.type == sf::Event::KeyPressed) {
+                // TAB - Open guitar
+                if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
+                    openGuitarFreePlay();
+                    // شيلنا دالة الـ Scale لأن الـ View الجديدة بتتكفل بكل حاجة
+                }
+
+                // ESC - Close guitar (or close game)
+                if (event.key.code == sf::Keyboard::R) {
+                    if (isGuitarOpen()) {
+                        closeGuitar();
+                    }
+                }
+
+                // Q - Switch mode (only when guitar open)
+                if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
+                    if (g_guitar.mode == GUITAR_FREE) {
+                        GuitarNote pattern[12] = {
+                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
+                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
+                            {0, 7}, {1, 4}, {1, 5}, {1, 4}
+                        };
+                        openGuitarQuest(pattern, 12, 60.0f);
+                    } else {
+                        openGuitarFreePlay();
+                    }
+                }
+            }
+
             if (event.type == sf::Event::Closed)
                 window.close();
 
@@ -119,8 +155,7 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
             }
             else if (gState.currentState == STATE_PLAYING) {
-                // منع التفاعل اليدوي لو فيه كت سين شغالة
-                if (!isCutsceneActive()) {
+                if (!isCutsceneActive() && !isGuitarOpen()) {
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                         if (isDialogueActive()) {
                             nextLine();
@@ -147,7 +182,6 @@ int main() {
                         inv.addItem("note","assets/items/note.png");
                     }
                 } else {
-                    // لو فيه كت سين وفيها حوار، الزرار E يقلب الديالوج بس
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                         if (isDialogueActive()) nextLine();
                     }
@@ -157,25 +191,24 @@ int main() {
 
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            updateCutscene(gState.deltaTime); // 🔥 تحديث الكت سين كل فريم
+            if (isGuitarOpen()) {
+                updateGuitar(gState.deltaTime);
+            }
 
+            updateCutscene(gState.deltaTime);
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
-
             statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
             currentMap = worldGetCurrentMap(world);
             if (!currentMap) break;
 
-            // لو فيه كت سين، هي اللي بتتحكم في الكاميرا (اختياري)
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
-
             gameLogic.update(window, gState.currentState);
             updateDialogue(gState.deltaTime);
             inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-            // بنوقف حركة اللاعب والوحوش لو فيه كت سين
-            if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive()) {
+            if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen()) {
                 updatePlayer(gState.deltaTime, world);
                 checkDialogueReward(world.phaseSys);
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
@@ -186,8 +219,9 @@ int main() {
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
                     if (playerBounds.intersects(p.bounds)) {
-                        if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0 && world.phaseSys.allPhases[0].currentQuestIdx < 2) {
-                            warningMessage.setString("The gate is locked. Talk to the security guard!") ;
+                        if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0 &&
+                            world.phaseSys.allPhases[0].currentQuestIdx < 2) {
+                            warningMessage.setString("The gate is locked. Talk to the security guard!");
                             warningTimer = 1.0f;
                             break;
                         }
@@ -228,8 +262,6 @@ int main() {
             drawChest(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
-
-            // 🔥 رسم الايموشنات فوق الشخصيات
             drawCutsceneOverlay(window, font);
 
             if (inv.feedbackTimer > 0) {
@@ -268,6 +300,7 @@ int main() {
             }
 
             drawHealthBar(window);
+
             if (warningTimer > 0) {
                 sf::Text popUp;
                 popUp.setFont(font);
@@ -280,8 +313,15 @@ int main() {
                 window.draw(popUp);
                 warningTimer -= gState.deltaTime;
             }
+
             drawXPBar(window);
             gameLogic.draw(window);
+
+            // 🔥 Draw guitar on top
+            if (isGuitarOpen()) {
+                window.setView(window.getDefaultView());
+                drawGuitar(window);
+            }
         }
 
         window.setView(window.getDefaultView());
@@ -291,12 +331,14 @@ int main() {
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
-        window.draw(statusTrackerText);
+
+        if (!isGuitarOpen()) {
+            window.draw(statusTrackerText);
+        }
 
         if (fadeAlpha > 0) {
             sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
             fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
-            window.setView(window.getDefaultView());
             window.draw(fadeOverlay);
         }
 
