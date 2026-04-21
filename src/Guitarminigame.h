@@ -6,7 +6,9 @@
 #include <string>
 
 #define MAX_STRINGS 6
-#define MAX_FRETS 8 // 0 1 2 3 4 5 6 7
+#define MAX_FRETS 8
+#define SCREEN_W 1280
+#define SCREEN_H 720
 
 enum GuitarMode { GUITAR_FREE, GUITAR_QUEST };
 
@@ -24,6 +26,14 @@ struct FretButton {
     bool isPressed;
 };
 
+struct UIButton {
+    sf::RectangleShape shape;
+    sf::Text text;
+    sf::FloatRect bounds;
+    std::string label;
+    bool isHovering;
+};
+
 struct GuitarGame {
     bool isOpen;
     GuitarMode mode;
@@ -33,14 +43,22 @@ struct GuitarGame {
 
     FretButton frets[MAX_STRINGS][MAX_FRETS];
 
-    // نظام الصوت (Mono)
+    // Sound system
     sf::SoundBuffer noteBuffers[MAX_STRINGS][MAX_FRETS];
     sf::Sound currentSound;
 
-    // UI & Logic
-    sf::Text modeText;
-    sf::Text scoreText;
-    sf::Text instructionText;
+    // UI elements
+    sf::Text modeText;              // Top left
+    sf::Text scoreText;             // Top right
+    sf::Text instructionText;       // Bottom
+    sf::Text notesPlayedText;       // Bottom left
+    sf::Text timerText;             // Bottom center
+
+    // UI Buttons
+    UIButton modeButton;            // Switch mode button (top right)
+    UIButton exitButton;            // Exit button (top right, below mode)
+
+    // State
     std::string lastNoteName;
     bool questActive;
     float questTimer;
@@ -52,19 +70,20 @@ struct GuitarGame {
 
 extern GuitarGame g_guitar;
 
-// Functions
 void initGuitar();
 void loadGuitarAssets();
 void setupFretButtons();
+void setupUIButtons();
 void drawGuitar(sf::RenderWindow& window);
 void updateGuitar(float deltaTime);
 void handleGuitarClick(sf::Vector2f mousePos);
+void handleButtonClick(sf::Vector2f mousePos);
 void playGuitarNote(int stringNum, int fretNum);
 bool isNoteCorrect(int stringNum, int fretNum);
 void openGuitarFreePlay();
 void openGuitarQuest(const GuitarNote* notes, int noteCount, float timeLimit);
 bool isGuitarOpen();
 void closeGuitar();
-void centerGuitarUI(sf::RenderWindow& window);
+void scaleGuitarToFillScreen(sf::RenderWindow& window);
 
 #endif
