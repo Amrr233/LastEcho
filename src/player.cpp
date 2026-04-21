@@ -100,11 +100,17 @@ void weapons::switching(weaponType type) {
 }
 
 void updatePlayer(float dt, World& world) {
+    if (player.hp <= 0) {
+        player.currentState = DEAD;
+        return;
+    }
+
     GameMap* currentMapPtr = worldGetCurrentMap(world);
     if (!currentMapPtr) return;
     GameMap& myMap = *currentMapPtr;
 
     Vector2f velocity(0.f, 0.f);
+
 
     // ===== الحركة =====
     if (player.currentState != ATTACKING && player.currentState != HURT) {

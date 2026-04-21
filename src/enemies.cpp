@@ -4,6 +4,7 @@
 #include <player.h>
 #include <SFML/Graphics.hpp>
 #include "boss.h"
+#include <iostream>
 
 using namespace sf;
 enemy enemies[MAX_ENEMIES];
@@ -91,6 +92,8 @@ void drawEnemy(RenderWindow& window) {
 }
 
 void checkAttackHits() {
+    std::cout << "state: " << player.currentState
+              << " frame: " << player.currentFrame << std::endl;
     if (player.currentState != ATTACKING || player.currentFrame != 3) return;
     FloatRect hitbox = attackHitBox();
     for (int i = 0; i < enemyCount; i++) {
@@ -117,7 +120,7 @@ void checkAttackHits() {
             boss.hp -= player.attack_damage;
             boss.currentState = BOSS_HURT;
             boss.isInvincible = true;
-            boss.hurtTimer    = 0.4f;
+            boss.hurtTimer    = 0.1f;
             if (boss.hp <= 0) {
                 boss.isAlive   = false;
                 boss.isActive  = false;

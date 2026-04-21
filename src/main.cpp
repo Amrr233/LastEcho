@@ -82,7 +82,7 @@ int main() {
     initBoss();
     // To test right now — remove this line later when cutscene triggers it
     // Init section — replace spawnBoss with:
-    startRound(1);
+
     initNPCs(world);
     initweapon(Vector2f(spawnX, spawnY));
 

@@ -28,7 +28,7 @@ void initBoss() {
     boss.detectionRange = 200.f;
     boss.attackRange    = 60.f;
 
-    // Load texture — change this path when you have a real sprite
+    // Load texture
     boss.texture.loadFromFile("assets/sprites/mummy/walkingmummy/mummywalk(south).png");
     boss.sprite.setTexture(boss.texture);
     boss.sprite.setOrigin(34.f, 34.f);
@@ -40,14 +40,15 @@ void spawnBoss(sf::Vector2f guidePos) {
     boss.damage       = bossConfig.damagePhase1;
     boss.scale        = bossConfig.scalePhase1;
     boss.hp           = bossConfig.maxHp;
-    boss.maxHp        = bossConfig.maxHp;  // ← add this
+    boss.maxHp        = bossConfig.maxHp;
     boss.isAlive      = true;
     boss.isActive     = true;
     boss.currentPhase = BOSS_PHASE_1;
-    boss.currentState = BOSS_IDLE;         // ← reset state
-    boss.isInvincible = false;             // ← reset invincibility
-    boss.hurtTimer    = 0.f;              // ← reset hurt timer
-    boss.attackTimer  = 0.f;             // ← reset attack timer
+    boss.currentState = BOSS_IDLE;
+    boss.isInvincible = false;
+    boss.hurtTimer    = 0.f;
+    boss.attackTimer  = 0.f;
+    boss.attackCooldown = 1.5f;
     boss.sprite.setScale(boss.scale, boss.scale);
 }
 void checkBossPhase() {
@@ -74,61 +75,63 @@ void checkBossPhase() {
 void updateBoss(float dt) {
     if (!boss.isActive || !boss.isAlive) return;
 
-    // 1. نادي دالة التصادم هنا أول حاجة
+    boss.sprite.setTextureRect(sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
+    boss.sprite.setPosition(boss.pos);
     checkBossPlayerCollision();
 
-    if (boss.currentState == BOSS_HURT) {
+    // Invincibility timer
+    if (boss.isInvincible) {
         boss.hurtTimer -= dt;
         if (boss.hurtTimer <= 0.f) {
             boss.isInvincible = false;
             boss.currentState = BOSS_IDLE;
         }
-        return;
+        // still move while invincible but don't run full logic
+        boss.pos += (player.pos - boss.pos) /
+                    std::max(1.f, std::sqrt(
+                        (player.pos.x-boss.pos.x)*(player.pos.x-boss.pos.x)+
+                        (player.pos.y-boss.pos.y)*(player.pos.y-boss.pos.y)
+                    )) * (boss.speed * 0.5f) * dt;
+        goto animate;
     }
 
     checkBossPhase();
 
-    sf::Vector2f dir = player.pos - boss.pos;
-    float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    {
+        sf::Vector2f dir = player.pos - boss.pos;
+        float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
-    if (dist < boss.detectionRange) {
-        // بنجيب حدود البوس واللاعب الفعلية
-        sf::FloatRect bossBounds = boss.sprite.getGlobalBounds();
-        sf::FloatRect playerBounds = player.sprite.getGlobalBounds();
-
-        // لو مش لامسين بعض (مع ترك مسافة أمان صغيرة للهجوم)
-        if (dist > (bossBounds.width / 2.0f) + 5.f) {
-            boss.currentState = BOSS_WALKING;
-            dir /= dist;
-            boss.pos += dir * boss.speed * dt;
-        }
-        else {
-            // هنا اللحظة اللي البوس لمس فيها اللاعب
-            boss.currentState = BOSS_ATTACKING;
-            boss.attackTimer += dt;
-            if (boss.attackTimer >= boss.attackCooldown) {
-                boss.attackTimer = 0.f;
-                if (!player.isInvincible) {
-                    player.hp -= boss.damage;
-                    player.currentState = HURT;
-                    player.hurt_timer = 0.4f;
-                    player.isInvincible = true;
-                    std::cout << "Player Damaged! HP: " << player.hp << std::endl;
+        if (dist < boss.detectionRange) {
+            sf::FloatRect bossBounds = boss.sprite.getGlobalBounds();
+            if (dist > (bossBounds.width / 2.0f) + 5.f) {
+                boss.currentState = BOSS_WALKING;
+                dir /= dist;
+                boss.pos += dir * boss.speed * dt;
+            } else {
+                boss.currentState = BOSS_ATTACKING;
+                boss.attackTimer += dt;
+                if (boss.attackTimer >= boss.attackCooldown) {
+                    boss.attackTimer = 0.f;
+                    if (!player.isInvincible) {
+                        player.hp -= boss.damage;
+                        player.currentState = HURT;
+                        player.hurt_timer = 0.4f;
+                        player.isInvincible = true;
+                        std::cout << "Player Damaged! HP: " << player.hp << std::endl;
+                    }
                 }
             }
+        } else {
+            boss.currentState = BOSS_IDLE;
         }
-    } else {
-        boss.currentState = BOSS_IDLE;
     }
 
-    // تحديث مكان السبرايت والأنيميشن
+    animate:
     boss.animTimer += dt;
     if (boss.animTimer >= 0.15f) {
         boss.animTimer = 0.f;
         boss.currentFrame = (boss.currentFrame + 1) % 6;
     }
-    boss.sprite.setTextureRect(sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
-    boss.sprite.setPosition(boss.pos);
 }
 void drawBoss(sf::RenderWindow& window) {
     if (!boss.isActive || !boss.isAlive) return;
@@ -149,7 +152,7 @@ void startRound(int round) {
     roundMan.roundOver    = false;
     roundMan.inBreak      = false;
 
-    // Each round boss gets stronger — just change these values
+    // Each round boss gets stronger
     if (round == 1) {
         bossConfig.maxHp      = 100;
         bossConfig.speedPhase1 = 60.f;
@@ -179,6 +182,11 @@ void updateRounds(float dt) {
         } else {
             roundMan.inBreak    = true;
             roundMan.breakTimer = 0.f;
+            //refill player each round
+            player.hp           = player.maxHp;
+            player.isInvincible = false;
+            player.hurt_timer   = 0.f;
+            player.currentState = IDLE;
         }
     }
 
@@ -186,6 +194,8 @@ void updateRounds(float dt) {
     if (player.hp <= 0 && !roundMan.roundOver) {
         player.hp = player.maxHp;
         player.currentState = IDLE;
+        player.isInvincible = false;
+        player.hurt_timer   = 0.f;
         startRound(roundMan.currentRound);
     }
 
@@ -198,20 +208,25 @@ void updateRounds(float dt) {
     }
 }
 void checkBossPlayerCollision() {
-    sf::FloatRect b = boss.sprite.getGlobalBounds();
-    sf::FloatRect p = player.sprite.getGlobalBounds();
+    if (!boss.isActive || !boss.isAlive) return;
 
-    if (b.intersects(p)) {
-        sf::Vector2f pushDir = player.pos - boss.pos;
-        float length = std::sqrt(pushDir.x * pushDir.x + pushDir.y * pushDir.y);
-        if (length > 0) {
-            pushDir /= length;
-            // الدفع لبره حدود البوس تماماً
-            float minSafeDist = (b.width / 2.0f) + 15.f;
-            player.pos = boss.pos + pushDir * minSafeDist;
+    float bossRadius   = 20.f * boss.scale;
+    float playerRadius = 20.f;
+    float minDist      = bossRadius + playerRadius;
 
-            // مهم جداً: حدّث مكان سبرايت اللاعب فوراً بعد الدفع
-            player.sprite.setPosition(player.pos);
-        }
+    sf::Vector2f diff = player.pos - boss.pos;
+    float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+
+    if (dist < minDist && dist > 0.f) {
+        sf::Vector2f pushDir = diff / dist;
+        float overlap = minDist - dist;
+
+        // Push player away by half
+        player.pos += pushDir * (overlap * 0.5f);
+        player.sprite.setPosition(player.pos);
+
+        // Push boss away by half — stops it pinning player to walls
+        boss.pos -= pushDir * (overlap * 0.5f);
+        boss.sprite.setPosition(boss.pos);
     }
 }
