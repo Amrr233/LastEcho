@@ -43,11 +43,9 @@ void initNPCs(World& world) {
     keyKeeper.currentMap = "clinic";
     keyKeeper.pos = {190.0f, 300.0f}; // ← غير الإحداثيات حسب الماب
     keyKeeper.waypointsCount = 0;
-
     allNPCs[npcCount++] = keyKeeper;
 
 
-    npcCount = 0;
     // Receptionist NPC
     NPC Receptionist;
     Receptionist.name = "Receptionist";
@@ -64,8 +62,25 @@ void initNPCs(World& world) {
     Receptionist.currentMap = "lobby";
     Receptionist.pos = {200.0f, 680.0f}; // ← غير الإحداثيات حسب الماب
     Receptionist.waypointsCount = 0;
-
     allNPCs[npcCount++] = Receptionist;
+
+    NPC student1;
+    student1.name = "student";
+    student1.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/student1/student1S.png");
+    student1.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/student1/student1N.png");
+    student1.walkTextures[WEST].loadFromFile("assets/sprites/npcs/student1/student1W.png");
+    student1.walkTextures[EAST].loadFromFile("assets/sprites/npcs/student1/student1E.png");
+    student1.avatarPath = ("assets/sprites/npcs/student1/avatar.png");
+    student1.avatarTexture.loadFromFile(student1.avatarPath);
+    student1.avatarSprite.setTexture(student1.avatarTexture);
+    student1.avatarSprite.setScale(3.f, 1.f);
+    student1.isStatic = false;
+    student1.isWaiting = false;
+    student1.currentMap = "connHall";
+    student1.pos = {200.0f, 410.0f}; // ← غير الإحداثيات حسب الماب
+    student1.waypointsCount = 1;
+    student1.waypoints[0] = {800.0f,410.0f};
+    allNPCs[npcCount++] = student1;
     // 1. الصاحب (Friend_NPC)
     NPC friendNPC;
     friendNPC.name = "Friend_NPC";

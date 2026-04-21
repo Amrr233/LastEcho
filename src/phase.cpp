@@ -207,6 +207,11 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
             "It looks like the perfect day to sit and enjoy my tea.",
             "But remember... not everything in this place is truly like how it seems." };
             startDialogue("Receptionist", liness, 3, getNPCAvatar("Receptionist"));
+
+        }else if (npcName == "student") {
+            std::string liness[] = { "You look new here.",
+          "Take care... some doors are better left unopened."};
+            startDialogue("student1", liness, 2, getNPCAvatar("student"));
         }
     }
 }
