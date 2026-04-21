@@ -135,6 +135,13 @@ int main() {
                             }
                         }
                     }
+                    //switching weapons
+                    if (event.key.code == sf::Keyboard::F) {
+                        weapon.switching(WEAPON_FIST);
+                    }
+                    if (event.key.code == sf::Keyboard::B) {
+                        weapon.switching(WEAPON_BOOK);
+                    }
                 } else {
                     // لو فيه كت سين وفيها حوار، الزرار E يقلب الديالوج بس
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
