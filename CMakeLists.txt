@@ -20,7 +20,7 @@ add_executable(LastEcho
         src/GameMap.h
         src/game.h
         src/game.cpp
-        src/healthbar.cpp   # <--- ضيف السطر ده هنا
+        src/healthbar.cpp
         src/healthbar.h
         src/XPbar.cpp
         src/XPBar.h
@@ -31,7 +31,7 @@ add_executable(LastEcho
         src/enemies.cpp
         src/enemies.h
         src/DialogueManager.h
-        src/DialogueManager.cpp     # ويفضل تضيف الهيدر كمان للتنظيم
+        src/DialogueManager.cpp
         src/world.h
         src/world.cpp
         src/phase.h
@@ -42,7 +42,6 @@ add_executable(LastEcho
         src/chest.h
         src/Guitarminigame.cpp
         src/Guitarminigame.h
-        # ويفضل تضيف الهيدر كمان للتنظيم
 
 )
 
