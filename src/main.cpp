@@ -37,6 +37,7 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
+extern GuitarGame g_guitar;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -87,12 +88,10 @@ int main() {
             // ════════════════════════════════════════════════════════════════
             // GUITAR CONTROLS
             // ════════════════════════════════════════════════════════════════
-            if (event.type == Event::MouseButtonPressed) {
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                 if (isGuitarOpen()) {
-                    sf::Vector2f mousePos = window.mapPixelToCoords(
-                        sf::Mouse::getPosition(window)
-                    );
-                    handleGuitarClick(mousePos);
+                    // بنبعت الـ window ومكان الماوس بالبكسل عشان الـ View تحولها صح
+                    handleGuitarClick(window, sf::Mouse::getPosition(window));
                 }
             }
 
@@ -100,44 +99,33 @@ int main() {
                 // TAB - Open guitar
                 if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
                     openGuitarFreePlay();
-                    scaleGuitarToFillScreen(window);
+                    // شيلنا دالة الـ Scale لأن الـ View الجديدة بتتكفل بكل حاجة
                 }
 
                 // ESC - Close guitar (or close game)
-                if (event.key.code == sf::Keyboard::Escape) {
+                if (event.key.code == sf::Keyboard::R) {
                     if (isGuitarOpen()) {
                         closeGuitar();
-                    } else {
-                        window.close();
                     }
                 }
 
                 // Q - Switch mode (only when guitar open)
                 if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
                     if (g_guitar.mode == GUITAR_FREE) {
-                        // Example pattern for quest
                         GuitarNote pattern[12] = {
                             {0, 7}, {1, 4}, {1, 4}, {0, 7},
                             {0, 7}, {1, 4}, {1, 4}, {0, 7},
                             {0, 7}, {1, 4}, {1, 5}, {1, 4}
                         };
                         openGuitarQuest(pattern, 12, 60.0f);
-                        scaleGuitarToFillScreen(window);
                     } else {
                         openGuitarFreePlay();
-                        scaleGuitarToFillScreen(window);
                     }
                 }
             }
 
             if (event.type == sf::Event::Closed)
                 window.close();
-
-            if (event.type == sf::Event::Resized) {
-                if (isGuitarOpen()) {
-                    scaleGuitarToFillScreen(window);
-                }
-            }
 
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);

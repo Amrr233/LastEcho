@@ -1,310 +1,127 @@
-#include "GuitarMiniGame.h"
+#include "GuitarMinigame.h"
 #include <iostream>
-#include <cmath>
+#include <iomanip> // عشان نظبط شكل التايمر (00:00)
+#include <sstream>
 
 GuitarGame g_guitar;
 
-// Note frequencies (Hz)
-const float noteFrequencies[MAX_STRINGS][MAX_FRETS] = {
-    {82.41f, 87.31f, 92.50f, 98.00f, 103.83f, 110.00f, 116.54f, 123.47f},
-    {110.00f, 116.54f, 123.47f, 130.81f, 138.59f, 146.83f, 155.56f, 164.81f},
-    {146.83f, 155.56f, 164.81f, 174.61f, 185.00f, 196.00f, 207.65f, 220.00f},
-    {196.00f, 207.65f, 220.00f, 233.08f, 246.94f, 261.63f, 277.18f, 293.66f},
-    {246.94f, 261.63f, 277.18f, 293.66f, 311.13f, 329.63f, 349.23f, 369.99f},
-    {329.63f, 349.23f, 369.99f, 392.00f, 415.30f, 440.00f, 466.16f, 493.88f},
-};
-
-const std::string noteNames[MAX_STRINGS][MAX_FRETS] = {
-    {"E", "F", "F#", "G", "G#", "A", "A#", "B"},
-    {"A", "A#", "B", "C", "C#", "D", "D#", "E"},
-    {"D", "D#", "E", "F", "F#", "G", "G#", "A"},
-    {"G", "G#", "A", "A#", "B", "C", "C#", "D"},
-    {"B", "C", "C#", "D", "D#", "E", "F", "F#"},
-    {"E", "F", "F#", "G", "G#", "A", "A#", "B"},
-};
-
 void initGuitar() {
     g_guitar.isOpen = false;
-    g_guitar.mode = GUITAR_FREE;
-    g_guitar.questActive = false;
-    g_guitar.feedbackTimer = 0.0f;
-    g_guitar.questTimer = 0.0f;
-    g_guitar.notesPlayedCorrect = 0;
-    g_guitar.targetSequenceLength = 0;
-
+    g_guitar.isAnimating = false;
+    g_guitar.currentScale = 0.0f;
+    g_guitar.guitarView.setSize(GUITAR_VM_WIDTH, GUITAR_VM_HEIGHT);
+    g_guitar.guitarView.setCenter(GUITAR_VM_WIDTH / 2.0f, GUITAR_VM_HEIGHT / 2.0f);
     loadGuitarAssets();
+    setupFretButtons();
 }
 
 void loadGuitarAssets() {
-    // Load guitar image
-    if (!g_guitar.guitarTexture.loadFromFile("assets/guitarMiniGame/guitar.png")) {
-        std::cerr << "[ERROR] Failed to load guitar image" << std::endl;
-    }
+    if (!g_guitar.guitarTexture.loadFromFile("assets/guitarMiniGame/guitar.png"))
+        std::cout << "Guitar texture missing!\n";
     g_guitar.guitarSprite.setTexture(g_guitar.guitarTexture);
+    sf::FloatRect gBounds = g_guitar.guitarSprite.getLocalBounds();
+    g_guitar.guitarSprite.setOrigin(gBounds.width / 2.0f, gBounds.height / 2.0f);
+    g_guitar.guitarSprite.setPosition(GUITAR_VM_WIDTH / 2.0f, GUITAR_VM_HEIGHT / 2.0f);
 
-    // Load font
-    if (!g_guitar.uiFont.loadFromFile("assets/fonts/pixelsix00.ttf")) {
-        std::cerr << "[ERROR] Failed to load font" << std::endl;
-    }
+    if (!g_guitar.uiFont.loadFromFile("assets/fonts/pixelsix00.ttf"))
+        std::cout << "Font missing!\n";
 
-    // Load 48 sound files (6 strings × 8 frets)
+    if (!g_guitar.buttonBgTexture.loadFromFile("assets/mainMenu/button.png"))
+        std::cout << "Button background texture missing!\n";
+
+    float targetBtnScaleX = 0.25f;
+    float targetBtnScaleY = 0.25f;
+
+    // 1. EXIT BUTTON
+    g_guitar.exitBtn.sprite.setTexture(g_guitar.buttonBgTexture);
+    g_guitar.exitBtn.sprite.setScale(targetBtnScaleX, targetBtnScaleY);
+    sf::FloatRect originalExitBounds = g_guitar.exitBtn.sprite.getLocalBounds();
+    g_guitar.exitBtn.sprite.setOrigin(originalExitBounds.width / 2.0f, originalExitBounds.height / 2.0f);
+    g_guitar.exitBtn.sprite.setPosition(1080.0f, 60.0f);
+
+    g_guitar.exitBtn.text.setFont(g_guitar.uiFont);
+    g_guitar.exitBtn.text.setString("EXIT");
+    g_guitar.exitBtn.text.setCharacterSize(16);
+    g_guitar.exitBtn.text.setFillColor(sf::Color::White);
+
+    sf::FloatRect exitTextBounds = g_guitar.exitBtn.text.getLocalBounds();
+    g_guitar.exitBtn.text.setOrigin(exitTextBounds.left + exitTextBounds.width / 2.0f, exitTextBounds.top + exitTextBounds.height / 2.0f);
+    g_guitar.exitBtn.text.setPosition(g_guitar.exitBtn.sprite.getPosition());
+    g_guitar.exitBtn.bounds = g_guitar.exitBtn.sprite.getGlobalBounds();
+
+    // 2. CHANGE MODE BUTTON
+    g_guitar.changeModeBtn.sprite.setTexture(g_guitar.buttonBgTexture);
+    g_guitar.changeModeBtn.sprite.setScale(targetBtnScaleX, targetBtnScaleY);
+    sf::FloatRect originalModeBounds = g_guitar.changeModeBtn.sprite.getLocalBounds();
+    g_guitar.changeModeBtn.sprite.setOrigin(originalModeBounds.width / 2.0f, originalModeBounds.height / 2.0f);
+    g_guitar.changeModeBtn.sprite.setPosition(880.0f, 60.0f);
+
+    g_guitar.changeModeBtn.text.setFont(g_guitar.uiFont);
+    g_guitar.changeModeBtn.text.setString("CHANGE MODE");
+    g_guitar.changeModeBtn.text.setCharacterSize(14);
+    g_guitar.changeModeBtn.text.setFillColor(sf::Color::White);
+
+    sf::FloatRect modeTextBounds = g_guitar.changeModeBtn.text.getLocalBounds();
+    g_guitar.changeModeBtn.text.setOrigin(modeTextBounds.left + modeTextBounds.width / 2.0f, modeTextBounds.top + modeTextBounds.height / 2.0f);
+    g_guitar.changeModeBtn.text.setPosition(g_guitar.changeModeBtn.sprite.getPosition());
+    g_guitar.changeModeBtn.bounds = g_guitar.changeModeBtn.sprite.getGlobalBounds();
+
+    // Sounds & Generic UI
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
-            std::string fileName = "assets/guitarMiniGame/sounds/" +
-                                  std::to_string(s + 1) + "-" +
-                                  std::to_string(f) + ".wav";
-            if (!g_guitar.noteBuffers[s][f].loadFromFile(fileName)) {
-                std::cout << "[SOUND] Missing: " << fileName << std::endl;
-            }
+            std::string fileName = "assets/guitarMiniGame/sounds/" + std::to_string(s + 1) + "-" + std::to_string(f) + ".wav";
+            g_guitar.noteBuffers[s][f].loadFromFile(fileName);
         }
     }
 
-    // Setup UI text
     g_guitar.modeText.setFont(g_guitar.uiFont);
-    g_guitar.modeText.setCharacterSize(20);
+    g_guitar.modeText.setCharacterSize(30);
     g_guitar.modeText.setFillColor(sf::Color::Yellow);
+    g_guitar.modeText.setPosition(50.0f, 40.0f);
 
     g_guitar.scoreText.setFont(g_guitar.uiFont);
-    g_guitar.scoreText.setCharacterSize(16);
-    g_guitar.scoreText.setFillColor(sf::Color::White);
-
-    g_guitar.notesPlayedText.setFont(g_guitar.uiFont);
-    g_guitar.notesPlayedText.setCharacterSize(14);
-    g_guitar.notesPlayedText.setFillColor(sf::Color::Green);
-
-    g_guitar.timerText.setFont(g_guitar.uiFont);
-    g_guitar.timerText.setCharacterSize(14);
-    g_guitar.timerText.setFillColor(sf::Color::Yellow);
-
-    g_guitar.instructionText.setFont(g_guitar.uiFont);
-    g_guitar.instructionText.setCharacterSize(13);
-    g_guitar.instructionText.setFillColor(sf::Color::Cyan);
-    g_guitar.instructionText.setString("Click frets to play");
-}
-
-void setupUIButtons() {
-    // Mode Switch Button (top right)
-    g_guitar.modeButton.shape.setSize({120.f, 40.f});
-    g_guitar.modeButton.shape.setFillColor(sf::Color::Blue);
-    g_guitar.modeButton.shape.setOutlineThickness(2.f);
-    g_guitar.modeButton.shape.setOutlineColor(sf::Color::White);
-    g_guitar.modeButton.text.setFont(g_guitar.uiFont);
-    g_guitar.modeButton.text.setString("Q: Mode");
-    g_guitar.modeButton.text.setCharacterSize(14);
-    g_guitar.modeButton.text.setFillColor(sf::Color::White);
-    g_guitar.modeButton.label = "mode";
-    g_guitar.modeButton.isHovering = false;
-
-    // Exit Button (top right, below mode)
-    g_guitar.exitButton.shape.setSize({120.f, 40.f});
-    g_guitar.exitButton.shape.setFillColor(sf::Color::Red);
-    g_guitar.exitButton.shape.setOutlineThickness(2.f);
-    g_guitar.exitButton.shape.setOutlineColor(sf::Color::White);
-    g_guitar.exitButton.text.setFont(g_guitar.uiFont);
-    g_guitar.exitButton.text.setString("ESC: Exit");
-    g_guitar.exitButton.text.setCharacterSize(14);
-    g_guitar.exitButton.text.setFillColor(sf::Color::White);
-    g_guitar.exitButton.label = "exit";
-    g_guitar.exitButton.isHovering = false;
-}
-
-void scaleGuitarToFillScreen(sf::RenderWindow& window) {
-    // Get window size
-    sf::Vector2u winSize = window.getSize();
-
-    // Get actual image texture size
-    sf::Vector2f textureSize((float)g_guitar.guitarTexture.getSize().x,
-                             (float)g_guitar.guitarTexture.getSize().y);
-
-    // Calculate scale to cover entire screen
-    float scaleX = (float)winSize.x / textureSize.x;
-    float scaleY = (float)winSize.y / textureSize.y;
-
-    // Use MAX to fill entire screen without gaps
-    float scale = std::max(scaleX, scaleY);
-
-    // Reset origin and apply scale
-    g_guitar.guitarSprite.setOrigin(0.f, 0.f);
-    g_guitar.guitarSprite.setScale(scale, scale);
-
-    // Calculate scaled dimensions
-    float scaledWidth = textureSize.x * scale;
-    float scaledHeight = textureSize.y * scale;
-
-    // Center the image on screen
-    float offsetX = (winSize.x - scaledWidth) / 2.0f;
-    float offsetY = (winSize.y - scaledHeight) / 2.0f;
-
-    g_guitar.guitarSprite.setPosition(offsetX, offsetY);
-
-    // Recalculate fret button positions
-    setupFretButtons();
-
-    // Recalculate UI button positions
-    setupUIButtons();
-
-    // Update button positions based on window size
-    g_guitar.modeButton.shape.setPosition(winSize.x - 140.f, 20.f);
-    g_guitar.exitButton.shape.setPosition(winSize.x - 140.f, 70.f);
-
-    // Update button text positions
-    sf::FloatRect modeBounds = g_guitar.modeButton.text.getLocalBounds();
-    g_guitar.modeButton.text.setOrigin(modeBounds.width / 2.f, modeBounds.height / 2.f);
-    g_guitar.modeButton.text.setPosition(winSize.x - 80.f, 40.f);
-
-    sf::FloatRect exitBounds = g_guitar.exitButton.text.getLocalBounds();
-    g_guitar.exitButton.text.setOrigin(exitBounds.width / 2.f, exitBounds.height / 2.f);
-    g_guitar.exitButton.text.setPosition(winSize.x - 80.f, 90.f);
-
-    // Update bounds for click detection
-    g_guitar.modeButton.bounds = g_guitar.modeButton.shape.getGlobalBounds();
-    g_guitar.exitButton.bounds = g_guitar.exitButton.shape.getGlobalBounds();
+    g_guitar.scoreText.setCharacterSize(25);
+    g_guitar.scoreText.setFillColor(sf::Color::Cyan);
+    g_guitar.scoreText.setPosition(50.0f, 85.0f); // تحت الـ Mode text بالظبط
 }
 
 void setupFretButtons() {
-    // Get guitar sprite position and scale
     sf::Vector2f gPos = g_guitar.guitarSprite.getPosition();
-    sf::Vector2f gScale = g_guitar.guitarSprite.getScale();
-
-    // Base coordinates (relative to original image)
-    float baseStartX = 290.0f;
-    float baseStartY = 330.0f;
-    float baseSpacingX = 37.0f;
-    float baseSpacingY = 16.5f;
-
-    // Apply scale
-    float startX = gPos.x + (baseStartX * gScale.x);
-    float startY = gPos.y + (baseStartY * gScale.y);
-    float spacingX = baseSpacingX * gScale.x;
-    float spacingY = baseSpacingY * gScale.y;
-    float fretSize = 20.0f * gScale.x;
-    int fontSize = (int)(10.0f * gScale.x);
+    sf::FloatRect gBounds = g_guitar.guitarSprite.getLocalBounds();
+    float startX = gPos.x - (gBounds.width / 2.0f) + 250.0f;
+    float startY = gPos.y - (gBounds.height / 2.0f) + 320.0f;
+    float spacingX = 42.0f; float spacingY = 17.0f;
+    sf::Vector2f rectSize(36.0f, 12.0f);
 
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
             FretButton& b = g_guitar.frets[s][f];
-            b.stringNum = s;
-            b.fretNum = f;
-            b.isPressed = false;
-
-            // Position
-            float posX = startX + (f * spacingX);
-            float posY = startY + (s * spacingY);
-
-            b.shape.setSize({fretSize, fretSize * 0.6f});
-            b.shape.setOrigin(fretSize / 2.0f, fretSize * 0.3f);
-            b.shape.setPosition(posX, posY);
-            b.shape.setFillColor(sf::Color(100, 100, 100, 100));
-
-            b.bounds = b.shape.getGlobalBounds();
-
-            // Text
-            b.buttonText.setFont(g_guitar.uiFont);
-            b.buttonText.setString(std::to_string(f));
-            b.buttonText.setCharacterSize(fontSize > 5 ? fontSize : 6);
-            b.buttonText.setFillColor(sf::Color::White);
-
+            b.stringNum = s; b.fretNum = f; b.isPressed = false;
+            b.shape.setSize(rectSize); b.shape.setOrigin(rectSize.x / 2.0f, rectSize.y / 2.0f);
+            b.shape.setFillColor(sf::Color(255, 255, 255, 0)); // شفاف
+            float posX = startX + (f * spacingX); float posY = startY + (s * spacingY);
+            b.shape.setPosition(posX, posY); b.bounds = b.shape.getGlobalBounds();
+            b.buttonText.setFont(g_guitar.uiFont); b.buttonText.setString(std::to_string(f));
+            b.buttonText.setCharacterSize(10); b.buttonText.setFillColor(sf::Color::White);
             sf::FloatRect textBounds = b.buttonText.getLocalBounds();
-            b.buttonText.setOrigin(textBounds.width / 2.0f, textBounds.height / 2.0f);
+            b.buttonText.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
             b.buttonText.setPosition(posX, posY);
         }
     }
 }
 
-void openGuitarFreePlay() {
-    g_guitar.isOpen = true;
-    g_guitar.mode = GUITAR_FREE;
-    g_guitar.questActive = false;
-    g_guitar.modeText.setString("MODE: FREE PLAY");
-    std::cout << "[GUITAR] Free play opened (TAB)" << std::endl;
-}
+void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos) {
+    if (!g_guitar.isOpen || g_guitar.isAnimating) return;
+    sf::Vector2f mouseViewPos = window.mapPixelToCoords(mousePixelPos, g_guitar.guitarView);
 
-void openGuitarQuest(const GuitarNote* notes, int noteCount, float timeLimit) {
-    g_guitar.isOpen = true;
-    g_guitar.mode = GUITAR_QUEST;
-    g_guitar.questActive = true;
-    g_guitar.questTimer = timeLimit;
-    g_guitar.notesPlayedCorrect = 0;
-    g_guitar.targetSequenceLength = noteCount;
-
-    for (int i = 0; i < noteCount && i < 100; i++) {
-        g_guitar.targetSequence[i] = notes[i];
+    if (g_guitar.exitBtn.bounds.contains(mouseViewPos)) {
+        closeGuitar();
+        return;
     }
 
-    g_guitar.modeText.setString("MODE: QUEST");
-    std::cout << "[GUITAR] Quest opened with " << noteCount << " notes" << std::endl;
-}
-
-bool isGuitarOpen() {
-    return g_guitar.isOpen;
-}
-
-void closeGuitar() {
-    g_guitar.isOpen = false;
-    g_guitar.questActive = false;
-    std::cout << "[GUITAR] Closed (ESC)" << std::endl;
-}
-
-void playGuitarNote(int stringNum, int fretNum) {
-    if (stringNum < 0 || stringNum >= MAX_STRINGS) return;
-    if (fretNum < 0 || fretNum >= MAX_FRETS) return;
-
-    // Stop current sound and play new one
-    g_guitar.currentSound.stop();
-    g_guitar.currentSound.setBuffer(g_guitar.noteBuffers[stringNum][fretNum]);
-    g_guitar.currentSound.play();
-
-    g_guitar.lastNoteName = noteNames[stringNum][fretNum];
-    g_guitar.feedbackTimer = 0.6f;
-
-    std::cout << "[NOTE] String " << (stringNum + 1) << " Fret " << fretNum
-              << " = " << g_guitar.lastNoteName << std::endl;
-
-    // Highlight fret
-    FretButton& button = g_guitar.frets[stringNum][fretNum];
-    button.isPressed = true;
-    button.shape.setFillColor(sf::Color(255, 255, 255, 180));
-
-    // Track for quest
-    if (g_guitar.mode == GUITAR_QUEST && g_guitar.questActive) {
-        if (isNoteCorrect(stringNum, fretNum)) {
-            g_guitar.notesPlayedCorrect++;
-            if (g_guitar.notesPlayedCorrect >= g_guitar.targetSequenceLength) {
-                g_guitar.questActive = false;
-                std::cout << "[QUEST] COMPLETED!" << std::endl;
-            }
-        } else {
-            g_guitar.notesPlayedCorrect = 0;
-        }
-    }
-}
-
-void handleGuitarClick(sf::Vector2f mousePos) {
-    if (!g_guitar.isOpen) return;
-
-    // Check button clicks first
-    handleButtonClick(mousePos);
-
-    // Then check fret clicks
-    for (int s = 0; s < MAX_STRINGS; s++) {
-        for (int f = 0; f < MAX_FRETS; f++) {
-            if (g_guitar.frets[s][f].bounds.contains(mousePos)) {
-                playGuitarNote(s, f);
-                return;
-            }
-        }
-    }
-}
-
-void handleButtonClick(sf::Vector2f mousePos) {
-    // Check mode button
-    if (g_guitar.modeButton.bounds.contains(mousePos)) {
+    if (g_guitar.changeModeBtn.bounds.contains(mouseViewPos)) {
         if (g_guitar.mode == GUITAR_FREE) {
-            GuitarNote pattern[12] = {
-                {0, 7}, {1, 4}, {1, 4}, {0, 7},
-                {0, 7}, {1, 4}, {1, 4}, {0, 7},
-                {0, 7}, {1, 4}, {1, 5}, {1, 4}
-            };
+            GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 5}, {1, 4}};
             openGuitarQuest(pattern, 12, 60.0f);
         } else {
             openGuitarFreePlay();
@@ -312,46 +129,100 @@ void handleButtonClick(sf::Vector2f mousePos) {
         return;
     }
 
-    // Check exit button
-    if (g_guitar.exitButton.bounds.contains(mousePos)) {
-        closeGuitar();
-        return;
+    for (int s = 0; s < MAX_STRINGS; s++) {
+        for (int f = 0; f < MAX_FRETS; f++) {
+            if (g_guitar.frets[s][f].bounds.contains(mouseViewPos)) {
+                playGuitarNote(s, f);
+                g_guitar.frets[s][f].isPressed = true;
+                if (g_guitar.mode == GUITAR_QUEST && g_guitar.questActive) {
+                    if (isNoteCorrect(s, f)) {
+                        g_guitar.notesPlayedCorrect++;
+                        if (g_guitar.notesPlayedCorrect >= g_guitar.targetSequenceLength) {
+                            g_guitar.questActive = false;
+                        }
+                    } else {
+                        g_guitar.notesPlayedCorrect = 0; // بيصفر لو غلطت
+                    }
+                }
+                return;
+            }
+        }
     }
 }
 
 void updateGuitar(float deltaTime) {
     if (!g_guitar.isOpen) return;
 
-    // Fade out highlight
-    g_guitar.feedbackTimer -= deltaTime;
+    if (g_guitar.isAnimating) {
+        g_guitar.currentScale += 6.0f * deltaTime;
+        if (g_guitar.currentScale >= 1.0f) { g_guitar.currentScale = 1.0f; g_guitar.isAnimating = false; }
+    }
 
-    for (int s = 0; s < MAX_STRINGS; s++) {
-        for (int f = 0; f < MAX_FRETS; f++) {
-            FretButton& b = g_guitar.frets[s][f];
-            if (b.isPressed && g_guitar.feedbackTimer <= 0.f) {
-                b.isPressed = false;
-                b.shape.setFillColor(sf::Color(100, 100, 100, 100));
+    // تحديث النصوص بناء على المود الحالي
+    if (g_guitar.mode == GUITAR_FREE) {
+        g_guitar.modeText.setString("Mode: Free Play");
+    } else {
+        std::stringstream ss;
+        int mins = (int)g_guitar.questTimer / 60;
+        int secs = (int)g_guitar.questTimer % 60;
+
+        ss << "Mode: Quest | Time: " << std::setfill('0') << std::setw(2) << mins << ":" << std::setw(2) << secs;
+        g_guitar.modeText.setString(ss.str());
+
+        std::string scoreStr = "Notes: " + std::to_string(g_guitar.notesPlayedCorrect) + " / " + std::to_string(g_guitar.targetSequenceLength);
+        g_guitar.scoreText.setString(scoreStr);
+
+        if (g_guitar.questActive) {
+            g_guitar.questTimer -= deltaTime;
+            if (g_guitar.questTimer <= 0) {
+                g_guitar.questTimer = 0;
+                g_guitar.questActive = false;
             }
         }
     }
 
-    // Update quest timer
-    if (g_guitar.mode == GUITAR_QUEST && g_guitar.questActive) {
-        g_guitar.questTimer -= deltaTime;
-        if (g_guitar.questTimer <= 0.f) {
-            g_guitar.questActive = false;
-            std::cout << "[QUEST] Time's up!" << std::endl;
+    // تأثير الضغطة على الفريتس
+    for (int s = 0; s < MAX_STRINGS; s++) {
+        for (int f = 0; f < MAX_FRETS; f++) {
+            if (g_guitar.frets[s][f].isPressed) {
+                g_guitar.frets[s][f].shape.setFillColor(sf::Color(255, 255, 255, 150));
+                g_guitar.frets[s][f].isPressed = false;
+            } else {
+                sf::Color c = g_guitar.frets[s][f].shape.getFillColor();
+                if (c.a > 0) g_guitar.frets[s][f].shape.setFillColor(sf::Color(255, 255, 255, std::max(0, (int)c.a - 5)));
+            }
         }
     }
 }
 
 void drawGuitar(sf::RenderWindow& window) {
     if (!g_guitar.isOpen) return;
+    sf::View oldView = window.getView();
 
-    // Draw guitar image (fills screen)
+    float targetWindowScale = 0.65f;
+    float animatedScale = targetWindowScale * g_guitar.currentScale;
+
+    sf::Vector2u winSize = window.getSize();
+    float winRatio = (float)winSize.x / winSize.y;
+    float guitarRatio = GUITAR_VM_WIDTH / GUITAR_VM_HEIGHT;
+
+    float vpW, vpH, vpX, vpY;
+    if (winRatio > guitarRatio) {
+        vpW = (guitarRatio / winRatio) * animatedScale; vpH = animatedScale;
+    } else {
+        vpW = animatedScale; vpH = (winRatio / guitarRatio) * animatedScale;
+    }
+    vpX = (1.0f - vpW) / 2.0f; vpY = (1.0f - vpH) / 2.0f;
+
+    g_guitar.guitarView.setViewport(sf::FloatRect(vpX, vpY, vpW, vpH));
+    window.setView(g_guitar.guitarView);
+
+    sf::RectangleShape dim(sf::Vector2f(GUITAR_VM_WIDTH, GUITAR_VM_HEIGHT));
+    dim.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)(160 * g_guitar.currentScale)));
+    window.draw(dim);
+
     window.draw(g_guitar.guitarSprite);
 
-    // Draw fret buttons
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
             window.draw(g_guitar.frets[s][f].shape);
@@ -359,48 +230,50 @@ void drawGuitar(sf::RenderWindow& window) {
         }
     }
 
-    // Draw UI at fixed screen positions
-    sf::Vector2u winSize = window.getSize();
+    window.draw(g_guitar.exitBtn.sprite);
+    window.draw(g_guitar.exitBtn.text);
+    window.draw(g_guitar.changeModeBtn.sprite);
+    window.draw(g_guitar.changeModeBtn.text);
 
-    // Top left: Mode
-    g_guitar.modeText.setPosition(20.f, 20.f);
     window.draw(g_guitar.modeText);
-
-    // Top right: Score
     if (g_guitar.mode == GUITAR_QUEST) {
-        std::string scoreStr = "Correct: " + std::to_string(g_guitar.notesPlayedCorrect) +
-                              "/" + std::to_string(g_guitar.targetSequenceLength);
-        g_guitar.scoreText.setString(scoreStr);
-        g_guitar.scoreText.setPosition(20.f, 60.f);
         window.draw(g_guitar.scoreText);
     }
 
-    // Bottom left: Feedback
-    std::string notesStr = "Feedback: " + g_guitar.lastNoteName;
-    g_guitar.notesPlayedText.setString(notesStr);
-    g_guitar.notesPlayedText.setPosition(20.f, winSize.y - 50.f);
-    window.draw(g_guitar.notesPlayedText);
+    window.setView(oldView);
+}
 
-    // Bottom center: Timer (quest mode)
-    if (g_guitar.mode == GUITAR_QUEST && g_guitar.questActive) {
-        int timeLeft = (int)g_guitar.questTimer;
-        std::string timerStr = "Time: " + std::to_string(timeLeft) + "s";
-        g_guitar.timerText.setString(timerStr);
-        g_guitar.timerText.setPosition(winSize.x / 2.f - 50.f, winSize.y - 50.f);
-        window.draw(g_guitar.timerText);
+void playGuitarNote(int stringNum, int fretNum) {
+    if (stringNum < MAX_STRINGS && fretNum < MAX_FRETS) {
+        g_guitar.currentSound.stop();
+        g_guitar.currentSound.setBuffer(g_guitar.noteBuffers[stringNum][fretNum]);
+        g_guitar.currentSound.play();
     }
-
-    // Draw UI Buttons
-    window.draw(g_guitar.modeButton.shape);
-    window.draw(g_guitar.modeButton.text);
-    window.draw(g_guitar.exitButton.shape);
-    window.draw(g_guitar.exitButton.text);
 }
 
 bool isNoteCorrect(int s, int f) {
-    if (g_guitar.notesPlayedCorrect >= g_guitar.targetSequenceLength) {
-        return false;
-    }
     return (g_guitar.targetSequence[g_guitar.notesPlayedCorrect].stringNum == s &&
             g_guitar.targetSequence[g_guitar.notesPlayedCorrect].fretNum == f);
 }
+
+void openGuitarFreePlay() {
+    g_guitar.isOpen = true;
+    g_guitar.mode = GUITAR_FREE;
+    g_guitar.currentScale = 0.1f;
+    g_guitar.isAnimating = true;
+}
+
+void openGuitarQuest(const GuitarNote* n, int c, float t) {
+    g_guitar.isOpen = true;
+    g_guitar.mode = GUITAR_QUEST;
+    g_guitar.questActive = true;
+    g_guitar.targetSequenceLength = c;
+    g_guitar.questTimer = t;
+    g_guitar.notesPlayedCorrect = 0;
+    g_guitar.currentScale = 0.1f;
+    g_guitar.isAnimating = true;
+    for(int i=0; i<c; i++) g_guitar.targetSequence[i] = n[i];
+}
+
+bool isGuitarOpen() { return g_guitar.isOpen; }
+void closeGuitar() { g_guitar.isOpen = false; }

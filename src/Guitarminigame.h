@@ -7,8 +7,8 @@
 
 #define MAX_STRINGS 6
 #define MAX_FRETS 8
-#define SCREEN_W 1280
-#define SCREEN_H 720
+#define GUITAR_VM_WIDTH 1200.0f
+#define GUITAR_VM_HEIGHT 800.0f
 
 enum GuitarMode { GUITAR_FREE, GUITAR_QUEST };
 
@@ -26,12 +26,11 @@ struct FretButton {
     bool isPressed;
 };
 
-struct UIButton {
-    sf::RectangleShape shape;
+// هيكل الزرار المركب (صورة + تيكست فوقها)
+struct CompositeButton {
+    sf::Sprite sprite;
     sf::Text text;
     sf::FloatRect bounds;
-    std::string label;
-    bool isHovering;
 };
 
 struct GuitarGame {
@@ -40,32 +39,30 @@ struct GuitarGame {
     sf::Texture guitarTexture;
     sf::Sprite guitarSprite;
     sf::Font uiFont;
+    sf::View guitarView;
 
     FretButton frets[MAX_STRINGS][MAX_FRETS];
-
-    // Sound system
     sf::SoundBuffer noteBuffers[MAX_STRINGS][MAX_FRETS];
     sf::Sound currentSound;
 
-    // UI elements
-    sf::Text modeText;              // Top left
-    sf::Text scoreText;             // Top right
-    sf::Text instructionText;       // Bottom
-    sf::Text notesPlayedText;       // Bottom left
-    sf::Text timerText;             // Bottom center
+    sf::Text modeText;
+    sf::Text scoreText;
 
-    // UI Buttons
-    UIButton modeButton;            // Switch mode button (top right)
-    UIButton exitButton;            // Exit button (top right, below mode)
+    // --- المتغيرات اللي الـ Compiler بيدور عليها ---
+    bool questActive;              // هل الكويست شغال؟
+    float questTimer;             // الوقت المتبقي
+    int targetSequenceLength;     // طول النغمة المطلوبة
+    int notesPlayedCorrect;       // إنت عزفت كام نوتة صح
+    GuitarNote targetSequence[100]; // مصفوفة النوتات المطلوبة
 
-    // State
-    std::string lastNoteName;
-    bool questActive;
-    float questTimer;
-    int targetSequenceLength;
-    int notesPlayedCorrect;
-    GuitarNote targetSequence[100];
-    float feedbackTimer;
+    // أزرار الصور
+    sf::Texture buttonBgTexture;
+    CompositeButton exitBtn;
+    CompositeButton changeModeBtn;
+
+    // الأنيميشن
+    float currentScale;
+    bool isAnimating;
 };
 
 extern GuitarGame g_guitar;
@@ -73,17 +70,14 @@ extern GuitarGame g_guitar;
 void initGuitar();
 void loadGuitarAssets();
 void setupFretButtons();
-void setupUIButtons();
 void drawGuitar(sf::RenderWindow& window);
 void updateGuitar(float deltaTime);
-void handleGuitarClick(sf::Vector2f mousePos);
-void handleButtonClick(sf::Vector2f mousePos);
+void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos);
 void playGuitarNote(int stringNum, int fretNum);
-bool isNoteCorrect(int stringNum, int fretNum);
+bool isNoteCorrect(int s, int f);
 void openGuitarFreePlay();
-void openGuitarQuest(const GuitarNote* notes, int noteCount, float timeLimit);
+void openGuitarQuest(const GuitarNote* n, int c, float t);
 bool isGuitarOpen();
 void closeGuitar();
-void scaleGuitarToFillScreen(sf::RenderWindow& window);
 
 #endif
