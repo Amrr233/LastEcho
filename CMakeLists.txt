@@ -38,6 +38,8 @@ add_executable(LastEcho
         src/phase.cpp
         src/Cutscene.cpp
         src/Cutscene.h
+        src/Guitarminigame.cpp
+        src/Guitarminigame.h
         # ويفضل تضيف الهيدر كمان للتنظيم
 
 )

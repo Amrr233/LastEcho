@@ -15,7 +15,8 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
-#include "Cutscene.h" // ← ضيفنا الهيدر الجديد
+#include "Cutscene.h"
+#include "GuitarMiniGame.h"
 
 using namespace sf;
 using namespace std;
@@ -64,12 +65,13 @@ int main() {
     float spawnY = 900 ;
 
     // Initializations
-    initCutsceneSystem(); // 🔥 تهيئة نظام الكت سين
+    initCutsceneSystem();
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initNPCs(world);
     initweapon(Vector2f(spawnX, spawnY));
+    initGuitar();  // 🔥 Initialize guitar
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -83,11 +85,45 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
-        std::cout << "X: " << player.pos.x << " Y: " << player.pos.y << std::endl;
+        // std::cout << "X: " << player.pos.x << " Y: " << player.pos.y << std::endl;
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
         while (window.pollEvent(event)) {
+            // ════════════════════════════════════════════════════════════════
+            // GUITAR MOUSE CLICK HANDLING
+            // ════════════════════════════════════════════════════════════════
+            if (event.type == Event::MouseButtonPressed) {
+                if (isGuitarOpen()) {
+                    sf::Vector2f mousePos = window.mapPixelToCoords(
+                        sf::Mouse::getPosition(window)
+                    );
+                    handleGuitarClick(mousePos);
+                }
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            // KEY PRESS HANDLING
+            // ════════════════════════════════════════════════════════════════
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Tab) {
+                    if (!isGuitarOpen()) {
+                        openGuitarFreePlay();
+                        centerGuitarUI(window); // بنسنتر أول ما نفتح
+                    } else closeGuitar();
+                }
+
+                if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
+                    if (g_guitar.mode == GUITAR_FREE) {
+                        // باتيرن تجريبي: وتر 0 فريت 1، وتر 0 فريت 2، وتر 1 فريت 3
+                        GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4} , {0, 7}, {0, 7},{1, 4},{1, 4},{0, 7},{0, 7},{1,4},{1,5},{1,4} };
+                        openGuitarQuest(pattern, 12, 60.0f); // 60 ثانية
+                    } else {
+                        openGuitarFreePlay();
+                    }
+                }
+            }
+
             if (event.type == sf::Event::Closed)
                 window.close();
 
@@ -99,7 +135,7 @@ int main() {
             }
             else if (gState.currentState == STATE_PLAYING) {
                 // منع التفاعل اليدوي لو فيه كت سين شغالة
-                if (!isCutsceneActive()) {
+                if (!isCutsceneActive() && !isGuitarOpen()) {
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                         if (isDialogueActive()) {
                             nextLine();
@@ -112,7 +148,7 @@ int main() {
                         }
                     }
                 } else {
-                    // لو فيه كت سين وفيها حوار، الزرار E يقلب الديالوج بس
+                    // لو فيه كت سين أو جيتار وفيها حوار، الزرار E يقلب الديالوج بس
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                         if (isDialogueActive()) nextLine();
                     }
@@ -122,25 +158,29 @@ int main() {
 
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
-            updateCutscene(gState.deltaTime); // 🔥 تحديث الكت سين كل فريم
+            // ════════════════════════════════════════════════════════════════
+            // UPDATE GUITAR (EVERY FRAME)
+            // ════════════════════════════════════════════════════════════════
+            if (isGuitarOpen()) {
+                updateGuitar(gState.deltaTime);
+            }
 
+            updateCutscene(gState.deltaTime);
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
-
             statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
             currentMap = worldGetCurrentMap(world);
             if (!currentMap) break;
 
-            // لو فيه كت سين، هي اللي بتتحكم في الكاميرا (اختياري)
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
 
             gameLogic.update(window, gState.currentState);
             updateDialogue(gState.deltaTime);
             inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-            // بنوقف حركة اللاعب والوحوش لو فيه كت سين
-            if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive()) {
+            // بنوقف حركة اللاعب والوحوش لو فيه كت سين أو جيتار
+            if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen()) {
                 updatePlayer(gState.deltaTime, world);
                 checkDialogueReward(world.phaseSys);
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
@@ -192,7 +232,6 @@ int main() {
             drawEnemy(window);
             drawPlayer(window);
 
-            // 🔥 رسم الايموشنات فوق الشخصيات
             drawCutsceneOverlay(window, font);
 
             if (inv.feedbackTimer > 0) {
@@ -211,6 +250,7 @@ int main() {
             }
 
             drawHealthBar(window);
+
             if (warningTimer > 0) {
                 sf::Text popUp;
                 popUp.setFont(font);
@@ -223,8 +263,16 @@ int main() {
                 window.draw(popUp);
                 warningTimer -= gState.deltaTime;
             }
+
             drawXPBar(window);
             gameLogic.draw(window);
+
+            // ════════════════════════════════════════════════════════════════
+            // DRAW GUITAR (ON TOP OF EVERYTHING)
+            // ════════════════════════════════════════════════════════════════
+            if (isGuitarOpen()) {
+                drawGuitar(window);
+            }
         }
 
         window.setView(window.getDefaultView());
