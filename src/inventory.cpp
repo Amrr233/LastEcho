@@ -3,6 +3,14 @@
 #include <cmath>
 
 
+void inventory::initNote() {
+    if (noteTex.loadFromFile("assets/items/note_message.png")) { // صورة الرسالة المفتوحة
+        noteSprite.setTexture(noteTex);
+        // سنترة في نص الشاشة
+        noteSprite.setOrigin(noteTex.getSize().x / 2.0f, noteTex.getSize().y / 2.0f);
+        noteSprite.setPosition(SCREEN_W / 2.0f, SCREEN_H / 2.0f);
+    }
+}
 
 void inventory::invt_init(float W, float H) {
     // 1. تحميل صورة الشريط (الـ 6 خانات)
@@ -25,6 +33,8 @@ void inventory::invt_init(float W, float H) {
     selector.setFillColor(sf::Color::Transparent);
     selector.setOutlineColor(sf::Color(212, 181, 125));
     selector.setOutlineThickness(3);
+    initNote();
+
 }
 
 
@@ -34,6 +44,13 @@ void inventory::invt_update(sf::RenderWindow& window, AppState& currentState, sf
         if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(sf::Keyboard::Num1 + i))) {
             selectedSlot = i;
         }
+    }
+
+
+    if (hasItem[selectedSlot] && itemNames[selectedSlot] == "note") {
+        isNoteVisible = true;
+    } else {
+        isNoteVisible = false;
     }
     // تحديث مكان السليكتور (زي ما هو)
     float startX = invBar.getPosition().x - (invTex.getSize().x / 2.0f) + 5.0f;
@@ -112,6 +129,14 @@ void inventory::invt_draw(sf::RenderWindow& window) {
 
             window.draw(countText);
         }
+    }
+    if (isNoteVisible) {
+        // رسم خلفية سودة شفافة بسيطة (اختياري)
+        sf::RectangleShape dim(sf::Vector2f(SCREEN_W, SCREEN_H));
+        dim.setFillColor(sf::Color(0,0,0,150));
+        window.draw(dim);
+
+        window.draw(noteSprite);
     }
 }
 

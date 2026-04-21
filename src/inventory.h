@@ -23,6 +23,9 @@ struct inventory {
     sf::CircleShape sparkles[5];
     float sparkleAlphas[5] = {255, 200, 150, 100, 50};
     bool isUsable[6] = { true }; // default all usable
+    sf::Sprite noteSprite;
+    sf::Texture noteTex;
+    bool isNoteVisible = false;
     //================
 
 
@@ -31,6 +34,7 @@ struct inventory {
     void invt_update(sf::RenderWindow& window, AppState& currentState, sf::Vector2f playerPos, float dt);
     void invt_draw(sf::RenderWindow& window);
     void triggerPickupEffect(std::string texturePath);
+    void initNote();
 };
 
 #endif //LASTECHO_INVENTORY_H

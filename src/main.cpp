@@ -142,6 +142,10 @@ int main() {
                     if (event.key.code == sf::Keyboard::B) {
                         weapon.switching(WEAPON_BOOK);
                     }
+                    if (event.key.code == sf::Keyboard::N) {
+                        inv.triggerPickupEffect("assets/items/note.png");
+                        inv.addItem("note","assets/items/note.png");
+                    }
                 } else {
                     // لو فيه كت سين وفيها حوار، الزرار E يقلب الديالوج بس
                     if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
