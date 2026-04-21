@@ -16,6 +16,8 @@ struct BinaryGameData {
     int targetDecimal = 67;
     std::string userInput = "";
     std::string statusMessage = "Enter access key:";
+    float displayTimer = 0.0f; // بيحسب الوقت اللي فات
+    int messageStep = 0;       // إحنا في أنهي جملة (0 أو 1 أو 2)
 
 
     sf::Text promptText;
@@ -27,7 +29,7 @@ struct BinaryGameData {
 
 void initBinaryGame(BinaryGameData& data);
 void handleBinaryInput(BinaryGameData& data, sf::Event& event);
-void updateBinaryGame(BinaryGameData& data);
+void updateBinaryGame(BinaryGameData& data, float deltaTime);
 void drawBinaryGame(sf::RenderWindow& window, BinaryGameData& data);
 
 

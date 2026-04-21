@@ -94,7 +94,7 @@ int main() {
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
     initNPCs(world);
-    initDialogue(); // 🔥 تم التعديل (دالة عادية)
+    initDialogue();
 
     Clock clock;
     // audio.playBGM();
@@ -144,7 +144,7 @@ int main() {
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
 
-            updateBinaryGame(myBinaryGame);
+            updateBinaryGame(myBinaryGame, gState.deltaTime);
 
             statusTrackerText.setString(
     "Phase: " + cp.phaseTitle + "\n" +
@@ -220,7 +220,6 @@ int main() {
 
         // --- DRAW LOGIC ---
         window.clear();
-
         if (gState.currentState == STATE_MENU) {
             MenuDraw(window, gState.currentState);
         }
@@ -242,15 +241,12 @@ int main() {
                 }
             }
             drawWeapons(window);
-
             for (auto& p : currentMap->portals) {
                 sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
                 debugRect.setPosition(p.bounds.left, p.bounds.top);
                 debugRect.setFillColor(Color(0, 0, 0, 75));
                 window.draw(debugRect);
             }
-
-
             window.setView(window.getDefaultView());
             drawBinaryGame(window, myBinaryGame);
 
@@ -260,8 +256,8 @@ int main() {
             else {
                 inv.invt_draw(window);
             }
-            if (!myBinaryGame.active) {
-                drawHealthBar(window);
+            if (myBinaryGame.active) {
+                drawBinaryGame(window, myBinaryGame);
             }
 
 
@@ -283,7 +279,7 @@ int main() {
                 warningTimer -= gState.deltaTime;
             }
             if (!myBinaryGame.active) {
-                drawXPBar(window);
+                window.draw(statusTrackerText);
             }
             
             gameLogic.draw(window);
