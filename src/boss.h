@@ -9,6 +9,8 @@
 #include <SFML/Graphics.hpp>
 #include "Data.h"
 
+
+constexpr int MAX_FIREBALLS = 4;
 // ── Change these values to tune the boss ──────────────────
 struct BossConfig {
     int   maxHp          = 300;
@@ -34,6 +36,13 @@ struct BossConfig {
     sf::Vector2f spawnOffset = sf::Vector2f(150.f, 0.f);
 };
 // ─────────────────────────────────────────────────────────
+struct Fireball {
+    sf::Vector2f pos;
+    sf::Vector2f velocity;
+    sf::Sprite   sprite;
+    bool         isActive = false;
+    float        speed    = 300.f;
+};
 
 struct Boss {
     sf::Vector2f pos;
@@ -60,6 +69,22 @@ struct Boss {
     sf::Sprite   sprite;
     int          currentFrame;
     float        animTimer;
+    // Scorpion textures
+    sf::Texture walkTextures[4];
+    sf::Texture runTextures[4];
+    sf::Texture fireballThrowTextures[4];
+    sf::Texture fireballTexture;      // single frame projectile
+    sf::Texture crossPunchingTexture[4];
+
+    // Fireball system
+    Fireball    fireballs[MAX_FIREBALLS];
+    float       fireballCooldown    = 2.f;
+    float       fireballTimer       = 0.f;
+    float       fireballThrowRange  = 250.f;  // min dist to throw
+    float       fireballMinRange    = 80.f;   // too close = melee instead
+    bool        isThrowing          = false;
+    float       throwAnimTimer      = 0.f;
+    int         throwAnimFrame      = 0;
 };
 struct RoundManager {
     int  currentRound = 1;    // 1, 2, or 3
@@ -79,6 +104,9 @@ void checkBossPhase();
 void startRound(int round);
 void updateRounds(float dt);
 void checkBossPlayerCollision();
+void spawnFireball(int count);
+void updateFireballs(float dt);
+void drawFireballs(sf::RenderWindow& window);
 extern Boss boss;
 extern BossConfig bossConfig;
 

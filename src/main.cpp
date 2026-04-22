@@ -82,7 +82,7 @@ int main() {
     initBoss();
     // To test right now — remove this line later when cutscene triggers it
     // Init section — replace spawnBoss with:
-
+    startRound(1);
     initNPCs(world);
     initweapon(Vector2f(spawnX, spawnY));
 
@@ -165,6 +165,7 @@ int main() {
                 // Update block — add next to updateBoss:
                 updateRounds(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
+                updateFireballs(gState.deltaTime);
 
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
@@ -226,8 +227,9 @@ int main() {
             // Draw NPCs - uses current map name from World
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawEnemy(window);
-            drawPlayer(window);
             drawBoss(window);
+            drawFireballs(window);
+            drawPlayer(window);
             if (inv.feedbackTimer > 0) {
                 window.draw(inv.feedbackSprite);
                 for (int i = 0; i < 5; i++) {

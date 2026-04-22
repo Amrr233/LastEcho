@@ -7,6 +7,8 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
+
+#include "healthbar.h"
 BossConfig bossConfig;
 Boss boss;
 
@@ -28,10 +30,50 @@ void initBoss() {
     boss.detectionRange = 200.f;
     boss.attackRange    = 60.f;
 
-    // Load texture
-    boss.texture.loadFromFile("assets/sprites/mummy/walkingmummy/mummywalk(south).png");
-    boss.sprite.setTexture(boss.texture);
+    // Walking textures
+    boss.walkTextures[SOUTH].loadFromFile("assets/sprites/scorpion/walking/walkingScorpionSouth.png");
+    boss.walkTextures[NORTH].loadFromFile("assets/sprites/scorpion/walking/walkingScorpionNorth.png");
+    boss.walkTextures[WEST].loadFromFile("assets/sprites/scorpion/walking/walkingScorpionWest.png");
+    boss.walkTextures[EAST].loadFromFile("assets/sprites/scorpion/walking/walkingScorpionEast.png");
+
+    // Running textures
+    boss.runTextures[SOUTH].loadFromFile("assets/sprites/scorpion/running/runningScorpionSouth.png");
+    boss.runTextures[NORTH].loadFromFile("assets/sprites/scorpion/running/runningScorpionNorth.png");
+    boss.runTextures[WEST].loadFromFile("assets/sprites/scorpion/running/runningScorpionWest.png");
+    boss.runTextures[EAST].loadFromFile("assets/sprites/scorpion/running/runningScorpionEast.png");
+
+    //cross punching
+    boss.crossPunchingTexture[SOUTH].loadFromFile("assets/sprites/scorpion/crossPunching/crossPunchingScorpionSouth.png");
+    boss.crossPunchingTexture[NORTH].loadFromFile("assets/sprites/scorpion/crossPunching/crossPunchingScorpionNorth.png");
+    boss.crossPunchingTexture[WEST].loadFromFile("assets/sprites/scorpion/crossPunching/crossPunchingScorpionWest.png");
+    boss.crossPunchingTexture[EAST].loadFromFile("assets/sprites/scorpion/crossPunching/crossPunchingScorpionEast.png");
+
+    // Fireball throw textures
+    boss.fireballThrowTextures[SOUTH].loadFromFile("assets/sprites/scorpion/throwingFireBalls/throwingFireBallScorpionSouth.png");
+    boss.fireballThrowTextures[NORTH].loadFromFile("assets/sprites/scorpion/throwingFireBalls/throwingFireBallScorpionNorth.png");
+    boss.fireballThrowTextures[WEST].loadFromFile("assets/sprites/scorpion/throwingFireBalls/throwingFireBallScorpionWest.png");
+    boss.fireballThrowTextures[EAST].loadFromFile("assets/sprites/scorpion/throwingFireBalls/throwingFireBallScorpionEast.png");
+
+    // Fireball projectile — single frame
+    boss.fireballTexture.loadFromFile("assets/sprites/scorpion/fireball.png");
+    //DEBUGGING
+    std::cout << "Fireball texture size: "
+          << boss.fireballTexture.getSize().x << "x"
+          << boss.fireballTexture.getSize().y << std::endl;
+
+    boss.sprite.setTexture(boss.walkTextures[SOUTH]);
     boss.sprite.setOrigin(34.f, 34.f);
+    //DEBUGGING
+    if (!boss.runTextures[SOUTH].loadFromFile("assets/sprites/scorpion/running/runningScorpionSouth.png"))
+        std::cout << "FAILED: runSouth" << std::endl;
+    if (!boss.runTextures[NORTH].loadFromFile("assets/sprites/scorpion/running/runningScorpionNorth.png"))
+        std::cout << "FAILED: runNorth" << std::endl;
+    if (!boss.runTextures[WEST].loadFromFile("assets/sprites/scorpion/running/runningScorpionWest.png"))
+        std::cout << "FAILED: runWest" << std::endl;
+    if (!boss.runTextures[EAST].loadFromFile("assets/sprites/scorpion/running/runningScorpionEast.png"))
+        std::cout << "FAILED: runEast" << std::endl;
+    if (!boss.fireballTexture.loadFromFile("assets/sprites/scorpion/fireball.png"))
+        std::cout << "FAILED: fireball texture" << std::endl;
 }
 
 void spawnBoss(sf::Vector2f guidePos) {
@@ -72,11 +114,19 @@ void checkBossPhase() {
     }
 }
 
+Direction getBossDirection() {
+    sf::Vector2f diff = player.pos - boss.pos;
+    if (std::abs(diff.x) > std::abs(diff.y))
+        return diff.x > 0 ? EAST : WEST;
+    else
+        return diff.y > 0 ? SOUTH : NORTH;
+}
 void updateBoss(float dt) {
     if (!boss.isActive || !boss.isAlive) return;
 
-    boss.sprite.setTextureRect(sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
+    // Update sprite position FIRST
     boss.sprite.setPosition(boss.pos);
+
     checkBossPlayerCollision();
 
     // Invincibility timer
@@ -86,12 +136,7 @@ void updateBoss(float dt) {
             boss.isInvincible = false;
             boss.currentState = BOSS_IDLE;
         }
-        // still move while invincible but don't run full logic
-        boss.pos += (player.pos - boss.pos) /
-                    std::max(1.f, std::sqrt(
-                        (player.pos.x-boss.pos.x)*(player.pos.x-boss.pos.x)+
-                        (player.pos.y-boss.pos.y)*(player.pos.y-boss.pos.y)
-                    )) * (boss.speed * 0.5f) * dt;
+        boss.sprite.setPosition(boss.pos);
         goto animate;
     }
 
@@ -100,38 +145,87 @@ void updateBoss(float dt) {
     {
         sf::Vector2f dir = player.pos - boss.pos;
         float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        Direction bossDir = getBossDirection();
 
-        if (dist < boss.detectionRange) {
-            sf::FloatRect bossBounds = boss.sprite.getGlobalBounds();
-            if (dist > (bossBounds.width / 2.0f) + 5.f) {
+        // Fireball logic — only Round 2 and 3
+        bool canThrowFireball = (roundMan.currentRound >= 2)
+                             && (dist > boss.fireballMinRange)
+                             && (dist < boss.fireballThrowRange);
+
+        if (!boss.isThrowing && canThrowFireball) {
+            boss.fireballTimer += dt;
+            if (boss.fireballTimer >= boss.fireballCooldown) {
+                boss.fireballTimer  = 0.f;
+                boss.isThrowing     = true;
+                boss.throwAnimFrame = 0;
+                boss.throwAnimTimer = 0.f;
+                int count = (roundMan.currentRound == 3) ? 2 : 1;
+                spawnFireball(count);
+            }
+        }
+
+        // Throw animation
+        if (boss.isThrowing) {
+            boss.throwAnimTimer += dt;
+            boss.sprite.setTexture(boss.fireballThrowTextures[bossDir]);
+            if (boss.throwAnimTimer >= 0.12f) {
+                boss.throwAnimTimer = 0.f;
+                boss.throwAnimFrame++;
+                if (boss.throwAnimFrame >= 6) {
+                    boss.isThrowing     = false;
+                    boss.throwAnimFrame = 0;
+                }
+            }
+            boss.sprite.setTextureRect(
+                sf::IntRect(boss.throwAnimFrame * 68, 0, 68, 68));
+        }
+        // Normal movement when not throwing
+        else if (dist < boss.detectionRange) {
+            if (dist > boss.attackRange + 10.f ) {
+                // Round 3 uses run texture
+                if (roundMan.currentRound == 3)
+                    boss.sprite.setTexture(boss.runTextures[bossDir]);
+                else
+                    boss.sprite.setTexture(boss.walkTextures[bossDir]);
+
                 boss.currentState = BOSS_WALKING;
                 dir /= dist;
                 boss.pos += dir * boss.speed * dt;
-            } else {
-                boss.currentState = BOSS_ATTACKING;
-                boss.attackTimer += dt;
+
+                // Walk animation
+                boss.animTimer += dt;
+                if (boss.animTimer >= 0.12f) {
+                    boss.animTimer    = 0.f;
+                    boss.currentFrame = (boss.currentFrame + 1) % 6;
+                }
+                boss.sprite.setTextureRect(
+                    sf::IntRect(boss.currentFrame * 68, 0, 68, 68));
+            }
+            else {
+                // Melee attack
+                boss.currentState  = BOSS_ATTACKING;
+                boss.attackTimer  += dt;
                 if (boss.attackTimer >= boss.attackCooldown) {
                     boss.attackTimer = 0.f;
-                    if (!player.isInvincible) {
-                        player.hp -= boss.damage;
+                    // Use dist only — no directional bias
+                    if (dist <= boss.attackRange + 20.f && !player.isInvincible) {
+                        damaging(boss.damage);
                         player.currentState = HURT;
-                        player.hurt_timer = 0.4f;
+                        player.hurt_timer   = 0.4f;
                         player.isInvincible = true;
-                        std::cout << "Player Damaged! HP: " << player.hp << std::endl;
                     }
                 }
             }
-        } else {
+        }
+        else {
             boss.currentState = BOSS_IDLE;
+            boss.sprite.setTexture(boss.walkTextures[bossDir]);
+            boss.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
         }
     }
 
     animate:
-    boss.animTimer += dt;
-    if (boss.animTimer >= 0.15f) {
-        boss.animTimer = 0.f;
-        boss.currentFrame = (boss.currentFrame + 1) % 6;
-    }
+    boss.sprite.setPosition(boss.pos);
 }
 void drawBoss(sf::RenderWindow& window) {
     if (!boss.isActive || !boss.isAlive) return;
@@ -144,6 +238,95 @@ void drawBoss(sf::RenderWindow& window) {
 
     boss.sprite.setPosition(boss.pos);
     window.draw(boss.sprite);
+}
+void spawnFireball(int count) {
+
+    sf::Vector2f dir = player.pos - boss.pos;
+    float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
+    if (len > 0) dir /= len;
+
+    int spawned = 0;
+    for (int i = 0; i < MAX_FIREBALLS && spawned < count; i++) {
+
+
+        boss.fireballs[i].sprite.setTexture(boss.fireballTexture);
+        boss.fireballs[i].sprite.setTextureRect(sf::IntRect(0, 0,
+            boss.fireballTexture.getSize().x,
+            boss.fireballTexture.getSize().y));
+        boss.fireballs[i].sprite.setOrigin(
+            boss.fireballTexture.getSize().x / 2.f,
+            boss.fireballTexture.getSize().y / 2.f);
+
+
+        if (!boss.fireballs[i].isActive) {
+            boss.fireballs[i].isActive  = true;
+            boss.fireballs[i].pos       = boss.pos;
+            boss.fireballs[i].sprite.setTexture(boss.fireballTexture);
+            boss.fireballs[i].sprite.setOrigin(16.f, 16.f);
+
+            if (spawned == 0) {
+                // First fireball — straight at player
+                boss.fireballs[i].velocity = dir * boss.fireballs[i].speed;
+            } else {
+                // Second fireball — slight angle offset
+                sf::Vector2f offset(-dir.y * 0.3f, dir.x * 0.3f);
+                sf::Vector2f v2 = dir + offset;
+                float l = std::sqrt(v2.x*v2.x + v2.y*v2.y);
+                boss.fireballs[i].velocity = (v2/l) * boss.fireballs[i].speed;
+            }
+            spawned++;
+        }
+    }
+}
+
+void updateFireballs(float dt) {
+
+    for (int i = 0; i < MAX_FIREBALLS; i++) {
+        if (!boss.fireballs[i].isActive) continue;
+        // TEMP DEBUG
+        sf::FloatRect fbBounds(
+    boss.fireballs[i].pos.x - 16,
+    boss.fireballs[i].pos.y - 16,
+    32, 32 );
+
+        sf::FloatRect pbBounds(
+            player.pos.x - 24,
+            player.pos.y - 24,
+            48, 48
+        );
+        std::cout << "FB pos: " << boss.fireballs[i].pos.x << ","
+                  << boss.fireballs[i].pos.y
+                  << " Player pos: " << player.pos.x << ","
+                  << player.pos.y << std::endl;
+
+        if (fbBounds.intersects(pbBounds)) {
+            std::cout << "FIREBALL HIT!" << std::endl;
+
+
+        if (fbBounds.intersects(pbBounds)) {
+            if (!player.isInvincible) {
+                player.hp           -= boss.damage;
+                damaging(boss.damage);        // trigger health bar update
+                player.currentState  = HURT;
+                player.hurt_timer    = 0.4f;
+                player.isInvincible  = true;
+            }
+            boss.fireballs[i].isActive = false;
+        }
+
+            // Deactivate if too far
+            sf::Vector2f d = boss.fireballs[i].pos - boss.pos;
+            if (std::sqrt(d.x*d.x + d.y*d.y) > 600.f)
+                boss.fireballs[i].isActive = false;
+        }
+    }
+}
+
+void drawFireballs(sf::RenderWindow& window) {
+    for (int i = 0; i < MAX_FIREBALLS; i++) {
+        if (boss.fireballs[i].isActive)
+            window.draw(boss.fireballs[i].sprite);
+    }
 }
 RoundManager roundMan;
 
