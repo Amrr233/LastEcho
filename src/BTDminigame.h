@@ -24,6 +24,8 @@ struct BinaryGameData {
     sf::Text inputText;
     sf::RectangleShape overlay;
     sf::Font terminalFont;
+    sf::Texture terminalTexture;
+    sf::Sprite terminalSprite;
 };
 
 

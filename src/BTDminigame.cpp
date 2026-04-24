@@ -11,20 +11,24 @@ void initBinaryGame(BinaryGameData& data) {
         std::cout << "Error: Font not found!" << std::endl;
     }
 
+    data.terminalTexture.loadFromFile("assets/gameplay/terminalsprite (1).png");
+    data.terminalSprite.setTexture(data.terminalTexture);
+    data.terminalSprite.setScale(0.7f, 0.7f); //ده بيطول و يقصر
+    data.terminalSprite.setPosition(160.f, 60.f); // ده بيغير مكانها
+
+
     data.promptText.setFont(data.terminalFont);
     data.inputText.setFont(data.terminalFont);
 
+
     // 1. خليه ياخد مقاس الشاشة بالظبط (افترضي 800x600 أو استخدمي SCREEN_W/H)
     data.overlay.setSize(sf::Vector2f(SCREEN_W, SCREEN_H));
-    data.overlay.setPosition(0, 0);
-    data.overlay.setFillColor(sf::Color(0, 0, 0, 240));
-
     // 2. أهم سطرين: صفرنا الـ Origin والـ Position عشان يبدأ من (0,0) الشاشة
     data.overlay.setOrigin(0.f, 0.f);
     data.overlay.setPosition(0.f, 0.f);
 
     // 3. اللون (أسود غامق جداً عشان يفصل اللاعب عن الماب)
-    data.overlay.setFillColor(sf::Color(0, 0, 0, 250));
+    data.overlay.setFillColor(sf::Color(0, 0, 0, 150)); // لو عايزين نرجعها اسود تاني هنزود الalpha
 
     // 4. تظبيط أماكن الكلام (Positions)
     // هنخلي الكلام يبدأ من مسافة 50 بكسل من الشمال عشان ميبقاش لازق في الحافة
@@ -122,7 +126,8 @@ void restartBinaryGame(BinaryGameData& data) {
 void drawBinaryGame(sf::RenderWindow& window, BinaryGameData& data) {
     if (!data.active) return;
 
-    window.draw(data.overlay);    // ارسم الضلمة الأول
-    window.draw(data.promptText); // ارسم رسائل السيستم
-    window.draw(data.inputText);  // ارسم سهم الكتابة وكلام اللاعب
+    window.draw(data.overlay); // ارسم الضلمة الأول
+    window.draw(data.terminalSprite);
+    //window.draw(data.promptText); // ارسم رسائل السيستم
+    //window.draw(data.inputText);
 }
