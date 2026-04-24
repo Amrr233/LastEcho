@@ -36,7 +36,7 @@ void initBinaryGame(BinaryGameData& data) {
     data.promptText.setFillColor(sf::Color::Green);
     data.promptText.setPosition(340.f, 260.f);
 
-    data.inputText.setCharacterSize(30);
+    data.inputText.setCharacterSize(25);
     data.inputText.setFillColor(sf::Color::White);
     data.inputText.setPosition(340.f, 400.f); // الـ Input تحت شوية
 }
@@ -62,11 +62,13 @@ void handleBinaryInput(BinaryGameData& data, sf::Event& event) {
 
                 if (std::stoi(data.userInput) == data.targetDecimal) {
                     data.completed = true;
+                    data.isWrong = false;
                     data.displayTimer = 0.0f;
                     data.userInput = ""; // نمسح المدخلات عشان نعرض جملة الـ Press Enter
                 } else {
                     data.statusMessage = "Access denied.\nTry converting the code to something else.";
                     data.userInput = "";
+                    data.isWrong = true;
                 }
             }
         }
@@ -77,18 +79,19 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
     if (!data.active) return;
 
     if (data.completed) {
+        data.promptText.setFillColor(sf::Color::Green);
         data.displayTimer += deltaTime;
 
         // 1. نبدأ بالجملة الأولى
         std::string finalMsg = "Access granted.";
 
         // 2. نضيف الجملة الثانية بعد ثانية
-        if (data.displayTimer >= 2.5f) {
+        if (data.displayTimer >= 0.5f) {
             finalMsg += "\nDecrypting files...";
         }
 
         // 3. نضيف الجملة الثالثة بعد ثانيتين
-        if (data.displayTimer >= 5.0f) {
+        if (data.displayTimer >= 1.0f) {
             finalMsg += "\nFind Albert.";
             data.messageStep = 2; // عشان نبقى عارفين إننا خلصنا
         }
@@ -97,7 +100,7 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
 
         // --- التصحيح هنا: نبعت الـ finalMsg مش الـ statusMessage ---
         data.promptText.setString(finalMsg);
-        data.promptText.setFillColor(sf::Color::Cyan);
+        data.promptText.setFillColor(sf::Color::Green);
 
 
         data.inputText.setString("[Press M to Exit]");
@@ -106,12 +109,17 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
         // الحالة العادية قبل الحل
         data.promptText.setString(data.statusMessage + "\n\nID: " + data.targetBinary);
         data.inputText.setString("> " + data.userInput + "_");
-        data.promptText.setFillColor(sf::Color::Green);
+        if (data.isWrong) {
+            data.promptText.setFillColor(sf::Color::Red); // أحمر لو غلط
+        } else {
+            data.promptText.setFillColor(sf::Color::Green); // أخضر لو لسه بيحاول
+        }
     }
 }
 void restartBinaryGame(BinaryGameData& data) {
     data.active = false;
     data.completed = false;
+    data.isWrong = false;
     data.displayTimer = 0.0f;     // نصفر التايمر عشان الأنيميشن يبدأ من الأول
     data.messageStep = 0;
     data.userInput = "";

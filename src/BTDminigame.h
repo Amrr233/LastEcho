@@ -12,6 +12,7 @@
 struct BinaryGameData {
     bool active = false;
     bool completed = false;
+    bool isWrong = false;
     std::string targetBinary = "01000011";
     int targetDecimal = 67;
     std::string userInput = "";
