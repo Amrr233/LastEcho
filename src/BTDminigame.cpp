@@ -14,7 +14,7 @@ void initBinaryGame(BinaryGameData& data) {
     data.terminalTexture.loadFromFile("assets/gameplay/terminalsprite (1).png");
     data.terminalSprite.setTexture(data.terminalTexture);
     data.terminalSprite.setScale(0.7f, 0.7f); //ده بيطول و يقصر
-    data.terminalSprite.setPosition(160.f, 60.f); // ده بيغير مكانها
+    data.terminalSprite.setPosition(220.f, 60.f); // ده بيغير مكانها
 
 
     data.promptText.setFont(data.terminalFont);
@@ -28,17 +28,17 @@ void initBinaryGame(BinaryGameData& data) {
     data.overlay.setPosition(0.f, 0.f);
 
     // 3. اللون (أسود غامق جداً عشان يفصل اللاعب عن الماب)
-    data.overlay.setFillColor(sf::Color(0, 0, 0, 150)); // لو عايزين نرجعها اسود تاني هنزود الalpha
+    data.overlay.setFillColor(sf::Color(0, 0, 0, 180)); // لو عايزين نرجعها اسود تاني هنزود الalpha
 
     // 4. تظبيط أماكن الكلام (Positions)
     // هنخلي الكلام يبدأ من مسافة 50 بكسل من الشمال عشان ميبقاش لازق في الحافة
-    data.promptText.setCharacterSize(24);
+    data.promptText.setCharacterSize(18);
     data.promptText.setFillColor(sf::Color::Green);
-    data.promptText.setPosition(60.f, 80.f);
+    data.promptText.setPosition(340.f, 260.f);
 
     data.inputText.setCharacterSize(30);
     data.inputText.setFillColor(sf::Color::White);
-    data.inputText.setPosition(60.f, 450.f); // الـ Input تحت شوية
+    data.inputText.setPosition(340.f, 400.f); // الـ Input تحت شوية
 }
 
 // --- التعامل مع الكيبورد والـ Hacking Logic ---
@@ -128,6 +128,6 @@ void drawBinaryGame(sf::RenderWindow& window, BinaryGameData& data) {
 
     window.draw(data.overlay); // ارسم الضلمة الأول
     window.draw(data.terminalSprite);
-    //window.draw(data.promptText); // ارسم رسائل السيستم
-    //window.draw(data.inputText);
+    window.draw(data.promptText); // ارسم رسائل السيستم
+    window.draw(data.inputText);
 }
