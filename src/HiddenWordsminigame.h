@@ -16,6 +16,7 @@ struct MovieReview {
     int currentWordIdx = 0;   // واصلين للكلمة الكام
     string userInput = "";    // اللي اللاعب بيكتبه حالياً
     bool isCleared = false;   // هل خلص المرحلة دي؟
+    string errorMessage = "";
 };
 
 // الفانكشنز اللي هنستخدمها في الـ cpp

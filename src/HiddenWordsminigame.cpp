@@ -3,13 +3,30 @@
 
 // 1. بنملا بيانات الفيلم والريفيو
 void initReviewGame(MovieReview& review) {
-    review.title = "FIGHT CLUB (1999)";
-    // حرف الـ \n بيعمل سطر جديد عشان الكلام م يخرجش بره الشاشة
-    review.reviewTemplate = "The first rule of [____] is: \nYou do not talk about [____].";
-    
-    review.solutions = {"FIGHT CLUB", "FIGHT CLUB"}; // الكلمات الصح
-    review.hints = {"It's an underground society.", "Repeat the first rule!"};
-    
+    review.title = "    The Hidden Secret (2013)";
+
+    // الريفيو مع الكلمات الناقصة (مكانها ____)
+    review.reviewTemplate =
+        "This doesn't feel like a story anymore... it feels like something breaking through\n"
+        "reality itself.\n\n"
+        "Every scene pulls you deeper, as if the world is forming a ____between what\n"
+        "is real and what is not.\n\n"
+        "At some point, meaning collapses completely, and everything starts pointing\n"
+        "toward what lies beyond.\n\n"
+        "And what's ______starts getting revealed through every passing moment,\n"
+        "as if it was always there waiting for its time to shine.\n\n"
+        "Leaving you overwhelmed by how life changes, like something has already\n"
+        "choen where you'll end up and there's no chance to run away.\n";
+
+
+    // الكلمات المفقودة
+    review.solutions.push_back("gateway");
+    review.solutions.push_back("unknown");
+
+    // الـ Hints (عربي وانجلش عشان نسهلها)
+    review.hints.push_back("A path or entrance to another place");
+    review.hints.push_back("Something not identified or familiar");
+
     review.currentWordIdx = 0;
     review.userInput = "";
     review.isCleared = false;
@@ -52,47 +69,61 @@ void updateReviewInput(sf::Event& event, MovieReview& review) {
 
 // 3. الرسم فوق الشاشة
 void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& font, MovieReview& review) {
-    // 1. رسم الخلفية (التي تم سنطرتها وتصغيرها في الـ main)
     window.draw(screenBg);
 
-    // 2. نجيب إحداثيات السنتر وأبعاد الشاشة الحالية بعد الـ Scale
     sf::Vector2f pos = screenBg.getPosition();
     sf::FloatRect bounds = screenBg.getGlobalBounds();
-
-    // 3. نحسب "نقطة البداية" للكتابة جوه الشاشة (مثلاً من الناحية الشمال فوق شوية)
-    // هنستخدم نسبة مئوية من العرض والطول عشان لو صغرتي الشاشة أكتر الكلام يفضل مظبوط
-    float startX = pos.x - (bounds.width * 0.4f); // بيبدأ من 40% شمال السنتر
-    float startY = pos.y - (bounds.height * 0.35f); // بيبدأ من 35% فوق السنتر
-
     sf::Text text;
     text.setFont(font);
-    text.setCharacterSize(18); // صغرنا الـ Size شوية عشان الشاشة صغرت
 
-    // --- رسم عنوان الفيلم ---
-    text.setFillColor(sf::Color(255, 128, 0));
-    text.setString(review.title);
-    text.setPosition(startX, startY);
-    window.draw(text);
+    // 1. حالة الفوز - ليها الأولوية الأولى
+    if (review.isCleared) {
+        text.setCharacterSize(22);
+        text.setFillColor(sf::Color::Cyan);
+        string winMessage = "ACCESS GRANTED.\n\n\"A GATEWAY TO THE UNKNOWN\"";
+        text.setString(winMessage);
 
-    // --- رسم نص الريفيو ---
-    text.setFillColor(sf::Color(0, 255, 0));
-    text.setString(review.reviewTemplate);
-    // بينزل مسافة تحت العنوان بناءً على طول الشاشة
-    text.setPosition(startX, startY + (bounds.height * 0.15f));
-    window.draw(text);
-
-    // --- رسم الـ Hint والـ Input ---
-    if (!review.isCleared) {
-        string displayStr = "HINT: " + review.hints[review.currentWordIdx] +
-                           "\n\n> " + review.userInput + "_";
-        text.setString(displayStr);
-        // بينزل لتحت أكتر (نص الشاشة تقريباً)
-        text.setPosition(startX, pos.y + (bounds.height * 0.1f));
+        sf::FloatRect textBounds = text.getLocalBounds();
+        text.setOrigin(textBounds.width / 2.0f, textBounds.height / 2.0f);
+        text.setPosition(pos.x, pos.y);
         window.draw(text);
-    } else {
+
+        return; // اخرج عشان ميرسمش حاجة تانية فوقيها
+    }
+
+    // 2. حالة وجود خطأ
+    if (review.errorMessage != "") {
+        text.setFillColor(sf::Color::Red);
+        text.setCharacterSize(20);
+        text.setString(review.errorMessage);
+        sf::FloatRect textBounds = text.getLocalBounds();
+        text.setOrigin(textBounds.width / 2.0f, textBounds.height / 2.0f);
+        text.setPosition(pos.x, pos.y);
+        window.draw(text);
+    }
+    // 3. حالة اللعب العادية
+    else {
+        float startX = pos.x - (bounds.width * 0.41f);
+        float startY = pos.y - (bounds.height * 0.40f);
+
+        // رسم العنوان
+        text.setCharacterSize(15);
+        text.setFillColor(sf::Color(255, 128, 0));
+        text.setString(review.title);
+        text.setPosition(startX, startY);
+        window.draw(text);
+
+        // رسم الريفيو
+        text.setFillColor(sf::Color(0, 255, 0));
+        text.setString(review.reviewTemplate);
+        text.setPosition(startX, startY + (bounds.height * 0.07f));
+        window.draw(text);
+
+        // رسم الـ Input
+        string displayStr = "> " + review.userInput + "_";
         text.setFillColor(sf::Color::White);
-        text.setString("ACCESS GRANTED. \nINFO: Go to the Library...");
-        text.setPosition(startX, pos.y + (bounds.height * 0.1f));
+        text.setString(displayStr);
+        text.setPosition(startX, pos.y + (bounds.height * 0.23f));
         window.draw(text);
     }
 }

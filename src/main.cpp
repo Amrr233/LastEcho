@@ -119,7 +119,7 @@ int main() {
     // 3. متغير الحالة (هل الميني جيم مفتوحة؟)
     bool isMinigameActive = false;
     // --- إعدادات حجم ومكان شاشة الميني جيم (التعديل الجديد) ---
-    terminalSprite.setScale(0.6f, 0.6f);
+    terminalSprite.setScale(0.7f, 0.7f);
 
     // 1. تحديد الـ Origin في منتصف الصورة بناءً على أبعادها الأصلية (قبل الـ Scale)
     sf::FloatRect localBounds = terminalSprite.getLocalBounds();
@@ -138,15 +138,41 @@ int main() {
 
     // 1. الميني جيم لها الأولوية القصوى لو مفتوحة
     if (isMinigameActive) {
-        // نبعت الأحداث للميني جيم (كتابة، مسح، Enter)
-        updateReviewInput(event, myReview);
-
-        // Escape عشان نقفل الميني جيم ونرجع للعب
-        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+        // زرار Z يقفل الميني جيم فوراً ويمنع أي حاجة تانية تشتغل
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) {
             isMinigameActive = false;
+            continue; // اخرج من الـ pollEvent للفريم ده
         }
 
-        // لو الميني جيم مفتوحة، مش عايزين باقي الـ loop تتنفذ (عشان اللاعب ميمشيش وهو بيكتب)
+        // لو لسه مخلصش الكلمات، استقبل الكتابة
+        if (!myReview.isCleared) {
+            if (event.type == sf::Event::TextEntered) {
+                if (event.text.unicode < 128) {
+                    char enteredChar = static_cast<char>(event.text.unicode);
+                    if (event.text.unicode == 8 && !myReview.userInput.empty()) myReview.userInput.pop_back();
+                    else if (event.text.unicode != 13 && event.text.unicode != 8) myReview.userInput += enteredChar;
+                }
+            }
+        }
+
+        // لو داس Enter
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+            if (myReview.isCleared) {
+                isMinigameActive = false; // اخرج للماب بعد الفوز
+            } else if (!myReview.userInput.empty()) {
+                if (myReview.userInput == myReview.solutions[myReview.currentWordIdx]) {
+                    myReview.userInput.clear();
+                    myReview.errorMessage = "";
+                    myReview.currentWordIdx++;
+                    if (myReview.currentWordIdx >= myReview.solutions.size()) myReview.isCleared = true;
+                } else {
+                    myReview.errorMessage = "ACCESS DENIED. \nHINT: " + myReview.hints[myReview.currentWordIdx];
+                    myReview.userInput.clear();
+                }
+            }
+        }
+
+        // دي أهم جملة: لو الميني جيم مفتوحة، "احرق" الـ event وماتخليهوش يوصل لكود اللعبة تحت
         continue;
     }
 
@@ -202,15 +228,16 @@ int main() {
                     }
                 }
             }
+            // جوه الـ STATE_PLAYING وفي الـ KeyPressed event
+if (event.type == Event::KeyPressed && event.key.code == sf::Keyboard::Z) {
+    // التبديل بين الفتح والقفل
+    isMinigameActive = !isMinigameActive;
 
-            // زرار الـ F - هنا التعديل
-            if (event.type == Event::KeyPressed && event.key.code == sf::Keyboard::F) {
-                // لو اللاعب قريب من الـ Terminal (تقدري تضيفي شرط الـ Distance هنا)
-                isMinigameActive = true;
-
-                // لو لسه عايزة الـ weapon switching شغال، سيبيه، بس الأفضل تفصلي بينهم
-                // weapon.switching(WEAPON_FIST);
-            }
+    // إعادة تهيئة الداتا لو فتحنا الميني جيم
+    if (isMinigameActive) {
+        initReviewGame(myReview);
+    }
+}
 
             if (event.type == Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
@@ -360,24 +387,6 @@ int main() {
                 window.setView(window.getDefaultView());
                 drawGuitar(window);
             }
-            if (isMinigameActive) {
-                // 1. نضمن إننا بنرسم بالنسبة للشاشة مش الكاميرا (عشان الـ Overlay يغطي الشاشة كلها)
-                window.setView(window.getDefaultView());
-
-                // 2. تعريف ورسم الـ Overlay الأسود الشفاف
-                sf::RectangleShape overlay(sf::Vector2f((float)SCREEN_W, (float)SCREEN_H));
-
-                // (0, 0, 0) هو اللون الأسود
-                // الـ رقم 180 هو درجة الشفافية (Alpha) - تقدري تغيريه من 0 لـ 255
-                overlay.setFillColor(sf::Color(0, 0, 0, 200));
-
-                window.draw(overlay);
-
-                // 3. رسم الميني جيم (الـ Terminal والReview) فوق الـ Overlay
-                drawReviewGame(window, terminalSprite, terminalFont, myReview);
-                window.setView(window.getDefaultView()); // عشان تترسم ثابتة في الشاشة مش مع الكاميرا
-                drawReviewGame(window, terminalSprite, terminalFont, myReview);
-            }
         }
 
         window.setView(window.getDefaultView());
@@ -397,6 +406,24 @@ int main() {
             fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
             window.draw(fadeOverlay);
         }
+        if (isMinigameActive) {
+                // 1. نضمن إننا بنرسم بالنسبة للشاشة مش الكاميرا (عشان الـ Overlay يغطي الشاشة كلها)
+                window.setView(window.getDefaultView());
+
+                // 2. تعريف ورسم الـ Overlay الأسود الشفاف
+                sf::RectangleShape overlay(sf::Vector2f((float)SCREEN_W, (float)SCREEN_H));
+
+                // (0, 0, 0) هو اللون الأسود
+                // الـ رقم 180 هو درجة الشفافية (Alpha) - تقدري تغيريه من 0 لـ 255
+                overlay.setFillColor(sf::Color(0, 0, 0, 240));
+
+                window.draw(overlay);
+
+                // 3. رسم الميني جيم (الـ Terminal والReview) فوق الـ Overlay
+                drawReviewGame(window, terminalSprite, terminalFont, myReview);
+                window.setView(window.getDefaultView()); // عشان تترسم ثابتة في الشاشة مش مع الكاميرا
+                drawReviewGame(window, terminalSprite, terminalFont, myReview);
+            }
 
         window.display();
     }
