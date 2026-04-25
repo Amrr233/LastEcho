@@ -1,73 +1,79 @@
 #include "HiddenWordsminigame.h"
 #include <iostream>
 
-// 1. بنملا بيانات الفيلم والريفيو
 void initReviewGame(MovieReview& review) {
     review.title = "    The Hidden Secret (2013)";
-
-    // الريفيو مع الكلمات الناقصة (مكانها ____)
     review.reviewTemplate =
-        "This doesn't feel like a story anymore... it feels like something breaking through\n"
+        "This doesn't feel like a story anymore, it feels like something breaking through\n"
         "reality itself.\n\n"
-        "Every scene pulls you deeper, as if the world is forming a ____between what\n"
+        "Every scene pulls you deeper, as if the world is forming a ____ between what\n"
         "is real and what is not.\n\n"
         "At some point, meaning collapses completely, and everything starts pointing\n"
         "toward what lies beyond.\n\n"
-        "And what's ______starts getting revealed through every passing moment,\n"
-        "as if it was always there waiting for its time to shine.\n\n"
-        "Leaving you overwhelmed by how life changes, like something has already\n"
-        "choen where you'll end up and there's no chance to run away.\n";
+        "And what's ______ starts getting revealed through every passing moment,\n"
+        "as if it was always there waiting for its time to shine.\n";
 
-
-    // الكلمات المفقودة
+    review.solutions.clear();
     review.solutions.push_back("gateway");
     review.solutions.push_back("unknown");
 
-    // الـ Hints (عربي وانجلش عشان نسهلها)
+    review.hints.clear();
     review.hints.push_back("A path or entrance to another place");
     review.hints.push_back("Something not identified or familiar");
 
     review.currentWordIdx = 0;
     review.userInput = "";
+    review.errorMessage = "";
     review.isCleared = false;
 }
 
-// 2. منطق الكتابة والـ Backspace والـ Enter
 void updateReviewInput(sf::Event& event, MovieReview& review) {
     if (review.isCleared) return;
 
-    // التعامل مع كتابة الحروف
+    // لو فيه رسالة خطأ، أي ضغطة زرار تمسحها وترجعنا لشاشة الكتابة
+    if (review.errorMessage != "" && event.type == sf::Event::KeyPressed) {
+        review.errorMessage = "";
+        review.userInput = ""; // بنصفر الـ input عشان يبدأ على نظافة
+        return;
+    }
+
     if (event.type == sf::Event::TextEntered) {
-        // لو داس Backspace (رقم 8 في الـ ASCII) يمسح آخر حرف
-        if (event.text.unicode == 8) {
-            if (!review.userInput.empty()) {
-                review.userInput.pop_back();
-            }
+        if (event.text.unicode == 8) { // Backspace
+            if (!review.userInput.empty()) review.userInput.pop_back();
         }
-        // لو كتب حرف عادي (مش Enter ومش Backspace)
         else if (event.text.unicode < 128 && event.text.unicode != 13) {
             review.userInput += static_cast<char>(event.text.unicode);
         }
     }
 
-    // لو داس Enter يتأكد من الكلمة
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
-        // بنحول اللي كتبه لـ Capital عشان نقارنه بالحل صح
-        string tempInput = review.userInput;
-        for (auto & c: tempInput) c = toupper(c);
+if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+    if (!review.userInput.empty()) {
+        string temp = review.userInput;
+        // 1. تنظيف الكلمة تماماً
+        for (auto & c: temp) c = tolower(c);
+        temp.erase(0, temp.find_first_not_of(' '));
+        temp.erase(temp.find_last_not_of(' ') + 1);
 
-        if (!tempInput.empty() && tempInput == review.solutions[review.currentWordIdx]) {
+        // 2. المقارنة
+        if (temp == review.solutions[review.currentWordIdx]) {
+            // لو صح: بنصفر الخطأ ونزود الـ Index للكلمة اللي بعدها
+            review.errorMessage = "";
             review.currentWordIdx++;
-            review.userInput = ""; // نصفر الخانة للكلمة اللي بعدها
-            
+            review.userInput = "";
+
             if (review.currentWordIdx >= review.solutions.size()) {
                 review.isCleared = true;
             }
+        } else {
+            // لو غلط: بنعرض الهينت الخاص بالكلمة الحالية (اللي اللاعب واقف عندها)
+            // بما إن currentWordIdx لسه م زادش، هيفضل واقف عند 0 لو بيغلط في أول كلمة
+            review.errorMessage = "ACCESS DENIED\n\nSYSTEM LOCKED\n\nHINT: " + review.hints[review.currentWordIdx] + "\n\n[Press any key to retry]";
+            // ملحوظة: م بنصفرش الـ userInput هنا عشان لو اللاعب عايز يشوف هو كتب إيه غلط قبل ما الشاشة تقلب
         }
     }
 }
+}
 
-// 3. الرسم فوق الشاشة
 void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& font, MovieReview& review) {
     window.draw(screenBg);
 
@@ -76,53 +82,120 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     sf::Text text;
     text.setFont(font);
 
-    // 1. حالة الفوز - ليها الأولوية الأولى
+    // --- متغيرات الأنيميشن ---
+    static float lineAlpha[5] = { 0, 0, 0, 0, 0 };
+    static int currentLineVisible = 0;
+    static int charCount = 0;      // عداد حروف الجملة الأخيرة
+    static float charTimer = 0.0f; // تايمر الكتابة
+
+    const float fadeSpeed = 165.0f;
+    const float typeSpeed = 0.05f; // سرعة الكتابة حرف حرف
+
+    // 1. شاشة الفوز
     if (review.isCleared) {
-        text.setCharacterSize(22);
-        text.setFillColor(sf::Color::Cyan);
-        string winMessage = "ACCESS GRANTED.\n\n\"A GATEWAY TO THE UNKNOWN\"";
-        text.setString(winMessage);
+        string winLines[] = {
+            "ACCESS GRANTED",
+            "CONNECTION ESTABLISHED",
+            "\"A GATEWAY TO THE UNKNOWN\""
+        };
+        int totalWinLines = 3;
 
-        sf::FloatRect textBounds = text.getLocalBounds();
-        text.setOrigin(textBounds.width / 2.0f, textBounds.height / 2.0f);
-        text.setPosition(pos.x, pos.y);
-        window.draw(text);
+        // منطق الظهور التتابعي
+        if (currentLineVisible < totalWinLines) {
+            if (currentLineVisible < 2) { // أول جملتين يظهروا Fade
+                lineAlpha[currentLineVisible] += fadeSpeed * 0.016f;
+                if (lineAlpha[currentLineVisible] >= 255.0f) {
+                    lineAlpha[currentLineVisible] = 255.0f;
+                    currentLineVisible++;
+                }
+            } else { // الجملة الأخيرة تظهر Typewriter
+                charTimer += 0.016f;
+                if (charTimer >= typeSpeed && charCount < winLines[2].length()) {
+                    charCount++;
+                    charTimer = 0.0f;
+                }
+            }
+        }
 
-        return; // اخرج عشان ميرسمش حاجة تانية فوقيها
+        for (int i = 0; i < totalWinLines; i++) {
+            text.setCharacterSize(28); // الحجم الكبير للفوز
+            text.setFillColor(sf::Color(0, 255, 0)); // لون أخضر
+
+            if (i < 2) { // رسم السطور الـ Fade
+                text.setFillColor(sf::Color(0, 255, 0, (sf::Uint8)lineAlpha[i]));
+                text.setString(winLines[i]);
+            } else if (i == 2 && currentLineVisible >= 2) { // رسم الجملة الأخيرة حرف حرف
+                text.setString(winLines[2].substr(0, charCount));
+            } else continue;
+
+            // سنترة النص في المنتصف
+            sf::FloatRect tBounds = text.getLocalBounds();
+            text.setOrigin(tBounds.width / 2.0f, tBounds.height / 2.0f);
+            text.setPosition(pos.x, (pos.y - 70.f) + (i * 55.f));
+            window.draw(text);
+        }
+        return;
     }
 
-    // 2. حالة وجود خطأ
+    // 2. شاشة الخطأ
     if (review.errorMessage != "") {
-        text.setFillColor(sf::Color::Red);
-        text.setCharacterSize(20);
-        text.setString(review.errorMessage);
-        sf::FloatRect textBounds = text.getLocalBounds();
-        text.setOrigin(textBounds.width / 2.0f, textBounds.height / 2.0f);
-        text.setPosition(pos.x, pos.y);
-        window.draw(text);
+        string errLines[] = {
+            "ACCESS DENIED",
+            "HINT: " + review.hints[review.currentWordIdx],
+            "[Press any key to retry]"
+        };
+        int totalErrLines = 3;
+
+        if (currentLineVisible < totalErrLines) {
+            lineAlpha[currentLineVisible] += fadeSpeed * 0.016f;
+            if (lineAlpha[currentLineVisible] >= 255.0f) {
+                lineAlpha[currentLineVisible] = 255.0f;
+                currentLineVisible++;
+            }
+        }
+
+        for (int i = 0; i < totalErrLines; i++) {
+            if (i <= currentLineVisible) {
+                text.setCharacterSize(28);
+                text.setFillColor(sf::Color(255, 0, 0, (sf::Uint8)lineAlpha[i]));
+                text.setString(errLines[i]);
+
+                sf::FloatRect tBounds = text.getLocalBounds();
+                text.setOrigin(tBounds.width / 2.0f, tBounds.height / 2.0f);
+                text.setPosition(pos.x, (pos.y - 60.f) + (i * 45.f));
+                window.draw(text);
+            }
+        }
     }
-    // 3. حالة اللعب العادية
+    // 3. شاشة اللعب العادية
     else {
-        float startX = pos.x - (bounds.width * 0.41f);
+        // تصفير كل العدادات للبدء من جديد عند الخطأ/الفوز
+        currentLineVisible = 0;
+        charCount = 0;
+        charTimer = 0.0f;
+        for (int i = 0; i < 5; i++) lineAlpha[i] = 0.0f;
+
+        float startX = pos.x - (bounds.width * 0.42f);
         float startY = pos.y - (bounds.height * 0.40f);
 
-        // رسم العنوان
-        text.setCharacterSize(15);
+        // العنوان
+        text.setCharacterSize(20);
         text.setFillColor(sf::Color(255, 128, 0));
         text.setString(review.title);
-        text.setPosition(startX, startY);
+        text.setPosition(startX + 40.f, startY + 20.f);
         window.draw(text);
 
-        // رسم الريفيو
-        text.setFillColor(sf::Color(0, 255, 0));
+        // الريفيو
+        text.setCharacterSize(17);
+        text.setFillColor(sf::Color::Green);
         text.setString(review.reviewTemplate);
-        text.setPosition(startX, startY + (bounds.height * 0.07f));
+        text.setPosition(startX, startY + (bounds.height * 0.12f));
         window.draw(text);
 
-        // رسم الـ Input
-        string displayStr = "> " + review.userInput + "_";
+        // الإدخال
+        text.setCharacterSize(18);
         text.setFillColor(sf::Color::White);
-        text.setString(displayStr);
+        text.setString("> " + review.userInput + "_");
         text.setPosition(startX, pos.y + (bounds.height * 0.23f));
         window.draw(text);
     }
