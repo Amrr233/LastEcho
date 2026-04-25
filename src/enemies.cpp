@@ -1,5 +1,6 @@
 #include "enemies.h"
 #include <vector>
+#include <cmath>
 #include <Data.h>
 #include <player.h>
 #include <SFML/Graphics.hpp>

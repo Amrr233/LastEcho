@@ -18,6 +18,7 @@
 #include "chest.h"
 #include "Cutscene.h"
 #include "GuitarMiniGame.h"
+#include "HiddenWordsminigame.h"
 
 using namespace sf;
 using namespace std;
@@ -100,94 +101,131 @@ int main() {
     Clock clock;
     View mainView;
     mainView.setSize(SCREEN_W, SCREEN_H);
+    // 1. تعريف الداتا والميني جيم
+    MovieReview myReview;
+    initReviewGame(myReview);
 
+    // 2. تحميل صورة الـ Terminal السادة والفونت
+    sf::Texture terminalTex;
+    terminalTex.loadFromFile("Assets/gameplay/terminalasset.png"); // تأكدي من المسار والاسم
+    sf::Sprite terminalSprite(terminalTex);
+    // سنطريها في نص الشاشة (اختياري حسب مقاس شاشتك)
+    terminalSprite.setPosition(window.getSize().x / 2 - terminalSprite.getGlobalBounds().width / 2,
+                               window.getSize().y / 2 - terminalSprite.getGlobalBounds().height / 2);
+
+    sf::Font terminalFont;
+    terminalFont.loadFromFile("Assets/fonts/pixelsix00.ttf"); // تأكدي من وجود الفونت
+
+    // 3. متغير الحالة (هل الميني جيم مفتوحة؟)
+    bool isMinigameActive = false;
+    // --- إعدادات حجم ومكان شاشة الميني جيم (التعديل الجديد) ---
+    terminalSprite.setScale(0.6f, 0.6f);
+
+    // 1. تحديد الـ Origin في منتصف الصورة بناءً على أبعادها الأصلية (قبل الـ Scale)
+    sf::FloatRect localBounds = terminalSprite.getLocalBounds();
+    terminalSprite.setOrigin(localBounds.width / 2.0f, localBounds.height / 2.0f);
+
+    // 2. وضع الصورة في منتصف الشاشة بالظبط
+    // بنستخدم SCREEN_W و SCREEN_H اللي متعرفين عندك في الـ Data.h
+    terminalSprite.setPosition(SCREEN_W / 2.0f, SCREEN_H / 2.0f);
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
-        while (window.pollEvent(event)) {
-            // ════════════════════════════════════════════════════════════════
-            // GUITAR CONTROLS
-            // ════════════════════════════════════════════════════════════════
-            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                if (isGuitarOpen()) {
-                    // بنبعت الـ window ومكان الماوس بالبكسل عشان الـ View تحولها صح
-                    handleGuitarClick(window, sf::Mouse::getPosition(window));
-                }
-            }
+       while (window.pollEvent(event)) {
+    if (event.type == sf::Event::Closed)
+        window.close();
 
-            if (event.type == sf::Event::KeyPressed) {
-                // TAB - Open guitar
-                if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
-                    openGuitarFreePlay();
-                    // شيلنا دالة الـ Scale لأن الـ View الجديدة بتتكفل بكل حاجة
-                }
+    // 1. الميني جيم لها الأولوية القصوى لو مفتوحة
+    if (isMinigameActive) {
+        // نبعت الأحداث للميني جيم (كتابة، مسح، Enter)
+        updateReviewInput(event, myReview);
 
-                // ESC - Close guitar (or close game)
-                if (event.key.code == sf::Keyboard::R) {
-                    if (isGuitarOpen()) {
-                        closeGuitar();
-                    }
-                }
+        // Escape عشان نقفل الميني جيم ونرجع للعب
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+            isMinigameActive = false;
+        }
 
-                // Q - Switch mode (only when guitar open)
-                if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
-                    if (g_guitar.mode == GUITAR_FREE) {
-                        GuitarNote pattern[12] = {
-                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
-                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
-                            {0, 7}, {1, 4}, {1, 5}, {1, 4}
-                        };
-                        openGuitarQuest(pattern, 12, 60.0f);
-                    } else {
-                        openGuitarFreePlay();
-                    }
-                }
-            }
+        // لو الميني جيم مفتوحة، مش عايزين باقي الـ loop تتنفذ (عشان اللاعب ميمشيش وهو بيكتب)
+        continue;
+    }
 
-            if (event.type == sf::Event::Closed)
-                window.close();
+    // ════════════════════════════════════════════════════════════════
+    // GUITAR CONTROLS (تفضل زي ما هي)
+    // ════════════════════════════════════════════════════════════════
+    if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+        if (isGuitarOpen()) {
+            handleGuitarClick(window, sf::Mouse::getPosition(window));
+        }
+    }
 
-            if (gState.currentState == STATE_MENU) {
-                MenuUpdate(window, gState.currentState);
-            }
-            else if (gState.currentState == STATE_SETTINGS) {
-                SettingsUpdate(window, gState.currentState);
-            }
-            else if (gState.currentState == STATE_PLAYING) {
-                if (!isCutsceneActive() && !isGuitarOpen()) {
-                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                        if (isDialogueActive()) {
-                            nextLine();
-                        }
-                        else if (tryOpenChest(player.pos, world.currentMapName)) {
-                            // chest opened, nothing extra needed
-                        }
-                        else {
-                            string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-                            if (npcName != "") {
-                                updatePhaseLogic(world.phaseSys, npcName);
-                            }
-                        }
-                    }
-                    //switching weapons
-                    if (event.key.code == sf::Keyboard::F) {
-                        weapon.switching(WEAPON_FIST);
-                    }
-                    if (event.key.code == sf::Keyboard::B) {
-                        weapon.switching(WEAPON_BOOK);
-                    }
-                    if (event.key.code == sf::Keyboard::N) {
-                        inv.triggerPickupEffect("assets/items/note.png");
-                        inv.addItem("note","assets/items/note.png");
-                    }
-                } else {
-                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                        if (isDialogueActive()) nextLine();
-                    }
-                }
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
+            openGuitarFreePlay();
+        }
+        if (event.key.code == sf::Keyboard::R) {
+            if (isGuitarOpen()) closeGuitar();
+        }
+        if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
+            if (g_guitar.mode == GUITAR_FREE) {
+                GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 5}, {1, 4}};
+                openGuitarQuest(pattern, 12, 60.0f);
+            } else {
+                openGuitarFreePlay();
             }
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // GAME STATES
+    // ════════════════════════════════════════════════════════════════
+    if (gState.currentState == STATE_MENU) {
+        MenuUpdate(window, gState.currentState);
+    }
+    else if (gState.currentState == STATE_SETTINGS) {
+        SettingsUpdate(window, gState.currentState);
+    }
+    else if (gState.currentState == STATE_PLAYING) {
+        if (!isCutsceneActive() && !isGuitarOpen()) {
+
+            // التعامل مع الـ E (الديالوج والصناديق)
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+                if (isDialogueActive()) {
+                    nextLine();
+                }
+                else if (tryOpenChest(player.pos, world.currentMapName)) {
+                }
+                else {
+                    string npcName = getNearbyNPCName(player.pos, world.currentMapName);
+                    if (npcName != "") {
+                        updatePhaseLogic(world.phaseSys, npcName);
+                    }
+                }
+            }
+
+            // زرار الـ F - هنا التعديل
+            if (event.type == Event::KeyPressed && event.key.code == sf::Keyboard::F) {
+                // لو اللاعب قريب من الـ Terminal (تقدري تضيفي شرط الـ Distance هنا)
+                isMinigameActive = true;
+
+                // لو لسه عايزة الـ weapon switching شغال، سيبيه، بس الأفضل تفصلي بينهم
+                // weapon.switching(WEAPON_FIST);
+            }
+
+            if (event.type == Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
+                if (event.key.code == sf::Keyboard::N) {
+                    inv.triggerPickupEffect("assets/items/note.png");
+                    inv.addItem("note","assets/items/note.png");
+                }
+            }
+        } else {
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+                if (isDialogueActive()) nextLine();
+            }
+        }
+    }
+}
 
         // --- UPDATE LOGIC ---
         if (gState.currentState == STATE_PLAYING) {
@@ -321,6 +359,24 @@ int main() {
             if (isGuitarOpen()) {
                 window.setView(window.getDefaultView());
                 drawGuitar(window);
+            }
+            if (isMinigameActive) {
+                // 1. نضمن إننا بنرسم بالنسبة للشاشة مش الكاميرا (عشان الـ Overlay يغطي الشاشة كلها)
+                window.setView(window.getDefaultView());
+
+                // 2. تعريف ورسم الـ Overlay الأسود الشفاف
+                sf::RectangleShape overlay(sf::Vector2f((float)SCREEN_W, (float)SCREEN_H));
+
+                // (0, 0, 0) هو اللون الأسود
+                // الـ رقم 180 هو درجة الشفافية (Alpha) - تقدري تغيريه من 0 لـ 255
+                overlay.setFillColor(sf::Color(0, 0, 0, 200));
+
+                window.draw(overlay);
+
+                // 3. رسم الميني جيم (الـ Terminal والReview) فوق الـ Overlay
+                drawReviewGame(window, terminalSprite, terminalFont, myReview);
+                window.setView(window.getDefaultView()); // عشان تترسم ثابتة في الشاشة مش مع الكاميرا
+                drawReviewGame(window, terminalSprite, terminalFont, myReview);
             }
         }
 
