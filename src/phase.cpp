@@ -4,6 +4,7 @@
 #include "NPC.h"
 #include "Cutscene.h"
 #include "Player.h"
+#include "Data.h"
 #include "chest.h"
 
 extern inventory inv;

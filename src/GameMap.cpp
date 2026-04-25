@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include "player.h"
+using namespace sf;
+using json = nlohmann::json;
 
 // 1. دالة التحميل: بتملأ الـ struct بالبيانات وبتحفظ اسم الماب للـ NPCs
 bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {

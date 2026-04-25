@@ -67,7 +67,7 @@ struct WeaponConfig {
 // FUNCTION PROTOTYPES
 // ==============================
 void initPlayer(sf::Vector2f startPos);
-void updatePlayer(float dt, World& world);  
+void updatePlayer(float dt, World& world);
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
