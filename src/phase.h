@@ -57,24 +57,24 @@ void checkDialogueReward(PhaseSystem& ps);
 // ════════════════════════════════════════════════════════════════
 
 // Phase 0: Amr's Magical Guitar
-void updatePhase0(PhaseSystem& ps, std::string npcName);
-
-// Phase 1: The Corruption Begins (stub - Team 2 will implement)
 void updatePhase1(PhaseSystem& ps, std::string npcName);
 
-// Phase 2: The Discovery (stub - Team 3 will implement)
+// Phase 1: The Corruption Begins (stub - Team 2 will implement)
 void updatePhase2(PhaseSystem& ps, std::string npcName);
 
-// Phase 3: Betrayal (stub - Team 4 will implement)
+// Phase 2: The Discovery (stub - Team 3 will implement)
 void updatePhase3(PhaseSystem& ps, std::string npcName);
 
-// Phase 4: Hidden Powers (stub - Team 5 will implement)
+// Phase 3: Betrayal (stub - Team 4 will implement)
 void updatePhase4(PhaseSystem& ps, std::string npcName);
 
-// Phase 5: Final Climax (stub - Team 6 will implement)
+// Phase 4: Hidden Powers (stub - Team 5 will implement)
 void updatePhase5(PhaseSystem& ps, std::string npcName);
 
-// Phase 6: Resolution (stub - Team 7 will implement)
+// Phase 5: Final Climax (stub - Team 6 will implement)
 void updatePhase6(PhaseSystem& ps, std::string npcName);
+
+// Phase 6: Resolution (stub - Team 7 will implement)
+void updatePhase7(PhaseSystem& ps, std::string npcName);
 
 #endif

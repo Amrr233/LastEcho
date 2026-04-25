@@ -64,25 +64,25 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
     // Dispatch to appropriate phase handler
     switch (pIdx) {
         case 0:
-            updatePhase0(ps, npcName);
-            break;
-        case 1:
             updatePhase1(ps, npcName);
             break;
-        case 2:
+        case 1:
             updatePhase2(ps, npcName);
             break;
-        case 3:
+        case 2:
             updatePhase3(ps, npcName);
             break;
-        case 4:
+        case 3:
             updatePhase4(ps, npcName);
             break;
-        case 5:
+        case 4:
             updatePhase5(ps, npcName);
             break;
-        case 6:
+        case 5:
             updatePhase6(ps, npcName);
+            break;
+        case 6:
+            updatePhase7(ps, npcName);
             break;
         default:
             break;
@@ -100,7 +100,7 @@ void checkDialogueReward(PhaseSystem& ps) {
 // PHASE 0: Amr's Magical Guitar
 // Team Member 1 - NO CHANGES TO EXISTING LOGIC
 // ════════════════════════════════════════════════════════════════
-void updatePhase0(PhaseSystem& ps, std::string npcName) {
+void updatePhase1(PhaseSystem& ps, std::string npcName) {
     if (npcName == "Friend_NPC") {
         if (!ps.gameFlags[0]) {
             std::string lines1[] = { "Oh! Your ID card is here.", "Take it and go to the gate." };
@@ -286,27 +286,27 @@ void updatePhase0(PhaseSystem& ps, std::string npcName) {
 // PHASE 1-6: Stubs
 // ════════════════════════════════════════════════════════════════
 
-void updatePhase1(PhaseSystem& ps, std::string npcName) {
+void updatePhase2(PhaseSystem& ps, std::string npcName) {
     // Team 2 implements Phase 1: The Corruption Begins
     // Can handle: Saged NPC, enemy encounters, exploration, etc
 }
 
-void updatePhase2(PhaseSystem& ps, std::string npcName) {
+void updatePhase3(PhaseSystem& ps, std::string npcName) {
     // Team 3 implements Phase 2: The Discovery
 }
 
-void updatePhase3(PhaseSystem& ps, std::string npcName) {
+void updatePhase4(PhaseSystem& ps, std::string npcName) {
     // Team 4 implements Phase 3: Betrayal
 }
 
-void updatePhase4(PhaseSystem& ps, std::string npcName) {
+void updatePhase5(PhaseSystem& ps, std::string npcName) {
     // Team 5 implements Phase 4: Hidden Powers
 }
 
-void updatePhase5(PhaseSystem& ps, std::string npcName) {
+void updatePhase6(PhaseSystem& ps, std::string npcName) {
     // Team 6 implements Phase 5: Final Climax
 }
 
-void updatePhase6(PhaseSystem& ps, std::string npcName) {
+void updatePhase7(PhaseSystem& ps, std::string npcName) {
     // Team 7 implements Phase 6: Resolution
 }
