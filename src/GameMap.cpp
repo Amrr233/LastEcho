@@ -293,3 +293,14 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
 
     return false;
 }
+
+bool mapSwapTileset(GameMap& map, const std::string& newTexturePath) {
+    sf::Texture newTex;
+    if (newTex.loadFromFile(newTexturePath)) {
+        map.tilesetTexture = newTex; // استبدال الصورة القديمة بالجديدة
+        map.tilesetTexture.setSmooth(false); // عشان بكسل أرت يفضل حاد
+        return true;
+    }
+    std::cerr << "[Error]: Could not find cursed texture at " << newTexturePath << std::endl;
+    return false;
+}
