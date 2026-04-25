@@ -2,12 +2,16 @@
 #include "GameMap.h"
 #include <SFML/Graphics.hpp>
 #include <cmath>
+
+#include "audio.h"
 #include "enemies.h"
 #include "NPC.h"
 #include  "Cutscene.h"
+
     using namespace sf;
 
     extern Player player;
+    extern AudioManager audioManager;
     weapons weapon;
     static Sprite playerSprite;
     static sf::RectangleShape hitboxDebug;
@@ -122,6 +126,7 @@
 
             if (velocity.x != 0.f || velocity.y != 0.f) {
                 player.isMoving = true;
+                audioManager.startFootsteps();
 
                 if (velocity.x > 0)      player.facing = EAST;
                 else if (velocity.x < 0) player.facing = WEST;
@@ -132,6 +137,7 @@
                 velocity /= length;
             } else {
                 player.isMoving = false;
+                audioManager.stopFootsteps();
             }
         }
 
