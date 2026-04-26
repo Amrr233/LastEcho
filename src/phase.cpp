@@ -13,6 +13,7 @@ extern NPC allNPCs[MAX_NPCS];
 void phaseInit(PhaseSystem& ps) {
     ps.currentPhaseIdx = 0;
     for (int i = 0; i < MAX_FLAGS; i++) ps.gameFlags[i] = false;
+    ps.gameFlags[6] = false;
 
     // ════════════════════════════════════════════════════════════════
     // PHASE 0: Amr's Magical Guitar
@@ -247,14 +248,27 @@ void updatePhase1(PhaseSystem& ps, std::string npcName) {
 
             startGenericCutscene("amr_first_meeting", steps);
 
-            for (int i = 0; i < MAX_NPCS; i++) {
-                if (allNPCs[i].name == "amr") {
-                    allNPCs[i].waypointsCount = 0;
-                    allNPCs[i].isStatic = true;
-                    break;
-                }
-            }
+            //for (int i = 0; i < MAX_NPCS; i++) {
+            //    if (allNPCs[i].name == "amr") {
+            //        allNPCs[i].waypointsCount = 0;
+            //        allNPCs[i].isStatic = true;
+            //        break;
+            //    }
+            //}
             ps.allPhases[0].currentQuestIdx = 3;
+        }
+        else if (ps.gameFlags[6]){
+            std::string lines1[] = { "You actually did it?", "Impressive.","Now listen carefully...","This curse... it's out of this world.","This guitar is more than just an instrument.","Play it.","Let it choose you." };
+            startDialogue("Amr", lines1, 7, getNPCAvatar("amr"));
+            inv.addItem("the hidden melody", "assets/items/note.png");
+            ps.pendingItemTexture = "assets/items/note.png";
+            ps.gameFlags[6] = true;
+
+        }
+        else if (!ps.gameFlags[6]) {
+            std::string lines1[] = { "Find them....."};
+            startDialogue("Amr", lines1, 1, getNPCAvatar("amr"));
+            ps.gameFlags[6] = true;
         }
     }
     else if (npcName == "Key_Keeper") {
