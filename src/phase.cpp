@@ -232,6 +232,19 @@ void updatePhase1(PhaseSystem& ps, std::string npcName) {
             s17.lines[4] = "Then come back to me.";
             steps.push_back(s17);
 
+
+            CutsceneAction s18; s18.type = CUTSCENE_MOVE; s18.characterName = "amr";
+            s3.targetX = 600.0f; s3.targetY = 542.879f;
+            steps.push_back(s18);
+
+
+            CutsceneAction s19; s19.type = CUTSCENE_CHANGE_MAP; s19.characterName = "amr";
+            s19.targetMap = "vertPassage";
+            s19.spawnPos = {146.564f, 209.24f};
+            steps.push_back(s19);
+
+
+
             startGenericCutscene("amr_first_meeting", steps);
 
             for (int i = 0; i < MAX_NPCS; i++) {
