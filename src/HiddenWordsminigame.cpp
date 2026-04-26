@@ -2,7 +2,7 @@
 #include <iostream>
 
 void initReviewGame(MovieReview& review) {
-    review.title = "    The Hidden Secret (2013)";
+    review.title = "     The Hidden Secret (2013)";
     review.reviewTemplate =
         "This doesn't feel like a story anymore, it feels like something breaking through\n"
         "reality itself.\n\n"
@@ -85,13 +85,13 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     // --- متغيرات الأنيميشن ---
     static float lineAlpha[5] = { 0, 0, 0, 0, 0 };
     static int currentLineVisible = 0;
-    static int charCount = 0;      // عداد حروف الجملة الأخيرة
-    static float charTimer = 0.0f; // تايمر الكتابة
+    static int charCount = 0;
+    static float charTimer = 0.0f;
 
     const float fadeSpeed = 165.0f;
-    const float typeSpeed = 0.05f; // سرعة الكتابة حرف حرف
+    const float typeSpeed = 0.05f;
 
-    // 1. شاشة الفوز
+    // 1. شاشة الفوز (Fade + Typewriter للسطر الأخير)
     if (review.isCleared) {
         string winLines[] = {
             "ACCESS GRANTED",
@@ -100,15 +100,14 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         };
         int totalWinLines = 3;
 
-        // منطق الظهور التتابعي
         if (currentLineVisible < totalWinLines) {
-            if (currentLineVisible < 2) { // أول جملتين يظهروا Fade
+            if (currentLineVisible < 2) {
                 lineAlpha[currentLineVisible] += fadeSpeed * 0.016f;
                 if (lineAlpha[currentLineVisible] >= 255.0f) {
                     lineAlpha[currentLineVisible] = 255.0f;
                     currentLineVisible++;
                 }
-            } else { // الجملة الأخيرة تظهر Typewriter
+            } else {
                 charTimer += 0.016f;
                 if (charTimer >= typeSpeed && charCount < winLines[2].length()) {
                     charCount++;
@@ -118,17 +117,16 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         }
 
         for (int i = 0; i < totalWinLines; i++) {
-            text.setCharacterSize(28); // الحجم الكبير للفوز
-            text.setFillColor(sf::Color(0, 255, 0)); // لون أخضر
+            text.setCharacterSize(28);
+            text.setFillColor(sf::Color(0, 255, 0));
 
-            if (i < 2) { // رسم السطور الـ Fade
+            if (i < 2) {
                 text.setFillColor(sf::Color(0, 255, 0, (sf::Uint8)lineAlpha[i]));
                 text.setString(winLines[i]);
-            } else if (i == 2 && currentLineVisible >= 2) { // رسم الجملة الأخيرة حرف حرف
+            } else if (i == 2 && currentLineVisible >= 2) {
                 text.setString(winLines[2].substr(0, charCount));
             } else continue;
 
-            // سنترة النص في المنتصف
             sf::FloatRect tBounds = text.getLocalBounds();
             text.setOrigin(tBounds.width / 2.0f, tBounds.height / 2.0f);
             text.setPosition(pos.x, (pos.y - 70.f) + (i * 55.f));
@@ -169,7 +167,6 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     }
     // 3. شاشة اللعب العادية
     else {
-        // تصفير كل العدادات للبدء من جديد عند الخطأ/الفوز
         currentLineVisible = 0;
         charCount = 0;
         charTimer = 0.0f;
@@ -178,21 +175,30 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         float startX = pos.x - (bounds.width * 0.42f);
         float startY = pos.y - (bounds.height * 0.40f);
 
-        // العنوان
+        // --- العنوان ---
         text.setCharacterSize(20);
         text.setFillColor(sf::Color(255, 128, 0));
         text.setString(review.title);
         text.setPosition(startX + 40.f, startY + 20.f);
         window.draw(text);
 
-        // الريفيو
+        // --- عداد الكلمات (Progress Tracker) ---
+        // يظهر في ركن العنوان بلون هادئ
+        std::string progress = std::to_string(review.currentWordIdx) + " / " + std::to_string(review.solutions.size()) + " WORDS";
+        text.setCharacterSize(17);
+        text.setFillColor(sf::Color(150, 150, 150));
+        text.setString(progress);
+        text.setPosition(startX + (bounds.width * 0.58f), startY + 25.f);
+        window.draw(text);
+
+        // --- الريفيو ---
         text.setCharacterSize(17);
         text.setFillColor(sf::Color::Green);
         text.setString(review.reviewTemplate);
         text.setPosition(startX, startY + (bounds.height * 0.12f));
         window.draw(text);
 
-        // الإدخال
+        // --- الإدخال ---
         text.setCharacterSize(18);
         text.setFillColor(sf::Color::White);
         text.setString("> " + review.userInput + "_");
