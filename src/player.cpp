@@ -11,7 +11,7 @@
     using namespace sf;
 
     extern Player player;
-    extern AudioManager audioManager;
+
     weapons weapon;
     static Sprite playerSprite;
     static sf::RectangleShape hitboxDebug;

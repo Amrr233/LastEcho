@@ -25,7 +25,7 @@ using namespace std;
 RenderWindow window;
 GameState    gState;
 Player       player;
-AudioManager audio;
+AudioManager audioManger;
 World        world;
 Game         gameLogic;
 inventory    inv;

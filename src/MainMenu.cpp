@@ -1,10 +1,11 @@
     #include "MainMenu.h"
     #include <iostream>
+
+#include "audio.h"
     using namespace std;
     using namespace sf;
 
     menus mainmenu;
-
     void MenuStart(RenderWindow& window)
     {
         float W = window.getSize().x;
@@ -77,6 +78,7 @@
             mainmenu.options[i].setPosition(mainmenu.buttonSprites[i].getPosition());
             mainmenu.options[i].setFillColor(Color::White);
         }
+        audioManager.playMusic("menu");
     }
 
     void MenuUpdate(RenderWindow& window, AppState& currentState)
@@ -94,7 +96,10 @@
 
                 if (Mouse::isButtonPressed(Mouse::Left))
                 {
-                    if (i == 0) currentState = STATE_PLAYING;
+                    if (i == 0) {
+                        currentState = STATE_PLAYING;
+                        audioManager.playMusic("game");
+                    }
                     if (i == 1) currentState = STATE_LOAD;
                     if (i == 2) {
                         currentState = STATE_SETTINGS;
