@@ -202,7 +202,39 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName) {
                 };
                 startDialogue("Keeper", already, 2, getNPCAvatar("Key_Keeper"));
             }
-        }else if (npcName == "Receptionist") {
+        }
+        else if (npcName == "Gardener") {
+            if (ps.allPhases[0].currentQuestIdx < 3) {
+                std::string notYet[] = { "..." };
+                startDialogue("Gardener", notYet, 1, getNPCAvatar("Gardener"));
+            }
+            else if (!ps.gameFlags[2]) {
+                std::string lines[] = {
+                    "Ah... you're looking for something.",
+                    "This place holds more secrets than lectures.",
+                    "Listen carefully, I'll only say this once.",
+                    "I hold what falls but never keep it,",
+                    "look beneath where water sleeps.",
+                    "Thousands sat upon my back,",
+                    "but no one checked beneath my legs.",
+                    "I'm here to stop what burns,",
+                    "but something golden hides behind me.",
+                    "I show you music frozen in time,",
+                    "what you seek rests behind my frame.",
+                    "Now go. The strings are waiting."
+                };
+                startDialogue("Gardener", lines, 12, getNPCAvatar("Gardener"));
+                ps.gameFlags[2] = true;
+            }
+            else {
+                std::string reminder[] = {
+                    "You still haven't found them all?",
+                    "The strings won't find themselves..."
+                };
+                startDialogue("Gardener", reminder, 2, getNPCAvatar("Gardener"));
+            }
+        }
+        else if (npcName == "Receptionist") {
             std::string liness[] = {"Morning.",
             "It looks like the perfect day to sit and enjoy my tea.",
             "But remember... not everything in this place is truly like how it seems." };
@@ -220,5 +252,197 @@ void checkDialogueReward(PhaseSystem& ps) {
     if (ps.pendingItemTexture != "" && !isDialogueActive()) {
         inv.triggerPickupEffect(ps.pendingItemTexture);
         ps.pendingItemTexture = "";
+    }
+}
+void updateStrings(PhaseSystem& ps, sf::Vector2f playerPos,
+                   std::string currentMap) {
+
+    if (ps.allPhases[0].currentQuestIdx < 3) return;
+    if (!ps.gameFlags[2]) return;
+
+    if (!ps.gameFlags[3] && currentMap == "wcw") {
+        sf::Vector2f pos(296.f, 246.f);
+        float dist = std::sqrt(
+            std::pow(playerPos.x - pos.x, 2) +
+            std::pow(playerPos.y - pos.y, 2));
+        if (dist < 50.f && !isDialogueActive()) {
+            ps.gameFlags[3] = true;
+            player.stringsCollected++;
+            inv.addItem("guitar_string","assets/sprites/items/guitar_string.png");
+            inv.triggerPickupEffect("assets/sprites/items/guitar_string.png");
+            std::string lines[] = {"You found a guitar string!","3 more to go..."};
+            startDialogue("String", lines, 2, getNPCAvatar("Gardener"));
+        }
+    }
+
+    if (!ps.gameFlags[4] && currentMap == "class7") {
+        sf::Vector2f pos(545.f, 415.f);
+        float dist = std::sqrt(
+            std::pow(playerPos.x - pos.x, 2) +
+            std::pow(playerPos.y - pos.y, 2));
+        if (dist < 50.f && !isDialogueActive()) {
+            ps.gameFlags[4] = true;
+            player.stringsCollected++;
+            inv.addItem("guitar_string","assets/sprites/items/guitar_string.png");
+            inv.triggerPickupEffect("assets/sprites/items/guitar_string.png");
+            std::string lines[] = {"You found a guitar string!","2 more to go..."};
+            startDialogue("String", lines, 2, getNPCAvatar("Gardener"));
+        }
+    }
+
+    if (!ps.gameFlags[5] && currentMap == "connHall") {
+        sf::Vector2f pos(359.f, 320.f);
+        float dist = std::sqrt(
+            std::pow(playerPos.x - pos.x, 2) +
+            std::pow(playerPos.y - pos.y, 2));
+        if (dist < 50.f && !isDialogueActive()) {
+            ps.gameFlags[5] = true;
+            player.stringsCollected++;
+            inv.addItem("guitar_string","assets/sprites/items/guitar_string.png");
+            inv.triggerPickupEffect("assets/sprites/items/guitar_string.png");
+            std::string lines[] = {"You found a guitar string!","1 more to go..."};
+            startDialogue("String", lines, 2, getNPCAvatar("Gardener"));
+        }
+    }
+
+    if (!ps.gameFlags[6] && currentMap == "leftPassage") {
+        sf::Vector2f pos(946.f, 305.f);
+        float dist = std::sqrt(
+            std::pow(playerPos.x - pos.x, 2) +
+            std::pow(playerPos.y - pos.y, 2));
+        if (dist < 50.f && !isDialogueActive()) {
+            ps.gameFlags[6] = true;
+            player.stringsCollected++;
+            inv.addItem("guitar_string","assets/sprites/items/guitar_string.png");
+            inv.triggerPickupEffect("assets/sprites/items/guitar_string.png");
+            std::string lines[] = {"You found the last string!","Go back to Amr!"};
+            startDialogue("String", lines, 2, getNPCAvatar("Gardener"));
+            ps.gameFlags[7] = true;
+            player.stringsCollected = 7;
+        }
+    }
+}
+
+void drawStrings(sf::RenderWindow& window, PhaseSystem& ps,
+                 std::string currentMap) {
+
+    static sf::Texture strTex;
+    static sf::Sprite  strSprite;
+    static bool        strLoaded = false;
+
+    if (!strLoaded) {
+        strTex.loadFromFile("assets/sprites/items/guitar_string.png");
+        strSprite.setTexture(strTex);
+        strSprite.setScale(0.5f, 0.5f);
+        strLoaded = true;
+    }
+
+    static sf::Texture extTex;
+    static sf::Sprite  extSprite;
+    static bool        extLoaded = false;
+
+    if (!extLoaded) {
+        extTex.loadFromFile("assets/sprites/items/extinguisher.png");
+        extSprite.setTexture(extTex);
+        extSprite.setScale(0.138f, 0.138f);
+        extLoaded = true;
+    }
+
+    if (!ps.gameFlags[3] && currentMap == "wcw") {
+        static sf::Texture sinkTex;
+        static sf::Sprite  sinkSprite;
+        static bool        sinkLoaded = false;
+
+        if (!sinkLoaded) {
+            sinkTex.loadFromFile("assets/sprites/items/pelvis.png");
+            sinkSprite.setTexture(sinkTex);
+            sinkSprite.setScale(0.81f, 0.86f);
+            sinkLoaded = true;
+        }
+
+        sinkSprite.setPosition(192.f, 131.f);
+        window.draw(sinkSprite);
+    }
+
+    if (!ps.gameFlags[4] && currentMap == "class7")
+    { strSprite.setPosition(545.f, 415.f); window.draw(strSprite); }
+
+    if (!ps.gameFlags[5] && currentMap == "connHall")
+    { extSprite.setPosition(938.f, 253.f); window.draw(extSprite); }
+
+    if (!ps.gameFlags[6] && currentMap == "leftPassage")
+    { strSprite.setPosition(946.f, 305.f); window.draw(strSprite); }
+}
+bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap) {
+    if (ps.allPhases[0].currentQuestIdx < 3) return false;
+    if (!ps.gameFlags[2]) return false;
+
+    struct StringData {
+        int flag;
+        std::string map;
+        sf::Vector2f pos;
+    };
+
+    StringData strings[] = {
+        {3, "wcw",         {490.f, 385.f}},
+        {4, "class7",      {545.f,  415.f}},
+        {5, "connHall",    {1032.f, 315.f}},
+        {6, "leftPassage", {946.f,  305.f}}
+    };
+
+    for (auto& s : strings) {
+        if (ps.gameFlags[s.flag]) continue;
+        if (currentMap != s.map) continue;
+        float dist = std::sqrt(
+            std::pow(playerPos.x - s.pos.x, 2) +
+            std::pow(playerPos.y - s.pos.y, 2));
+        if (dist < 80.f) return true;
+    }
+    return false;
+}
+
+void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap) {
+    struct StringData {
+        int flag;
+        std::string map;
+        sf::Vector2f pos;
+        std::string message;
+    };
+
+    StringData strings[] = {
+        {3, "wcw",         {490.f, 385.f}, "3 more to go..."},
+        {4, "class7",      {545.f,  415.f}, "2 more to go..."},
+        {5, "connHall",    {1032.f, 315.f}, "1 more to go..."},
+        {6, "leftPassage", {946.f,  305.f}, "Go back to Amr!"}
+    };
+
+    for (auto& s : strings) {
+        if (ps.gameFlags[s.flag]) continue;
+        if (currentMap != s.map) continue;
+
+        float dist = std::sqrt(
+            std::pow(playerPos.x - s.pos.x, 2) +
+            std::pow(playerPos.y - s.pos.y, 2));
+
+        if (dist < 80.f) {
+            ps.gameFlags[s.flag] = true;
+            player.stringsCollected++;
+            inv.addItem("guitar_string",
+                "assets/sprites/items/guitar_string.png");
+            inv.triggerPickupEffect(
+                "assets/sprites/items/guitar_string.png");
+            std::string lines[] = {
+                "You found a guitar string!",
+                s.message
+            };
+            startDialogue("String", lines, 2,
+                getNPCAvatar("Gardener"));
+
+            if (s.flag == 6) {
+                ps.gameFlags[7] = true;
+                player.stringsCollected = 7;
+            }
+            return;
+        }
     }
 }

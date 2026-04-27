@@ -102,6 +102,7 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
+       cout<<"x  : "<<player.pos.x<<"  y  : "<<player.pos.y<<endl;
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
@@ -215,7 +216,6 @@ int main() {
                 updateWeapon(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
                 updateChest(gState.deltaTime, world.currentMapName);
-
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
                     if (playerBounds.intersects(p.bounds)) {
@@ -260,6 +260,7 @@ int main() {
             drawMap(window, *currentMap);
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawChest(window, world.currentMapName);
+            drawStrings(window, world.phaseSys, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
             drawCutsceneOverlay(window, font);
@@ -269,18 +270,15 @@ int main() {
                 for (int i = 0; i < 5; i++) window.draw(inv.sparkles[i]);
             }
             drawWeapons(window);
-
             window.setView(window.getDefaultView());
             bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
-            bool nearChest = !gameChest.isOpen &&
-                             std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
-                                       std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
-                             gameChest.mapName == world.currentMapName;
+            bool nearChest = !gameChest.isOpen &&std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&gameChest.mapName == world.currentMapName;
+            bool nearString = canPickupString(world.phaseSys,
+                                   player.pos,
+                                   world.currentMapName);
 
-            if ((nearNPC || nearChest) && !isDialogueActive()) {
-                // رسم الـ box
+            if ((nearNPC || nearChest || nearString) && !isDialogueActive()) {
                 window.draw(interactBoxSprite);
-
                 // تسنيت النص في نص الـ box
                 sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
                 sf::FloatRect textBounds = interactPrompt.getLocalBounds();

@@ -2,6 +2,7 @@
 #define PHASE_H
 
 #include <string>
+#include <SFML/Graphics.hpp>
 
 #define MAX_FLAGS 100
 
@@ -27,5 +28,9 @@ struct PhaseSystem {
 void phaseInit(PhaseSystem& ps);
 void updatePhaseLogic(PhaseSystem& ps, std::string npcName);
 void checkDialogueReward(PhaseSystem& ps);
+void updateStrings(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
+void drawStrings(sf::RenderWindow& window, PhaseSystem& ps,std::string currentMap);
+bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
+void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
 
 #endif
