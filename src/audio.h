@@ -12,19 +12,24 @@ class AudioManager {
 public:
     AudioManager(); // ده اللي بيحمل المزيكا
     std::string currentMode = "menu"; // ده اللي هيعرفنا إحنا فين
-    // دالة واحدة بتبدل بين المنيو والجيم بلاي
-    void playMusic(std::string type) ;
+
+    void playMusic(std::string type) ;// دالة واحدة بتبدل بين المنيو والجيم بلاي
     void stopMusic();
     void setVolume(float volume); // دالة لتغيير مستوى الصوت
     void startFootsteps();
     void stopFootsteps();
     void playTypeSound();
+    void playpickupSound();
+    void playClickSound();
+    void playhoverSound();
 private:
 
-     sf::Music bgm;
-     sf::SoundBuffer footstepsBuffer;
-     sf::Sound footsteps;
+    sf::Music bgm;
+    sf::SoundBuffer footstepsBuffer;
     sf::SoundBuffer typingBuffer;
+    sf::SoundBuffer pickupBuffer , clickBuffer , hoverBuffer;
+    sf::Sound pickupSound , clickSound , hoverSound ;
+    sf::Sound footsteps;
     sf::Sound typingSound;
 };
 extern AudioManager audioManager;

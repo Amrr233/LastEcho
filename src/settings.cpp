@@ -140,6 +140,7 @@ void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
     // 1. الرجوع للمنيو
     static bool escWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        audioManager.playClickSound();
         if (!escWasPressed) {
             currentState = last_state;
             escWasPressed = true;

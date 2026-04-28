@@ -86,16 +86,21 @@
         if (currentState != STATE_MENU) return;
 
         Vector2f mousePos = window.mapPixelToCoords(Mouse::getPosition(window));
-
+        static int lastHoveredIndex = -1;
         for (int i = 0; i < 4; i++)
         {
             if (mainmenu.buttonSprites[i].getGlobalBounds().contains(mousePos))
             {
                 mainmenu.options[i].setFillColor(Color::Yellow);
                 mainmenu.buttonSprites[i].setColor(Color::White);
+                if (lastHoveredIndex != i) {
+                    audioManager.playhoverSound();
+                    lastHoveredIndex = i; // سجل إننا بقينا هنا
+                }
 
                 if (Mouse::isButtonPressed(Mouse::Left))
                 {
+                    audioManager.playClickSound();
                     if (i == 0) {
                         currentState = STATE_PLAYING;
                         audioManager.playMusic("game");
@@ -114,6 +119,9 @@
             {
                 mainmenu.options[i].setFillColor(Color(Color::White));
                 mainmenu.buttonSprites[i].setColor(Color(200, 200, 200, 180));
+                if (lastHoveredIndex == i) {
+                    lastHoveredIndex = -1;
+                }
             }
         }
     }

@@ -6,13 +6,25 @@ AudioManager::AudioManager() {
     if (!footstepsBuffer.loadFromFile("assets/audio/footsteps.wav")) {
         std::cout << "Error loading footsteps.wav" << std::endl;
     }
-    if (!typingBuffer.loadFromFile("assets/audio/378083__bigmonmulgrew__mechanical-key-soft (mp3cut.net).wav")) {
+    if (!typingBuffer.loadFromFile("assets/audio/dialogue.wav")) {
         std::cout << "Error loading typing sound!" << std::endl;
     }
+    if (!pickupBuffer.loadFromFile("assets/audio/pickupsound.wav")) {
+        std::cout << "Error loading pickup.wav" << std::endl;
+    }
+    if (!clickBuffer.loadFromFile("assets/audio/clicksound.wav")) {
+        std::cout << "Error loading click.wav" << std::endl;
+    }
+    if (!hoverBuffer.loadFromFile("assets/audio/hoversound.wav")) {
+        std::cout << "Error loading hover.wav" << std::endl;
+    }
+    pickupSound.setBuffer(pickupBuffer);
+    hoverSound.setBuffer(hoverBuffer);
+    clickSound.setBuffer(clickBuffer);
     typingSound.setBuffer(typingBuffer);
     footsteps.setBuffer(footstepsBuffer);
     footsteps.setLoop(true);
-    footsteps.setVolume(10.f); // خليها واضحة بس مش أعلى من المزيكا
+    footsteps.setVolume(10.f);
 }
 
 void AudioManager::playMusic(std::string type) {
@@ -48,13 +60,16 @@ void AudioManager::setVolume(float volume) {
         // دي بتظبط الmain theme
         bgm.setVolume(volume * 1.f);
     }
-    typingSound.setVolume(volume * 0.4f);
+    typingSound.setVolume(volume);
+    hoverSound.setVolume(volume*0.5f);
+    clickSound.setVolume(volume*3.f);
+    pickupSound.setVolume(volume*0.8f);
 }
 
 void AudioManager::startFootsteps() {
     // بنشيك لو الصوت مش شغال أصلاً عشان ميعملش "Restart" مع كل خطوة
     if (footsteps.getStatus() != sf::Sound::Status::Playing) {
-        footsteps.setPitch(1.5f); // السرعة اللي تليق مع مشية البطل في الفيديو
+        footsteps.setPitch(1.5f); // السرعة اللي تليق مع مشية اللاعب في الفيديو
         footsteps.play();
     }
 }
@@ -64,10 +79,28 @@ void AudioManager::stopFootsteps() {
         footsteps.stop();
     }
 }
-void AudioManager::playTypeSound() {
-    float randomPitch = 2.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 0.5f));
-    typingSound.setPitch(randomPitch);
 
+void AudioManager::playTypeSound() {
+    typingSound.setPitch(1.2f);
+    // 3. الحركة دي بتخلي الصوت "يقطع" نفسه ويبدأ من جديد بسرعة
+    if (typingSound.getStatus() == sf::Sound::Status::Playing) {
+        typingSound.stop();
+    }
 
     typingSound.play();
+}
+
+void AudioManager::playpickupSound() {
+    pickupSound.setPitch(1.1f);
+    pickupSound.play();
+}
+
+void AudioManager::playClickSound() {
+    clickSound.setPitch(1.1f);
+    clickSound.play();
+}
+
+void AudioManager::playhoverSound() {
+    hoverSound.setPitch(3.f);
+    hoverSound.play();
 }
