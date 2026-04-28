@@ -94,9 +94,23 @@ string wrapTextSimple(const string& text) {
 // =======================
 void centerText() {
 
-    FloatRect nameBounds = nameText.getLocalBounds();
-    nameText.setOrigin(nameBounds.left, nameBounds.top);
-    nameText.setPosition(910.f, 485.f);
+
+    FloatRect bounds = nameText.getLocalBounds();
+
+    // سنترة حقيقية (تعويض الـ left/top)
+    nameText.setOrigin(
+        bounds.left + bounds.width / 2.0f,
+        bounds.top  + bounds.height / 2.0f
+    );
+
+    float boxLeft = 930.f;
+    float boxRight = 950.f;
+
+    float centerX = (boxLeft + boxRight) / 2.0f;
+
+    // خليك على نفس الـ Y بتاعك
+    nameText.setPosition(centerX+13.f, 499.f);
+
 
     FloatRect diagBounds = dialogueText.getLocalBounds();
     dialogueText.setOrigin(diagBounds.left, diagBounds.top);
