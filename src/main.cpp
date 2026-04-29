@@ -78,8 +78,8 @@ int main() {
     interactPrompt.setOutlineColor(sf::Color::Black);
     interactPrompt.setOutlineThickness(1);
 
-    float spawnX = 350;
-    float spawnY = 900;
+    float spawnX = 470;
+    float spawnY = 600;
 
     initCutsceneSystem();
     phaseInit(world.phaseSys);
