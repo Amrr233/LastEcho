@@ -10,6 +10,7 @@ struct inventory {
     sf::Texture itemTextures[6];
     sf::Sprite itemSprites[6];
     std::string itemNames[6];
+    ;;;;;;
     bool hasItem[6] = { false };
     int selectedSlot = 0; // الخانة المختارة من 0 لـ 5
     int itemQuantity[6] = { 0 }; // مصفوفة لتخزين عدد كل آيتم

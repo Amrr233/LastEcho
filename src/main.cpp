@@ -15,6 +15,7 @@
 #include "enemies.h"
 #include "DialogueManager.h"
 #include "phase.h"
+#include "BTDminigame.h"
 #include "chest.h"
 #include "Cutscene.h"
 #include "GuitarMiniGame.h"
@@ -38,6 +39,11 @@ bool isFading = true;
 float fadeSpeed = 180.0f;
 Font font;
 Text statusTrackerText;
+BinaryGameData myBinaryGame; // بنعرف الـ Data
+
+
+
+
 sf::Texture interactBoxTex;
 sf::Sprite  interactBoxSprite;
 sf::Text    interactPrompt;
@@ -47,6 +53,20 @@ extern GuitarGame g_guitar;
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
+
+    // ════════════════════════════════════════════════════════════════
+    // CHANGE 1: Load World (all 16 maps) instead of single map
+    // ════════════════════════════════════════════════════════════════
+    // OLD:
+    // if (!loadMapFromJSON(myMap, "assets/maps/outside/outside.json")) {
+    //     return -1;
+    // }
+
+    // NEW:
+
+
+    initBinaryGame(myBinaryGame);
+
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
         std::cout << "ERROR: Font not found!" << std::endl;
@@ -95,6 +115,7 @@ int main() {
     settings.init(SCREEN_W, SCREEN_H);
     gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
+    initNPCs(world);
     initDialogue();
 
     Clock clock;
@@ -147,6 +168,7 @@ int main() {
 
             if (event.type == sf::Event::Closed)
                 window.close();
+            
 
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
@@ -154,43 +176,45 @@ int main() {
             else if (gState.currentState == STATE_SETTINGS) {
                 SettingsUpdate(window, gState.currentState);
             }
-            else if (gState.currentState == STATE_PLAYING) {
-                if (!isCutsceneActive() && !isGuitarOpen()) {
-                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                        if (isDialogueActive()) {
-                            nextLine();
-                        }
-                        else if (tryOpenChest(player.pos, world.currentMapName)) {
-                            // chest opened, nothing extra needed
-                        }
-                        else {
-                            string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-                            if (npcName != "") {
-                                updatePhaseLogic(world.phaseSys, npcName);
-                            }
-                        }
-                    }
-                    //switching weapons
-                    if (event.key.code == sf::Keyboard::F) {
-                        weapon.switching(WEAPON_FIST);
-                    }
-                    if (event.key.code == sf::Keyboard::B) {
-                        weapon.switching(WEAPON_BOOK);
-                    }
-                    if (event.key.code == sf::Keyboard::N) {
-                        inv.triggerPickupEffect("assets/items/note.png");
-                        inv.addItem("note","assets/items/note.png");
-                    }
-                } else {
-                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                        if (isDialogueActive()) nextLine();
+// 🔥 الجزء اللي كان بايظ (بس اللي اتعدل)
+
+// ... (داخل الـ pollEvent)
+        else if (gState.currentState == STATE_PLAYING) {
+            handleBinaryInput(myBinaryGame, event);
+
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::M) {
+                myBinaryGame.active = !myBinaryGame.active;
+                if (!myBinaryGame.active) restartBinaryGame(myBinaryGame);
+            }
+
+            // منطق موحد لزر E
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+                if (isDialogueActive()) {
+                    nextLine();
+                }
+                else if (!isCutsceneActive() && !isGuitarOpen()) {
+                    if (!tryOpenChest(player.pos, world.currentMapName)) {
+                        string npcName = getNearbyNPCName(player.pos, world.currentMapName);
+                        if (npcName != "") updatePhaseLogic(world.phaseSys, npcName);
                     }
                 }
             }
-        }
 
-        // --- UPDATE LOGIC ---
-        if (gState.currentState == STATE_PLAYING) {
+            // باقي الأزرار
+            if (!isCutsceneActive() && !isGuitarOpen() && event.type == Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::F) weapon.switching(WEAPON_FIST);
+                if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
+                if (event.key.code == sf::Keyboard::N) {
+                    inv.triggerPickupEffect("assets/items/note.png");
+                    inv.addItem("note","assets/items/note.png");
+                }
+            }
+        } // قفلة STATE_PLAYING
+    } // قفلة pollEvent (قوسين بس هنا!)
+
+    // --- UPDATE LOGIC ---
+    if (gState.currentState == STATE_PLAYING) {
+        // ... باقي الكود بتاعك
             if (isGuitarOpen()) {
                 updateGuitar(gState.deltaTime);
             }
@@ -200,6 +224,15 @@ int main() {
             Quest& cq = cp.quests[cp.currentQuestIdx];
             statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
+            updateBinaryGame(myBinaryGame, gState.deltaTime);
+
+            statusTrackerText.setString(
+    "Phase: " + cp.phaseTitle + "\n" +
+    "Quest: " + cq.title
+);
+            // ════════════════════════════════════════════════════════════════
+            // CHANGE 2: Get current map each frame
+            // ════════════════════════════════════════════════════════════════
             currentMap = worldGetCurrentMap(world);
             if (!currentMap) break;
 
@@ -248,7 +281,6 @@ int main() {
 
         // --- DRAW LOGIC ---
         window.clear();
-
         if (gState.currentState == STATE_MENU) {
             MenuDraw(window, gState.currentState);
         }
@@ -270,27 +302,37 @@ int main() {
             }
             drawWeapons(window);
 
-            window.setView(window.getDefaultView());
-            bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
-            bool nearChest = !gameChest.isOpen &&
-                             std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
-                                       std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
-                             gameChest.mapName == world.currentMapName;
+     for (auto& p : currentMap->portals) {
+    sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
+    debugRect.setPosition(p.bounds.left, p.bounds.top);
+    debugRect.setFillColor(Color(0, 0, 0, 75));
+    window.draw(debugRect);
+}
 
-            if ((nearNPC || nearChest) && !isDialogueActive()) {
-                // رسم الـ box
-                window.draw(interactBoxSprite);
+window.setView(window.getDefaultView());
 
-                // تسنيت النص في نص الـ box
-                sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
-                sf::FloatRect textBounds = interactPrompt.getLocalBounds();
-                interactPrompt.setPosition(
-                    boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f - textBounds.left,
-                    boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - textBounds.top - 5.f
-                );
 
-                window.draw(interactPrompt);
-            }
+bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
+bool nearChest = !gameChest.isOpen &&
+                 std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
+                           std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
+                 gameChest.mapName == world.currentMapName;
+
+if ((nearNPC || nearChest) && !isDialogueActive()) {
+    // رسم الـ box
+    window.draw(interactBoxSprite);
+
+    // تسنيت النص في نص الـ box
+    sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
+    sf::FloatRect textBounds = interactPrompt.getLocalBounds();
+    interactPrompt.setPosition(
+        boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f - textBounds.left,
+        boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - textBounds.top - 5.f
+    );
+
+    window.draw(interactPrompt);
+}
+
 
             if (isDialogueActive()) {
                 drawDialogue(window);
@@ -298,6 +340,10 @@ int main() {
             else {
                 inv.invt_draw(window);
             }
+            if (myBinaryGame.active) {
+                drawBinaryGame(window, myBinaryGame);
+            }
+
 
             drawHealthBar(window);
 
@@ -313,6 +359,10 @@ int main() {
                 window.draw(popUp);
                 warningTimer -= gState.deltaTime;
             }
+            if (!myBinaryGame.active) {
+                window.draw(statusTrackerText);
+            }
+            
 
             drawXPBar(window);
             gameLogic.draw(window);
@@ -331,18 +381,35 @@ int main() {
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
-
-        if (!isGuitarOpen()) {
+        if (!myBinaryGame.active) {
             window.draw(statusTrackerText);
         }
 
-        if (fadeAlpha > 0) {
-            sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
-            fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
-            window.draw(fadeOverlay);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) healing(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::G)) damaging(10);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+            inv.triggerPickupEffect("assets/items/idcard.png");
+            inv.addItem("id_card", "assets/items/idcard.png");;
         }
-
-        window.display();
-    }
-    return 0;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+    inv.triggerPickupEffect("assets/items/sword.png");
+    inv.addItem("sword", "assets/items/sword.png");
 }
+
+// برا
+if (!isGuitarOpen()) {
+    window.draw(statusTrackerText);
+}
+
+if (fadeAlpha > 0) {
+    sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
+    fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
+    window.draw(fadeOverlay);
+}
+
+window.display();
+}
+
+return 0;
+}
+        
