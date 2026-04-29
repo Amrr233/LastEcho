@@ -5,7 +5,6 @@
 #include <json.hpp>
 #include <vector>
 #include <string>
-#include <map>
 using namespace std;
 using namespace sf;
 
@@ -58,7 +57,5 @@ bool mapIsWalkable(const GameMap& map, float x, float y);
 
 // Check collision with player bounds
 bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std::string& mapName);
-
-bool mapSwapTileset(GameMap& map, const std::string& newTexturePath);
 
 #endif

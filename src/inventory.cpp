@@ -3,14 +3,6 @@
 #include <cmath>
 
 
-void inventory::initNote() {
-    if (noteTex.loadFromFile("assets/items/note_message.png")) { // صورة الرسالة المفتوحة
-        noteSprite.setTexture(noteTex);
-        // سنترة في نص الشاشة
-        noteSprite.setOrigin(noteTex.getSize().x / 2.0f, noteTex.getSize().y / 2.0f);
-        noteSprite.setPosition(SCREEN_W / 2.0f, SCREEN_H / 2.0f);
-    }
-}
 
 void inventory::invt_init(float W, float H) {
     // 1. تحميل صورة الشريط (الـ 6 خانات)
@@ -33,8 +25,6 @@ void inventory::invt_init(float W, float H) {
     selector.setFillColor(sf::Color::Transparent);
     selector.setOutlineColor(sf::Color(212, 181, 125));
     selector.setOutlineThickness(3);
-    initNote();
-
 }
 
 
@@ -44,13 +34,6 @@ void inventory::invt_update(sf::RenderWindow& window, AppState& currentState, sf
         if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(sf::Keyboard::Num1 + i))) {
             selectedSlot = i;
         }
-    }
-
-
-    if (hasItem[selectedSlot] && itemNames[selectedSlot] == "note") {
-        isNoteVisible = true;
-    } else {
-        isNoteVisible = false;
     }
     // تحديث مكان السليكتور (زي ما هو)
     float startX = invBar.getPosition().x - (invTex.getSize().x / 2.0f) + 5.0f;
@@ -93,50 +76,49 @@ void inventory::invt_draw(sf::RenderWindow& window) {
     window.draw(invBar);
     window.draw(selector);
 
+    // --- إعدادات التظبيط اليدوي (عدل هنا فقط) ---
     float offsetX = 60.f;
     float offsetY = 70.f;
-    float gap     = 70.5f;
+    float gap = 70.5f;
+    // ------------------------------------------
 
     for (int i = 0; i < 6; i++) {
-        if (!hasItem[i]) continue;
+        if (hasItem[i]) {
+            // توحيد السنتر للأيتم
+            itemSprites[i].setOrigin(itemTextures[i].getSize().x / 2.0f, itemTextures[i].getSize().y / 2.0f);
 
-        // center origin
-        itemSprites[i].setOrigin(
-            itemTextures[i].getSize().x / 2.0f,
-            itemTextures[i].getSize().y / 2.0f
-        );
+            // الحساب مع مراعاة السكيل (0.5)
+            float startX = invBar.getPosition().x - (invBar.getGlobalBounds().width / 2.0f);
+            float startY = invBar.getPosition().y - (invBar.getGlobalBounds().height / 2.0f);
 
-        float startX = invBar.getPosition().x - (invBar.getGlobalBounds().width / 2.0f);
-
-        itemSprites[i].setPosition(
-            startX + offsetX + (i * gap),
-            invBar.getPosition().y - offsetY
-        );
-
-        window.draw(itemSprites[i]);
-
-        // draw counter if more than 1
-        if (itemQuantity[i] > 1) {
-            countText.setString(std::to_string(itemQuantity[i]));
-
-            sf::Vector2f itemPos = itemSprites[i].getPosition();
-
-            // bottom-right corner of slot like minecraft
-            countText.setPosition(
-                itemPos.x + 10.f,
-                itemPos.y + 12.f
+            itemSprites[i].setPosition(
+                startX + offsetX + (i * gap),
+                invBar.getPosition().y - offsetY
             );
 
-            window.draw(countText);
-        }
-    }
-    if (isNoteVisible) {
-        // رسم خلفية سودة شفافة بسيطة (اختياري)
-        sf::RectangleShape dim(sf::Vector2f(SCREEN_W, SCREEN_H));
-        dim.setFillColor(sf::Color(0,0,0,150));
-        window.draw(dim);
+            window.draw(itemSprites[i]);
 
-        window.draw(noteSprite);
+
+            // جوه invt_draw
+            for (int i = 0; i < 6; i++) {
+                if (hasItem[i]) {
+                    // ... كود رسم السبرايت القديم ...
+                    window.draw(itemSprites[i]);
+
+                    // رسم الرقم لو أكتر من 1
+                    if (itemQuantity[i] > 1) {
+                        countText.setString(std::to_string(itemQuantity[i]));
+
+                        // تحديد مكان الرقم (الركن الشمال التحتاني للخانة)
+                        // هنرحل الرقم بالنسبة لبوزيشن السبرايت
+                        sf::Vector2f itemPos = itemSprites[i].getPosition();
+                        countText.setPosition(itemPos.x - 15.f, itemPos.y + 5.f);
+
+                        window.draw(countText);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -156,21 +138,13 @@ bool inventory::addItem(std::string name, std::string texturePath) {
         if (!hasItem[i]) {
             if (itemTextures[i].loadFromFile(texturePath)) {
                 itemSprites[i].setTexture(itemTextures[i]);
-                // Auto-fit item to slot size (max 40x40)
-                float maxSize = 40.f;
-                float texW = (float)itemTextures[i].getSize().x;
-                float texH = (float)itemTextures[i].getSize().y;
-                float scale = std::min(maxSize / texW, maxSize / texH);
-                itemSprites[i].setScale(scale, scale);
+                itemSprites[i].setScale(0.8f, 0.8f);
                 itemNames[i] = name; // خزن الاسم عشان نعرفه المرة الجاية
                 itemQuantity[i] = 1; // ابدأ بـ 1
                 hasItem[i] = true;
                 return true;
             }
         }
-        // strings are not usable, key is usable
-        if (name == "guitar_string") isUsable[i] = false;
-        else isUsable[i] = true;
     }
     return false;
 }

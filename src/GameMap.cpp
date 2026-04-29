@@ -2,8 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include "player.h"
-using namespace sf;
-using json = nlohmann::json;
 
 // 1. دالة التحميل: بتملأ الـ struct بالبيانات وبتحفظ اسم الماب للـ NPCs
 bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
@@ -238,7 +236,7 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
     }
 
     // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
-    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"|| mapName == "sclab"|| mapName == "datacenter"|| mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw"||mapName == "wcm1"||mapName=="wcm2"||mapName == "vertPassage"||mapName=="connHall") {
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"|| mapName == "sclab") {
      for (const auto& layer : map.layers) {
         int gid = layer.data[index];
     //     // هل الرقم ده متسجل له خواص؟
@@ -285,7 +283,7 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
     }
 
     // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
-    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"||mapName == "sclab"||mapName == "datacenter"||mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw" ||mapName == "wcm1"||mapName=="wcm2"||mapName =="vertPassage"||mapName=="connHall") {
+    if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"||mapName == "sclab") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft, hbTop + hbH, mapName)) return true;
@@ -293,16 +291,5 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
         return false;
     }
 
-    return false;
-}
-
-bool mapSwapTileset(GameMap& map, const std::string& newTexturePath) {
-    sf::Texture newTex;
-    if (newTex.loadFromFile(newTexturePath)) {
-        map.tilesetTexture = newTex; // استبدال الصورة القديمة بالجديدة
-        map.tilesetTexture.setSmooth(false); // عشان بكسل أرت يفضل حاد
-        return true;
-    }
-    std::cerr << "[Error]: Could not find cursed texture at " << newTexturePath << std::endl;
     return false;
 }

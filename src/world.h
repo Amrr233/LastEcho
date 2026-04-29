@@ -124,6 +124,4 @@ bool worldIsMapDirty(const World& world, const string& mapName);
 void worldOnPlayerEnterMap(World& world, const string& mapName);
 void worldOnPlayerLeaveMap(World& world, const string& mapName);
 
-void worldChangeMapTileSet(World& world, const std::string& mapName, const std::string& cursedTexturePath);
-
 #endif

@@ -1,10 +1,11 @@
 #include "DialogueManager.h"
 #include "Data.h"
 #include <iostream>
-#include "NPC.h"
 
 using namespace sf;
 using namespace std;
+
+
 
 // =======================
 // GLOBALS
@@ -13,10 +14,10 @@ Sprite boxSprite;
 Texture boxTexture;
 
 extern Font font;
-
 Text dialogueText;
 Text nameText;
 
+Texture avatarTexture;
 Sprite avatarSprite;
 
 bool isOpen = false;
@@ -48,6 +49,7 @@ void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
 
     sprite.setScale(scale, scale);
 
+    // center origin
     bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }
@@ -94,23 +96,9 @@ string wrapTextSimple(const string& text) {
 // =======================
 void centerText() {
 
-
-    FloatRect bounds = nameText.getLocalBounds();
-
-    // سنترة حقيقية (تعويض الـ left/top)
-    nameText.setOrigin(
-        bounds.left + bounds.width / 2.0f,
-        bounds.top  + bounds.height / 2.0f
-    );
-
-    float boxLeft = 930.f;
-    float boxRight = 950.f;
-
-    float centerX = (boxLeft + boxRight) / 2.0f;
-
-    // خليك على نفس الـ Y بتاعك
-    nameText.setPosition(centerX+13.f, 499.f);
-
+    FloatRect nameBounds = nameText.getLocalBounds();
+    nameText.setOrigin(nameBounds.left, nameBounds.top);
+    nameText.setPosition(910.f, 485.f);
 
     FloatRect diagBounds = dialogueText.getLocalBounds();
     dialogueText.setOrigin(diagBounds.left, diagBounds.top);
@@ -135,9 +123,19 @@ void initDialogue() {
 
     boxSprite.setPosition(x, y);
 
+
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
         cout << "ERROR: Font not found!" << endl;
     }
+
+    if (!avatarTexture.loadFromFile("C:\\Users\\saged's vivobook\\Downloads\\npc1.png")) {
+        cout << "ERROR: NPC Texture not found!" << endl;
+    }
+
+    avatarSprite.setTexture(avatarTexture);
+
+    // 🔥 IMPORTANT: remove fixed scale
+    // avatarSprite.setScale(1.f, 1.f);
 
     nameText.setFont(font);
     nameText.setCharacterSize(26);
@@ -150,24 +148,25 @@ void initDialogue() {
 
 
 // =======================
-// START DIALOGUE (FIXED)
+// START DIALOGUE
 // =======================
-void startDialogue(string name, string messages[], int count, sf::Texture& avatarTexture) {
+void startDialogue(string name, string messages[], int count) {
 
     isOpen = true;
     nameText.setString(name);
 
-    avatarSprite.setTexture(avatarTexture, true);
-
     float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);
     float boxY = SCREEN_H - boxSprite.getGlobalBounds().height - 20.0f;
 
+    // avatar position (center of small frame area)
     avatarSprite.setPosition(boxX + 758.f, boxY + 167.f);
 
+    // 🔥 FIT IMAGE TO FRAME SIZE (change if needed)
     sf::Vector2f avatarBoxSize(120.f, 120.f);
     fitSpriteToBox(avatarSprite, avatarBoxSize);
 
     totalLines = std::min(count, MAX_DIALOGUE_LINES);
+
     currentLineIdx = 0;
 
     for (int i = 0; i < totalLines; i++) {
