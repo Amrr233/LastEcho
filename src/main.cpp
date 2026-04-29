@@ -6,7 +6,7 @@
 #include "GameMap.h"
 #include "audio.h"
 #include "Game.h"
-#include "World.h"           // ← ADD THIS (World system)
+#include "World.h"
 #include <iostream>
 #include "healthbar.h"
 #include "inventory.h"
@@ -16,13 +16,13 @@
 #include "DialogueManager.h"
 #include "phase.h"
 #include "BTDminigame.h"
+#include "chest.h"
+#include "Cutscene.h"
+#include "GuitarMiniGame.h"
 
 using namespace sf;
 using namespace std;
 
-// ==============================
-// GLOBALS
-// ==============================
 RenderWindow window;
 GameState    gState;
 Player       player;
@@ -44,6 +44,11 @@ BinaryGameData myBinaryGame; // بنعرف الـ Data
 
 
 
+sf::Texture interactBoxTex;
+sf::Sprite  interactBoxSprite;
+sf::Text    interactPrompt;
+bool        interactAssetsLoaded = false;
+extern GuitarGame g_guitar;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
@@ -77,16 +82,33 @@ int main() {
         cout << "CRITICAL ERROR: No current map available!" << endl;
         return -1;
     }
+    interactBoxTex.loadFromFile("assets/sprites/items/Text_Box.png");
+    interactBoxSprite.setTexture(interactBoxTex);
+    interactBoxSprite.setScale(0.35f, 0.35f); // عدل الحجم حسب ذوقك
 
-    // Spawn coordinates
+    // تحت اليمين
+    float boxW = interactBoxSprite.getGlobalBounds().width;
+    float boxH = interactBoxSprite.getGlobalBounds().height;
+    interactBoxSprite.setPosition(SCREEN_W - boxW - 170.f, SCREEN_H - boxH - 20.f);
+
+    interactPrompt.setFont(font);
+    interactPrompt.setString("Press E to interact");
+    interactPrompt.setCharacterSize(16);
+    interactPrompt.setFillColor(sf::Color(60, 30, 10)); // لون داكن يناسب الـ box
+    interactPrompt.setOutlineColor(sf::Color::Black);
+    interactPrompt.setOutlineThickness(1);
+
     float spawnX = 350;
-    float spawnY = 900 ;
-    // هيعمل سبون قدام السلم
+    float spawnY = 900;
+
+    initCutsceneSystem();
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initNPCs(world);
+    initChest(sf::Vector2f(100.f, 150.f), "sclab"); // ← adjust position
     initweapon(Vector2f(spawnX, spawnY));
+    initGuitar();
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -97,9 +119,6 @@ int main() {
     initDialogue();
 
     Clock clock;
-    // audio.playBGM();
-
-    // تعريف الفيو
     View mainView;
     mainView.setSize(SCREEN_W, SCREEN_H);
 
@@ -108,45 +127,102 @@ int main() {
 
         Event event;
         while (window.pollEvent(event)) {
+            // ════════════════════════════════════════════════════════════════
+            // GUITAR CONTROLS
+            // ════════════════════════════════════════════════════════════════
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                if (isGuitarOpen()) {
+                    // بنبعت الـ window ومكان الماوس بالبكسل عشان الـ View تحولها صح
+                    handleGuitarClick(window, sf::Mouse::getPosition(window));
+                }
+            }
+
+            if (event.type == sf::Event::KeyPressed) {
+                // TAB - Open guitar
+                if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
+                    openGuitarFreePlay();
+                    // شيلنا دالة الـ Scale لأن الـ View الجديدة بتتكفل بكل حاجة
+                }
+
+                // ESC - Close guitar (or close game)
+                if (event.key.code == sf::Keyboard::R) {
+                    if (isGuitarOpen()) {
+                        closeGuitar();
+                    }
+                }
+
+                // Q - Switch mode (only when guitar open)
+                if (isGuitarOpen() && event.key.code == sf::Keyboard::Q) {
+                    if (g_guitar.mode == GUITAR_FREE) {
+                        GuitarNote pattern[12] = {
+                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
+                            {0, 7}, {1, 4}, {1, 4}, {0, 7},
+                            {0, 7}, {1, 4}, {1, 5}, {1, 4}
+                        };
+                        openGuitarQuest(pattern, 12, 60.0f);
+                    } else {
+                        openGuitarFreePlay();
+                    }
+                }
+            }
+
             if (event.type == sf::Event::Closed)
                 window.close();
             
+
             if (gState.currentState == STATE_MENU) {
                 MenuUpdate(window, gState.currentState);
             }
             else if (gState.currentState == STATE_SETTINGS) {
                 SettingsUpdate(window, gState.currentState);
             }
-            else if (gState.currentState == STATE_PLAYING) {
-                handleBinaryInput(myBinaryGame, event);
-                if (event.type == Event::KeyPressed && event.key.code == Keyboard::M) {
-                    myBinaryGame.active = !myBinaryGame.active; // بيفتح ويقفل بـ M
+// 🔥 الجزء اللي كان بايظ (بس اللي اتعدل)
 
-                    if (!myBinaryGame.active) {
-                        restartBinaryGame(myBinaryGame);
-                    }
+// ... (داخل الـ pollEvent)
+        else if (gState.currentState == STATE_PLAYING) {
+            handleBinaryInput(myBinaryGame, event);
+
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::M) {
+                myBinaryGame.active = !myBinaryGame.active;
+                if (!myBinaryGame.active) restartBinaryGame(myBinaryGame);
+            }
+
+            // منطق موحد لزر E
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+                if (isDialogueActive()) {
+                    nextLine();
                 }
-                if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                    if (isDialogueActive()) {
-                        nextLine(); // لو فيه حوار، قلب الصفحة
-                    }
-                    else {
-                        // ابحث عن NPC قريب (هتستخدم دالة التفاعل بتاعتك)
+                else if (!isCutsceneActive() && !isGuitarOpen()) {
+                    if (!tryOpenChest(player.pos, world.currentMapName)) {
                         string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-
-                        if (npcName != "") {
-                            // 3. ابعت الاسم لـ Phase.cpp وهو هيقرر يفتح أنهي ديالوج بناءً على الـ Flags
-                            updatePhaseLogic(world.phaseSys, npcName);
-                        }
+                        if (npcName != "") updatePhaseLogic(world.phaseSys, npcName);
                     }
                 }
             }
 
-        }
-        // --- UPDATE LOGIC ---
-        if (gState.currentState == STATE_PLAYING) {
+            // باقي الأزرار
+            if (!isCutsceneActive() && !isGuitarOpen() && event.type == Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::F) weapon.switching(WEAPON_FIST);
+                if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
+                if (event.key.code == sf::Keyboard::N) {
+                    inv.triggerPickupEffect("assets/items/note.png");
+                    inv.addItem("note","assets/items/note.png");
+                }
+            }
+        } // قفلة STATE_PLAYING
+    } // قفلة pollEvent (قوسين بس هنا!)
+
+    // --- UPDATE LOGIC ---
+    if (gState.currentState == STATE_PLAYING) {
+        // ... باقي الكود بتاعك
+            if (isGuitarOpen()) {
+                updateGuitar(gState.deltaTime);
+            }
+
+            updateCutscene(gState.deltaTime);
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
+            statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
             updateBinaryGame(myBinaryGame, gState.deltaTime);
 
@@ -158,56 +234,37 @@ int main() {
             // CHANGE 2: Get current map each frame
             // ════════════════════════════════════════════════════════════════
             currentMap = worldGetCurrentMap(world);
-            if (!currentMap) {
-                cout << "ERROR: No current map!" << endl;
-                break;
-            }
+            if (!currentMap) break;
 
             mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
             gameLogic.update(window, gState.currentState);
-            updateDialogue(gState.deltaTime); // 🔥 تم التعديل (دالة عادية)
+            updateDialogue(gState.deltaTime);
             inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-            if (!gameLogic.isPaused && !isDialogueActive()) { // 🔥 تم التعديل (دالة عادية)
+            if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen()) {
                 updatePlayer(gState.deltaTime, world);
                 checkDialogueReward(world.phaseSys);
-
-                // NPC update - uses current map name from World
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                 updateWeapon(gState.deltaTime);
-
                 updateEnemies(gState.deltaTime);
+                updateChest(gState.deltaTime, world.currentMapName);
 
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
-
                     if (playerBounds.intersects(p.bounds)) {
-                        // تشيك: لو بيحاول يدخل وهو لسه مخلصش المهمة
-                        if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0) {
-
-                            // 🔥 التعديل هنا: بدل الديالوج، هنظهر رسالة Pop-up سريعة
-                            // أو نغير قيمة الـ String في نص الشاشة
-                            warningMessage.setString("The gate is locked. Talk to the security guard!") ;
-                            warningTimer = 1.0f; // الرسالة هتفضل ظاهرة لثانيتين
-
-                            // ممكن تعمل صوت "تيت" بسيط هنا برضه
-                            // audio.playErrorSound();
-
-                            break; // اخرج من اللوب وما تنقلش الماب
+                        if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0 &&
+                            world.phaseSys.allPhases[0].currentQuestIdx < 2) {
+                            warningMessage.setString("The gate is locked. Talk to the security guard!");
+                            warningTimer = 1.0f;
+                            break;
                         }
-
                         worldSetCurrentMap(world, p.targetMap);
                         currentMap = worldGetCurrentMap(world);
-
                         player.pos.x = p.spawnPos.x * currentMap->tileSize;
                         player.pos.y = p.spawnPos.y * currentMap->tileSize;
                         player.sprite.setPosition(player.pos);
-
                         fadeAlpha = 255.0f;
                         isFading = true;
-
-                        std::cout << "[PORTAL] Moved to " << p.targetMap
-                                  << " at " << player.pos.x << "," << player.pos.y << std::endl;
                         break;
                     }
                 }
@@ -233,26 +290,49 @@ int main() {
         else if (gState.currentState == STATE_PLAYING) {
             window.setView(mainView);
             drawMap(window, *currentMap);
-
-            // Draw NPCs - uses current map name from World
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
+            drawChest(window, world.currentMapName);
             drawEnemy(window);
             drawPlayer(window);
+            drawCutsceneOverlay(window, font);
+
             if (inv.feedbackTimer > 0) {
                 window.draw(inv.feedbackSprite);
-                for (int i = 0; i < 5; i++) {
-                    window.draw(inv.sparkles[i]);
-                }
+                for (int i = 0; i < 5; i++) window.draw(inv.sparkles[i]);
             }
             drawWeapons(window);
-            for (auto& p : currentMap->portals) {
-                sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
-                debugRect.setPosition(p.bounds.left, p.bounds.top);
-                debugRect.setFillColor(Color(0, 0, 0, 75));
-                window.draw(debugRect);
-            }
-            window.setView(window.getDefaultView());
-            drawBinaryGame(window, myBinaryGame);
+
+     for (auto& p : currentMap->portals) {
+    sf::RectangleShape debugRect(sf::Vector2f(p.bounds.width, p.bounds.height));
+    debugRect.setPosition(p.bounds.left, p.bounds.top);
+    debugRect.setFillColor(Color(0, 0, 0, 75));
+    window.draw(debugRect);
+}
+
+window.setView(window.getDefaultView());
+
+
+bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
+bool nearChest = !gameChest.isOpen &&
+                 std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
+                           std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
+                 gameChest.mapName == world.currentMapName;
+
+if ((nearNPC || nearChest) && !isDialogueActive()) {
+    // رسم الـ box
+    window.draw(interactBoxSprite);
+
+    // تسنيت النص في نص الـ box
+    sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
+    sf::FloatRect textBounds = interactPrompt.getLocalBounds();
+    interactPrompt.setPosition(
+        boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f - textBounds.left,
+        boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - textBounds.top - 5.f
+    );
+
+    window.draw(interactPrompt);
+}
+
 
             if (isDialogueActive()) {
                 drawDialogue(window);
@@ -265,36 +345,39 @@ int main() {
             }
 
 
+            drawHealthBar(window);
+
             if (warningTimer > 0) {
                 sf::Text popUp;
-                popUp.setFont(font); // استخدم الفونت بتاعك
-                popUp.setString("The gate is locked. Talk to the security guard!");
+                popUp.setFont(font);
+                popUp.setString(warningMessage.getString());
                 popUp.setCharacterSize(24);
                 popUp.setFillColor(sf::Color::Red);
                 popUp.setOutlineColor(sf::Color::Black);
                 popUp.setOutlineThickness(2);
-
-                // سنتر الرسالة في نص الشاشة فوق شوية
                 popUp.setPosition(SCREEN_W/2.0f - popUp.getGlobalBounds().width/2.0f, 200.f);
-
                 window.draw(popUp);
-
-                // نقص التايمر عشان تختفي
                 warningTimer -= gState.deltaTime;
             }
             if (!myBinaryGame.active) {
                 window.draw(statusTrackerText);
             }
             
+
+            drawXPBar(window);
             gameLogic.draw(window);
+
+            // 🔥 Draw guitar on top
+            if (isGuitarOpen()) {
+                window.setView(window.getDefaultView());
+                drawGuitar(window);
+            }
         }
 
-        // تأكد إنك فاتح الـ DefaultView عشان التيكست ميمشيش مع الكاميرا
         window.setView(window.getDefaultView());
-
-        statusTrackerText.setFont(font); // استخدم الفونت بتاعك
+        statusTrackerText.setFont(font);
         statusTrackerText.setCharacterSize(20);
-        statusTrackerText.setFillColor(sf::Color::White); // لون رايق يبان على أي خلفية
+        statusTrackerText.setFillColor(sf::Color::White);
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
@@ -309,18 +392,24 @@ int main() {
             inv.addItem("id_card", "assets/items/idcard.png");;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
-            inv.triggerPickupEffect("assets/items/sword.png");
-            inv.addItem("sword", "assets/items/sword.png");;
-        }
-
-        if (fadeAlpha > 0) {
-            sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
-            fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
-            window.setView(window.getDefaultView());
-            window.draw(fadeOverlay);
-        }
-
-        window.display();
-    }
-        return 0;
+    inv.triggerPickupEffect("assets/items/sword.png");
+    inv.addItem("sword", "assets/items/sword.png");
 }
+
+// برا
+if (!isGuitarOpen()) {
+    window.draw(statusTrackerText);
+}
+
+if (fadeAlpha > 0) {
+    sf::RectangleShape fadeOverlay(sf::Vector2f(SCREEN_W, SCREEN_H));
+    fadeOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
+    window.draw(fadeOverlay);
+}
+
+window.display();
+}
+
+return 0;
+}
+        

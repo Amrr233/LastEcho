@@ -31,6 +31,9 @@ struct Player {
     int frameWidth = 48;
     int frameHeight = 48;
 
+    // Quest Data
+    int stringsCollected = 0;
+    bool hasChestKey = false;  // ← already there!
     // Combat Logic
     int   attack_damage = 10;
     float cooldown_timer;
@@ -64,7 +67,7 @@ struct WeaponConfig {
 // FUNCTION PROTOTYPES
 // ==============================
 void initPlayer(sf::Vector2f startPos);
-void updatePlayer(float dt, World& world);  
+void updatePlayer(float dt, World& world);
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
@@ -73,7 +76,7 @@ void updateWeapon(float dt);
 void getWeaponOffset ();
 void drawPlayer(sf::RenderWindow& window);
 void drawWeapons(sf::RenderWindow& window);
-
+void updatePlayerAnimation(Direction dir, float dt, bool moving);
 
 extern Player   player;
 extern weapons weapon;

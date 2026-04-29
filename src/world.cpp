@@ -253,3 +253,10 @@ void worldOnPlayerEnterMap(World& world, const string& mapName) {
 void worldOnPlayerLeaveMap(World& world, const string& mapName) {
     cout << "[LEAVE] Player left map: " << mapName << endl;
 }
+
+void worldChangeMapTileSet(World& world, const std::string& mapName, const std::string& cursedTexturePath) {
+    if (world.maps.count(mapName)) {
+        mapSwapTileset(world.maps[mapName], cursedTexturePath);
+        std::cout << "[CURSE] Map " << mapName << " is now CURSED!" << std::endl;
+    }
+}
