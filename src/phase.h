@@ -3,6 +3,7 @@
 
 #include <string>
 #include <SFML/Graphics.hpp>
+#include "hintsystem.h"
 
 #define MAX_FLAGS 100
 
@@ -26,11 +27,11 @@ struct PhaseSystem {
 
 // تعريف الدوال
 void phaseInit(PhaseSystem& ps);
-void updatePhaseLogic(PhaseSystem& ps, std::string npcName);
+void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs);
+void pickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 void checkDialogueReward(PhaseSystem& ps);
 void updateStrings(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
 void drawStrings(sf::RenderWindow& window, PhaseSystem& ps,std::string currentMap);
-bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
-void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
+bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 
 #endif

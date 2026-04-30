@@ -42,6 +42,8 @@ add_executable(LastEcho
         src/chest.h
         src/Guitarminigame.cpp
         src/Guitarminigame.h
+        src/hintsystem.cpp
+        src/hintsystem.h
 
 )
 
