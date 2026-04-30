@@ -47,6 +47,7 @@ void phaseInit(PhaseSystem &ps) {
     ps.allPhases[0].quests[1] = {"WELCOME FCIS!"};
     ps.allPhases[0].quests[2] = {"AMR THE GUITARIST"};
     ps.allPhases[0].quests[3] = {"The scattered Strings"};
+    ps.allPhases[0].quests[4] = {"Play it..."};
     ps.allPhases[0].currentQuestIdx = 3;
 
     ps.allPhases[1].phaseTitle = "The Corruption Begins";
@@ -283,8 +284,8 @@ void updatePhase0(PhaseSystem &ps, std::string npcName) {
             startDialogue("Amr", wait, 1, getNPCAvatar("amr"));
             gameFlags[7] = true; // بععتبر انه جمع الاوتار
             // gameFlags[8] = false;
-        }else if (ps.allPhases[0].currentQuestIdx ==3 && gameFlags[7] && !gameFlags[8]) {
-            std::string wait1[] = {"You actually did it?",
+        }else if (ps.allPhases[0].currentQuestIdx ==3 && gameFlags[7]) {
+            std::string wait2[] = {"You actually did it?",
               "Impressive.",
               "Now listen carefully...",
               "This curse... it's out of this world.",
@@ -292,9 +293,10 @@ void updatePhase0(PhaseSystem &ps, std::string npcName) {
               "Play it.",
               "Let it choose you."
             };
+            startDialogue("Amr", wait2, 7, getNPCAvatar("amr"));
             inv.addItem("magical_guitar" , "assets/items/magical_guitar.png");
             inv.addItem("note" , "assets/items/note.png");
-            gameFlags[8] = true;
+            ps.allPhases[0].currentQuestIdx = 4;
         }
         //========================
         else if (npcName == "Key_Keeper") {

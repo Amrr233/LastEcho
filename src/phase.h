@@ -5,7 +5,7 @@
 #include <vector>
 
 #define MAX_FLAGS 100
-#define MAX_QUESTS_PER_PHASE 5
+#define MAX_QUESTS_PER_PHASE 20
 #define MAX_PHASES 7
 
 // Event types that phases can handle
