@@ -35,11 +35,15 @@ enum CutsceneActionType {
     CUTSCENE_CHANGE_MAP,
     CUTSCENE_PLAYER_MOVE,
     CUTSCENE_PLAYER_TELEPORT,
-    CUTSCENE_MOVE_GROUP        // الجديد
+    CUTSCENE_MOVE_GROUP,
+    CUTSCENE_SET_DIRECTION
 };
 
 // ════════════════════════════════════════════════════════════════
-// MOVE GROUP STRUCTS
+// MOVER TARGET
+// startDelay = استنى كام ثانية من بداية الـ group قبل ما تبدأ تتحرك
+//   0.f  = يبدأ فوراً مع بداية الـ group
+//   0.8f = يستنى 0.8 ثانية وبعدين يبدأ (والـ NPC التاني ماشي)
 // ════════════════════════════════════════════════════════════════
 struct MoverTarget {
     enum MoverType { NPC, PLAYER } type;
@@ -47,14 +51,16 @@ struct MoverTarget {
     float targetX;
     float targetY;
     float speed;
+    float startDelay;   // ← الجديد: استنى كام ثانية قبل ما تبدأ تتحرك
 
-    MoverTarget(MoverType t, std::string name, float x, float y, float spd = 160.f)
-        : type(t), npcName(std::move(name)), targetX(x), targetY(y), speed(spd) {}
+    MoverTarget(MoverType t, std::string name, float x, float y,
+                float spd = 160.f, float delay = 0.f)
+        : type(t), npcName(std::move(name)),
+          targetX(x), targetY(y), speed(spd), startDelay(delay) {}
 };
 
 struct MoveGroup {
     std::vector<MoverTarget> movers;
-    float delayAfter = 0.f;   // استنى كام ثانية بعد ما الكل يوصل
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -75,12 +81,11 @@ struct CutsceneAction {
     std::string targetMap;
     sf::Vector2f spawnPos;
 
-    // MoveGroup-specific
+    // MoveGroup fields
     MoveGroup moveGroup;
     bool  isStarted          = false;
     float completionDistance = 20.f;
-    float delayTimer         = 0.f;
-    bool  movingDone         = false;
+    int direction = 0;
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -101,11 +106,24 @@ struct CutsceneRuntime {
         sf::Vector2f pos;
         sf::Vector2f targetPos;
         bool         isMoving       = false;
+        bool         isStarted      = false;   // ابدأ يتحرك؟
+        bool         isArrived      = false;   // وصل للـ target؟
+        float        startDelay     = 0.f;     // كام ثانية قبل ما يبدأ
+        float        delayTimer     = 0.f;     // عداد الـ delay
         Emotion      currentEmotion = EMOTION_NONE;
         float        emotionTimer   = 0.f;
         int          currentFrame   = 0;
         float        speed          = 160.f;
     } characters[5];
+
+    // Player start delay tracking
+    bool  playerMoving      = false;
+    bool  playerStarted     = false;
+    float playerStartDelay  = 0.f;
+    float playerDelayTimer  = 0.f;
+    float playerTargetX     = 0.f;
+    float playerTargetY     = 0.f;
+    float playerSpeed       = 180.f;
 
     int  characterCount = 0;
     bool isActive       = false;

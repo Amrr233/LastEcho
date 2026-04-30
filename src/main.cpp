@@ -18,6 +18,8 @@
 #include "chest.h"
 #include "Cutscene.h"
 #include "GuitarMiniGame.h"
+#include "inventory.h"
+
 
 using namespace sf;
 using namespace std;
@@ -118,15 +120,21 @@ int main() {
 
             if (event.type == sf::Event::KeyPressed) {
                 // TAB - Open guitar
-                if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) {
-                    openGuitarFreePlay();
-                    // شيلنا دالة الـ Scale لأن الـ View الجديدة بتتكفل بكل حاجة
-                }
-
-                // ESC - Close guitar (or close game)
-                if (event.key.code == sf::Keyboard::R) {
+                if (event.key.code == sf::Keyboard::Tab) {
                     if (isGuitarOpen()) {
+                        // لو مفتوح.. اقفله عادي
                         closeGuitar();
+                    }
+                    else {
+                        // هنا بقى المنطق اللي إنت طلبته حرفياً:
+                        // بنشيك على الـ inv ونشوف الخانة المختارة فيها جيتار ولا لأ
+                        if (inv.hasItem[inv.selectedSlot] && inv.itemNames[inv.selectedSlot] == "magical_guitar") {
+                            openGuitarFreePlay();
+                        } else {
+                            // اختياري: ممكن تظهر رسالة تحذير لو حابب
+                            warningMessage.setString("Select the guitar from your inventory first!");
+                            warningTimer = 1.5f;
+                        }
                     }
                 }
 

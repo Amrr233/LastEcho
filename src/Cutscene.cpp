@@ -37,15 +37,12 @@ void stopCutscene() {
     g_cutscene.currentCutscene = nullptr;
 }
 
-// ════════════════════════════════════════════════════════════════
-// HELPER - بيجيب أو بيعمل CharState لشخصية معينة
-// ════════════════════════════════════════════════════════════════
 static int getOrCreateChar(const std::string& name) {
     for (int i = 0; i < g_cutscene.characterCount; i++)
         if (g_cutscene.characters[i].name == name) return i;
-
     if (g_cutscene.characterCount < 5) {
         int idx = g_cutscene.characterCount++;
+        g_cutscene.characters[idx] = {};
         g_cutscene.characters[idx].name = name;
         return idx;
     }
@@ -65,7 +62,7 @@ void updateCutscene(float deltaTime) {
     CutsceneAction& action = scene.actions[scene.currentActionIdx];
     action.actionTimer += deltaTime;
 
-    // ── تحريك كل الـ NPCs المسجلين في g_cutscene.characters ──
+    // ── تحريك الـ NPCs المسجلين ──────────────────────────────────
     for (int i = 0; i < g_cutscene.characterCount; i++) {
         auto& cs = g_cutscene.characters[i];
 
@@ -77,13 +74,22 @@ void updateCutscene(float deltaTime) {
             }
         }
 
-        if (cs.isMoving) {
+        if (!cs.isStarted && cs.isMoving) {
+            cs.delayTimer += deltaTime;
+            if (cs.delayTimer >= cs.startDelay) {
+                cs.isStarted = true;
+            }
+        }
+
+        if (cs.isStarted && cs.isMoving) {
             sf::Vector2f diff = cs.targetPos - cs.pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
 
             if (dist < 15.0f) {
-                cs.pos      = cs.targetPos;
-                cs.isMoving = false;
+                cs.pos       = cs.targetPos;
+                cs.isMoving  = false;
+                cs.isStarted = false;
+                cs.isArrived = true;
                 setNPCFrame(cs.name, 0);
             } else {
                 sf::Vector2f dir = diff / dist;
@@ -105,12 +111,16 @@ void updateCutscene(float deltaTime) {
 
     switch (action.type) {
 
-    // ── WAIT ─────────────────────────────────────────────────────
     case CUTSCENE_WAIT:
         if (action.actionTimer >= action.waitTime) stepFinished = true;
         break;
 
-    // ── EMOTION ──────────────────────────────────────────────────
+    case CUTSCENE_SET_DIRECTION:
+        updateNPCAnimation(action.characterName, action.direction, 0.0f);
+        setNPCFrame(action.characterName, 0);
+        stepFinished = true;
+        break;
+
     case CUTSCENE_EMOTION: {
         if (action.actionTimer <= deltaTime + 0.001f) {
             int idx = getOrCreateChar(action.characterName);
@@ -129,15 +139,17 @@ void updateCutscene(float deltaTime) {
         break;
     }
 
-    // ── MOVE (legacy NPC only) ────────────────────────────────────
     case CUTSCENE_MOVE: {
         if (action.actionTimer <= deltaTime + 0.001f) {
             int idx = getOrCreateChar(action.characterName);
             if (idx != -1) {
-                g_cutscene.characters[idx].pos       = getNPCPosition(action.characterName);
-                g_cutscene.characters[idx].targetPos = { action.targetX, action.targetY };
-                g_cutscene.characters[idx].isMoving  = true;
-                g_cutscene.characters[idx].speed     = 160.f;
+                g_cutscene.characters[idx].pos        = getNPCPosition(action.characterName);
+                g_cutscene.characters[idx].targetPos  = { action.targetX, action.targetY };
+                g_cutscene.characters[idx].isMoving   = true;
+                g_cutscene.characters[idx].isStarted  = true;
+                g_cutscene.characters[idx].speed      = 160.f;
+                g_cutscene.characters[idx].startDelay = 0.f;
+                g_cutscene.characters[idx].delayTimer = 0.f;
             }
         }
         int idx = -1;
@@ -152,7 +164,6 @@ void updateCutscene(float deltaTime) {
         break;
     }
 
-    // ── SPEAK ─────────────────────────────────────────────────────
     case CUTSCENE_SPEAK:
         if (action.actionTimer <= deltaTime + 0.001f)
             startDialogue(action.characterName, action.lines, action.lineCount,
@@ -160,7 +171,6 @@ void updateCutscene(float deltaTime) {
         if (!isDialogueActive()) stepFinished = true;
         break;
 
-    // ── CHANGE MAP ───────────────────────────────────────────────
     case CUTSCENE_CHANGE_MAP:
         for (int i = 0; i < npcCount; i++) {
             if (allNPCs[i].name == action.characterName) {
@@ -173,7 +183,6 @@ void updateCutscene(float deltaTime) {
         stepFinished = true;
         break;
 
-    // ── PLAYER MOVE (legacy) ─────────────────────────────────────
     case CUTSCENE_PLAYER_MOVE: {
         sf::Vector2f target(action.targetX, action.targetY);
         sf::Vector2f diff = target - player.pos;
@@ -193,7 +202,6 @@ void updateCutscene(float deltaTime) {
         break;
     }
 
-    // ── PLAYER TELEPORT ──────────────────────────────────────────
     case CUTSCENE_PLAYER_TELEPORT: {
         extern float fadeAlpha;
         extern bool  isFading;
@@ -206,100 +214,76 @@ void updateCutscene(float deltaTime) {
         break;
     }
 
-    // ════════════════════════════════════════════════════════════
-    // CUTSCENE_MOVE_GROUP
-    //
-    // المنطق:
-    //  Phase 1 (isStarted=false):
-    //    → سجّل كل NPC وابدأ تحريكهم، set isStarted=true
-    //
-    //  Phase 2 (movingDone=false):
-    //    → في كل frame حرّك الـ PLAYER movers يدوياً
-    //    → استنى لحد ما كل NPC وكل PLAYER يوصلوا
-    //    → لما الكل وصل: movingDone=true, delayTimer=0
-    //
-    //  Phase 3 (movingDone=true):
-    //    → عدّ الـ delayAfter
-    //    → لما يخلص: stepFinished=true
-    //
-    // عشان تغير الـ delay: غير moveGroup.delayAfter في Phase.cpp
-    // عشان تغير السرعة:   غير speed في MoverTarget
-    // ════════════════════════════════════════════════════════════
     case CUTSCENE_MOVE_GROUP: {
-
-        // Phase 1: إعداد (مرة واحدة بس)
         if (!action.isStarted) {
-            action.isStarted  = true;
-            action.movingDone = false;
-            action.delayTimer = 0.f;
+            action.isStarted = true;
+            g_cutscene.playerMoving     = false;
+            g_cutscene.playerStarted    = false;
+            g_cutscene.playerDelayTimer = 0.f;
 
             for (auto& mover : action.moveGroup.movers) {
                 if (mover.type == MoverTarget::NPC) {
                     int idx = getOrCreateChar(mover.npcName);
                     if (idx != -1) {
-                        g_cutscene.characters[idx].pos       = getNPCPosition(mover.npcName);
-                        g_cutscene.characters[idx].targetPos = { mover.targetX, mover.targetY };
-                        g_cutscene.characters[idx].isMoving  = true;
-                        g_cutscene.characters[idx].speed     = mover.speed;
+                        g_cutscene.characters[idx].pos        = getNPCPosition(mover.npcName);
+                        g_cutscene.characters[idx].targetPos  = { mover.targetX, mover.targetY };
+                        g_cutscene.characters[idx].isMoving   = true;
+                        g_cutscene.characters[idx].isStarted  = (mover.startDelay <= 0.f);
+                        g_cutscene.characters[idx].isArrived  = false;
+                        g_cutscene.characters[idx].speed      = mover.speed;
+                        g_cutscene.characters[idx].startDelay = mover.startDelay;
+                        g_cutscene.characters[idx].delayTimer = 0.f;
                     }
-                }
-                // PLAYER: مش بنسجله، بنتحكم فيه مباشرة في Phase 2
-            }
-        }
-
-        // Phase 2: تنفيذ الحركة
-        if (!action.movingDone) {
-            bool allDone = true;
-
-            for (auto& mover : action.moveGroup.movers) {
-
-                if (mover.type == MoverTarget::PLAYER) {
-                    sf::Vector2f target(mover.targetX, mover.targetY);
-                    sf::Vector2f diff = target - player.pos;
-                    float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-
-                    if (dist > action.completionDistance) {
-                        allDone = false;
-                        sf::Vector2f dir = diff / dist;
-                        player.pos += dir * mover.speed * deltaTime;
-
-                        Direction moveDir = player.facing;
-                        if (std::abs(dir.x) > std::abs(dir.y))
-                            moveDir = (dir.x > 0) ? EAST : WEST;
-                        else
-                            moveDir = (dir.y > 0) ? SOUTH : NORTH;
-                        updatePlayerAnimation(moveDir, deltaTime, true);
-                    } else {
-                        player.pos = target;
-                        updatePlayerAnimation(player.facing, deltaTime, false);
-                    }
-
-                } else { // NPC
-                    int idx = -1;
-                    for (int i = 0; i < g_cutscene.characterCount; i++)
-                        if (g_cutscene.characters[i].name == mover.npcName) { idx = i; break; }
-
-                    if (idx != -1 && g_cutscene.characters[idx].isMoving)
-                        allDone = false;
+                } else {
+                    g_cutscene.playerMoving     = true;
+                    g_cutscene.playerStarted    = (mover.startDelay <= 0.f);
+                    g_cutscene.playerStartDelay = mover.startDelay;
+                    g_cutscene.playerDelayTimer = 0.f;
+                    g_cutscene.playerTargetX    = mover.targetX;
+                    g_cutscene.playerTargetY    = mover.targetY;
+                    g_cutscene.playerSpeed      = mover.speed;
                 }
             }
+        }
 
-            if (allDone) {
-                action.movingDone = true;
-                action.delayTimer = 0.f;
+        bool allDone = true;
+        if (g_cutscene.playerMoving) {
+            if (!g_cutscene.playerStarted) {
+                g_cutscene.playerDelayTimer += deltaTime;
+                if (g_cutscene.playerDelayTimer >= g_cutscene.playerStartDelay)
+                    g_cutscene.playerStarted = true;
+                allDone = false;
+            } else {
+                sf::Vector2f target(g_cutscene.playerTargetX, g_cutscene.playerTargetY);
+                sf::Vector2f diff = target - player.pos;
+                float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+                if (dist > action.completionDistance) {
+                    allDone = false;
+                    sf::Vector2f dir = diff / dist;
+                    player.pos += dir * g_cutscene.playerSpeed * deltaTime;
+                    Direction moveDir = player.facing;
+                    if (std::abs(dir.x) > std::abs(dir.y)) moveDir = (dir.x > 0) ? EAST : WEST;
+                    else moveDir = (dir.y > 0) ? SOUTH : NORTH;
+                    updatePlayerAnimation(moveDir, deltaTime, true);
+                } else {
+                    player.pos = target;
+                    updatePlayerAnimation(player.facing, deltaTime, false);
+                    g_cutscene.playerMoving = false;
+                }
             }
         }
 
-        // Phase 3: delay بعد الوصول
-        else {
-            action.delayTimer += deltaTime;
-            if (action.delayTimer >= action.moveGroup.delayAfter)
-                stepFinished = true;
+        for (auto& mover : action.moveGroup.movers) {
+            if (mover.type == MoverTarget::NPC) {
+                int idx = -1;
+                for (int i = 0; i < g_cutscene.characterCount; i++)
+                    if (g_cutscene.characters[i].name == mover.npcName) { idx = i; break; }
+                if (idx != -1 && !g_cutscene.characters[idx].isArrived) allDone = false;
+            }
         }
-
+        if (allDone) stepFinished = true;
         break;
     }
-
     } // end switch
 
     if (stepFinished) {
@@ -312,16 +296,12 @@ void updateCutscene(float deltaTime) {
 // ════════════════════════════════════════════════════════════════
 sf::IntRect calculateEmoteRect(Emotion emotion, int frame) {
     if (emotion == EMOTION_NONE) return sf::IntRect(0, 0, 0, 0);
-    int emoteIndex = static_cast<int>(emotion);
-    int rectX = frame * 16;
-    int rectY = emoteIndex * 16;
-    return sf::IntRect(rectX, rectY, 16, 16);
+    return sf::IntRect(frame * 16, static_cast<int>(emotion) * 16, 16, 16);
 }
 
 void initCutsceneSystem() {
     if (!g_cutscene.emoteSheet.loadFromFile("assets/sprites/emotes/emotes.png"))
         std::cout << "[ERROR] Could not load emotes.png" << std::endl;
-
     g_cutscene.emoteSprite.setTexture(g_cutscene.emoteSheet);
     g_cutscene.emoteSprite.setOrigin(8.f, 16.f);
     g_cutscene.emoteSprite.setScale(3.0f, 3.0f);
@@ -329,7 +309,6 @@ void initCutsceneSystem() {
 
 void drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font) {
     if (!g_cutscene.isActive) return;
-
     for (int i = 0; i < g_cutscene.characterCount; i++) {
         auto& cs = g_cutscene.characters[i];
         if (cs.currentEmotion != EMOTION_NONE) {

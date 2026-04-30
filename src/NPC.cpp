@@ -2,13 +2,17 @@
 #include "Data.h"
 #include <cmath>
 #include <iostream>
+
+#include "Cutscene.h"
 #include "DialogueManager.h"
 #include "world.h"
 #include "Phase.h"
 #include "player.h"
+
 NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
 static sf::RectangleShape npcHitboxDebug;
+
 // =====================================
 // INIT
 // =====================================
@@ -25,6 +29,7 @@ sf::FloatRect getNPCHitbox(const NPC& npc) {
         h
     );
 }
+
 void initNPCs(World& world) {
     npcCount = 0;
     // Key Keeper NPC
@@ -41,7 +46,7 @@ void initNPCs(World& world) {
     keyKeeper.isStatic = true;
     keyKeeper.isWaiting = false;
     keyKeeper.currentMap = "clinic";
-    keyKeeper.pos = {190.0f, 300.0f}; // ← غير الإحداثيات حسب الماب
+    keyKeeper.pos = {190.0f, 300.0f};
     keyKeeper.waypointsCount = 0;
     allNPCs[npcCount++] = keyKeeper;
 
@@ -60,7 +65,7 @@ void initNPCs(World& world) {
     Receptionist.isStatic = true;
     Receptionist.isWaiting = false;
     Receptionist.currentMap = "lobby";
-    Receptionist.pos = {200.0f, 680.0f}; // ← غير الإحداثيات حسب الماب
+    Receptionist.pos = {200.0f, 680.0f};
     Receptionist.waypointsCount = 0;
     allNPCs[npcCount++] = Receptionist;
 
@@ -77,10 +82,11 @@ void initNPCs(World& world) {
     student1.isStatic = false;
     student1.isWaiting = false;
     student1.currentMap = "connHall";
-    student1.pos = {200.0f, 410.0f}; // ← غير الإحداثيات حسب الماب
+    student1.pos = {200.0f, 410.0f};
     student1.waypointsCount = 1;
     student1.waypoints[0] = {800.0f,410.0f};
     allNPCs[npcCount++] = student1;
+
     // 1. الصاحب (Friend_NPC)
     NPC friendNPC;
     friendNPC.name = "Friend_NPC";
@@ -89,32 +95,21 @@ void initNPCs(World& world) {
     friendNPC.walkTextures[WEST].loadFromFile("assets/sprites/npcs/fares/walking-west.png");
     friendNPC.walkTextures[EAST].loadFromFile("assets/sprites/npcs/fares/walking-east.png");
     friendNPC.avatarPath = "assets/sprites/NPCS/fares/fares_avatar.png";
-friendNPC.avatarTexture.loadFromFile(friendNPC.avatarPath);
-friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
+    friendNPC.avatarTexture.loadFromFile(friendNPC.avatarPath);
+    friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     friendNPC.isStatic = false;
     friendNPC.speed = 90.f;
     friendNPC.currentMap = "outside";
-
-    // --- إعدادات الانتظار ---
-    friendNPC.waitTimer = 0.f;     // العداد بيبدأ من صفر
-    friendNPC.waitTime = 6.5f;    // هينتظر   ثواني
-    friendNPC.isWaiting = true;   // هيبدأ اللعبة وهو مستني
-
+    friendNPC.waitTimer = 0.f;
+    friendNPC.waitTime = 6.5f;
+    friendNPC.isWaiting = true;
     friendNPC.waypointsCount = 4;
     friendNPC.waypoints[0] = {300, 800};
     friendNPC.waypoints[1] = {600, 800};
     friendNPC.waypoints[2] = {600, 900};
     friendNPC.waypoints[3] = {300, 900};
-    friendNPC.avatarPath = "assets/sprites/NPCS/fares/fares_avatar.png";
-
-    if (!friendNPC.avatarTexture.loadFromFile(friendNPC.avatarPath)) {
-        std::cout << "FAILED TO LOAD NPC AVATAR\n";
-    }
-
-    friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture, true);
     friendNPC.pos = friendNPC.waypoints[0];
     friendNPC.currentWaypoint = 0;
-
     allNPCs[npcCount++] = friendNPC;
 
     // 2. الأمن (Security_Guard)
@@ -122,9 +117,8 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     guard.name = "Security_Guard";
     guard.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/security/security.png");
     for(int i=1; i<4; i++) guard.walkTextures[i] = guard.walkTextures[SOUTH];
-
     guard.isStatic = true;
-    guard.isWaiting = false; // الأمن مش محتاج ينتظر لأنه ثابت أصلاً
+    guard.isWaiting = false;
     guard.pos = {500, 600};
     guard.currentMap = "outside";
     allNPCs[npcCount++] = guard;
@@ -142,27 +136,15 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     amr.isStatic = true;
     amr.speed = 90.f;
     amr.currentMap = "hallAfter";
-
-    // --- إعدادات الانتظار ---
-    amr.waitTimer = 0.f;     // العداد بيبدأ من صفر
-    amr.waitTime = 6.5f;    // هينتظر   ثواني
-    amr.isWaiting = true;   // هيبدأ اللعبة وهو مستني
-
+    amr.waitTimer = 0.f;
+    amr.waitTime = 6.5f;
+    amr.isWaiting = true;
     amr.waypointsCount = 1;
     amr.waypoints[0] = {400, 400};
-    amr.avatarPath = "assets/sprites/npcs/amr/walking-east.png";
-
-    if (!friendNPC.avatarTexture.loadFromFile(amr.avatarPath)) {
-        std::cout << "FAILED TO LOAD NPC AVATAR\n";
-    }
-
-    amr.avatarSprite.setTexture(amr.avatarTexture, true);
     amr.pos = amr.waypoints[0];
     amr.currentWaypoint = 0;
-
     allNPCs[npcCount++] = amr;
 
-    // تهيئة السبرايتس
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         npc.sprite.setTexture(npc.walkTextures[SOUTH]);
@@ -180,29 +162,20 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
         NPC& npc = allNPCs[i];
         if (npc.currentMap != currentMapName) continue;
 
-        float distToPlayer = std::sqrt(
+        float distToPlayer = sqrt(
             std::pow(npc.pos.x - playerPos.x, 2) +
             std::pow(npc.pos.y - playerPos.y, 2)
         );
 
-        // ===== PLAYER HITBOX (FIXED) =====
-        float px = playerPos.x;
-        float py = playerPos.y;
-
-        sf::FloatRect playerBox(
-            px - 15.f,
-            py + 10.f,
-            30.f,
-            20.f
-        );
+        FloatRect playerBox(playerPos.x - 15.f, playerPos.y + 10.f, 30.f, 20.f);
 
         // ===== MOVING NPC =====
         if (!npc.isStatic && npc.waypointsCount > 0) {
-
             if (npc.isWaiting) {
                 npc.waitTimer += deltaTime;
 
-                if (distToPlayer < 100.0f) {
+                // 🔥 تم تغيير الـ Condition لـ false لتعطيل النظر للاعب
+                if (distToPlayer < 100 && !isCutsceneActive() ) {
                     sf::Vector2f diff = playerPos - npc.pos;
                     if (std::abs(diff.x) > std::abs(diff.y))
                         npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
@@ -218,7 +191,6 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                 if (npc.waitTimer >= npc.waitTime) {
                     npc.isWaiting = false;
                 }
-
                 continue;
             }
 
@@ -226,7 +198,8 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
             sf::Vector2f moveVec = target - npc.pos;
             float distance = std::sqrt(moveVec.x * moveVec.x + moveVec.y * moveVec.y);
 
-            if (distToPlayer < 100.0f) {
+            // 🔥 تم تغيير الـ Condition لـ false لتعطيل النظر للاعب أثناء الحركة
+            if (distToPlayer < 100 && !isCutsceneActive()) {
                 sf::Vector2f diff = playerPos - npc.pos;
                 if (std::abs(diff.x) > std::abs(diff.y))
                     npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
@@ -236,22 +209,17 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                 npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
             }
             else if (distance > 2.0f) {
-
                 sf::Vector2f dir = moveVec / distance;
-
-                // 🔥 IMPORTANT PART (ANTI-FREEZE)
                 sf::Vector2f oldPos = npc.pos;
                 npc.pos += dir * npc.speed * deltaTime;
 
                 npc.sprite.setPosition(npc.pos);
                 sf::FloatRect npcBox = getNPCHitbox(npc);
 
-                // لو خبط في اللاعب → رجع مكانه
                 if (npcBox.intersects(playerBox)) {
                     npc.pos = oldPos;
                 }
 
-                // direction sprite
                 if (std::abs(dir.x) > std::abs(dir.y))
                     npc.sprite.setTexture(dir.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
                 else
@@ -262,7 +230,6 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
                     npc.animTimer = 0.f;
                     npc.currentFrame = (npc.currentFrame + 1) % 6;
                 }
-
                 npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
             }
             else {
@@ -274,7 +241,8 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
 
         // ===== STATIC NPC =====
         else if (npc.isStatic) {
-            if (distToPlayer < 120.0f) {
+            // 🔥 تم تغيير الـ Condition لـ false لتعطيل النظر للاعب
+            if (distToPlayer < 100 && !isCutsceneActive() ){
                 sf::Vector2f diff = playerPos - npc.pos;
                 if (std::abs(diff.x) > std::abs(diff.y))
                     npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
@@ -293,38 +261,31 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
 
 void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase) {
     for (int i = 0; i < npcCount; i++) {
-
         NPC& npc = allNPCs[i];
-
         if (npc.currentMap != currentMapName) continue;
-
-        // رسم الـ NPC
         window.draw(npc.sprite);
     }
 }
 
 void interactWithNPC(sf::Vector2f playerPos) {
     for (int i = 0; i < npcCount; i++) {
-
         NPC& npc = allNPCs[i];
-
-        float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) +
-                                std::pow(npc.pos.y - playerPos.y, 2));
+        float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
 
         if (dist < 75.0f) {
-
-            sf::Vector2f diff = playerPos - npc.pos;
-
-            if (std::abs(diff.x) > std::abs(diff.y))
-                npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
-            else
-                npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+            // 🔥 تم تغيير الـ Condition لـ false لتعطيل النظر للاعب عند التفاعل
+            if (true) {
+                sf::Vector2f diff = playerPos - npc.pos;
+                if (std::abs(diff.x) > std::abs(diff.y))
+                    npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
+                else
+                    npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+            }
 
             npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
 
             std::string tempLines[MAX_DIALOGUE_LINES];
             int lineCount = 0;
-
             for (int j = 0; j < npc.dialogueCount; j++) {
                 tempLines[lineCount++] = npc.dialogues[j].text;
             }
@@ -337,20 +298,20 @@ void interactWithNPC(sf::Vector2f playerPos) {
     }
 }
 
-// =====================================
-// INTERACTION
-// =====================================
 std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         if (npc.currentMap == currentMap) {
             float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
             if (dist < 75.0f) {
-                sf::Vector2f diff = playerPos - npc.pos;
-                if (std::abs(diff.x) > std::abs(diff.y))
-                    npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
-                else
-                    npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+                // 🔥 تم تغيير الـ Condition لـ false لتعطيل النظر للاعب عند القرب منه
+                if ( dist < 100 && !isCutsceneActive() ) {
+                    sf::Vector2f diff = playerPos - npc.pos;
+                    if (std::abs(diff.x) > std::abs(diff.y))
+                        npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
+                    else
+                        npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
+                }
 
                 npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
                 return npc.name;
@@ -363,21 +324,15 @@ std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
 bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap) {
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
-
         if (npc.currentMap != currentMap) continue;
-
-        if (playerBounds.intersects(getNPCHitbox(npc))) {
-            return true;
-        }
+        if (playerBounds.intersects(getNPCHitbox(npc))) return true;
     }
     return false;
 }
 
 sf::Vector2f getNPCPosition(std::string name) {
     for (int i = 0; i < npcCount; i++) {
-        if (allNPCs[i].name == name) {
-            return allNPCs[i].pos;
-        }
+        if (allNPCs[i].name == name) return allNPCs[i].pos;
     }
     return { 0.f, 0.f };
 }
@@ -392,41 +347,29 @@ void updateNPCPosition(std::string name, sf::Vector2f newPos) {
     }
 }
 
-// دالة مساعدة عشان نجيب التكستشر بتاع الأفاتار للديالوج
 sf::Texture& getNPCAvatar(std::string name) {
     for (int i = 0; i < npcCount; i++) {
-        if (allNPCs[i].name == name) {
-            return allNPCs[i].avatarTexture;
-        }
+        if (allNPCs[i].name == name) return allNPCs[i].avatarTexture;
     }
-    // لو مش لاقي، هيرجع أي حاجة مؤقتاً عشان ميعملش Crash
     return allNPCs[0].avatarTexture;
 }
-
 
 void updateNPCAnimation(std::string name, int direction, float dt) {
     for (int i = 0; i < npcCount; i++) {
         if (allNPCs[i].name == name) {
             NPC& npc = allNPCs[i];
-
-            // تغيير التكستشر للاتجاه الصح
             npc.sprite.setTexture(npc.walkTextures[direction]);
-
-            // تحديث العداد
             npc.animTimer += dt;
             if (npc.animTimer >= 0.1f) {
                 npc.animTimer = 0.f;
-                npc.currentFrame = (npc.currentFrame + 1) % 6; // عندك 6 فريمات
+                npc.currentFrame = (npc.currentFrame + 1) % 6;
             }
-
-            // تحديث المربع اللي بيتقطع من الصورة
             npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));
             break;
         }
     }
 }
 
-// دالة تخلي الـ NPC يقف (Idle)
 void setNPCFrame(std::string name, int frame) {
     for (int i = 0; i < npcCount; i++) {
         if (allNPCs[i].name == name) {

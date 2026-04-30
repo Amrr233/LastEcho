@@ -1,6 +1,7 @@
 #include "inventory.h"
 #include <iostream>
 #include <cmath>
+using namespace std;
 
 
 void inventory::initNote() {
@@ -189,3 +190,4 @@ void inventory::triggerPickupEffect(std::string texturePath) {
         }
     }
 }
+
