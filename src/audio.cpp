@@ -24,14 +24,13 @@ AudioManager::AudioManager() {
     typingSound.setBuffer(typingBuffer);
     footsteps.setBuffer(footstepsBuffer);
     footsteps.setLoop(true);
-    footsteps.setVolume(10.f);
+
 }
 
 void AudioManager::playMusic(std::string type) {
     bgm.stop();
     currentMode = type;
 
-    std::string filePath;
     if (type == "menu") {
         filePath = "assets/audio/main theme.ogg";
     } else if (type == "game") {
@@ -46,19 +45,14 @@ void AudioManager::playMusic(std::string type) {
     }
 }
 
-void AudioManager::stopMusic() {
-    bgm.stop();
-}
 
 void AudioManager::setVolume(float volume) {
     footsteps.setVolume(volume * 0.5f); // الخطوات دايماً أهدى شوية من المزيكا
     if (currentMode == "game") {
-     //ملهاش لازمه
-        bgm.setVolume(volume*0.f);
+        bgm.setVolume(volume);
     }
     else {
-        // دي بتظبط الmain theme
-        bgm.setVolume(volume * 1.f);
+        bgm.setVolume(volume * 1.f); // دي بتظبط الmain theme
     }
     typingSound.setVolume(volume);
     hoverSound.setVolume(volume*0.5f);
@@ -67,9 +61,8 @@ void AudioManager::setVolume(float volume) {
 }
 
 void AudioManager::startFootsteps() {
-    // بنشيك لو الصوت مش شغال أصلاً عشان ميعملش "Restart" مع كل خطوة
-    if (footsteps.getStatus() != sf::Sound::Status::Playing) {
-        footsteps.setPitch(1.5f); // السرعة اللي تليق مع مشية اللاعب في الفيديو
+    if (footsteps.getStatus() != sf::Sound::Status::Playing) { //بنتاكد ان الصوت مش شغال قبل كده عشان ميمعلش restart كل شويه
+        footsteps.setPitch(1.5f); // السرعة اللي تليق مع مشية اللاعب 
         footsteps.play();
     }
 }
@@ -80,13 +73,8 @@ void AudioManager::stopFootsteps() {
     }
 }
 
-void AudioManager::playTypeSound() {
+void AudioManager::playTypingSound() {
     typingSound.setPitch(1.2f);
-    // 3. الحركة دي بتخلي الصوت "يقطع" نفسه ويبدأ من جديد بسرعة
-    if (typingSound.getStatus() == sf::Sound::Status::Playing) {
-        typingSound.stop();
-    }
-
     typingSound.play();
 }
 

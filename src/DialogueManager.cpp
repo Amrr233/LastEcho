@@ -224,7 +224,7 @@ void updateDialogue(float deltaTime) {
 
             dialogueText.setString(wrapTextSimple(displayText));
 
-            audioManager.playTypeSound();
+            audioManager.playTypingSound();
         }
     }
 }

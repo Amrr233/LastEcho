@@ -8,29 +8,32 @@
 #include <iostream>
 #include <SFML/Audio.hpp>
 
-class AudioManager {
-public:
-    AudioManager(); // ده اللي بيحمل المزيكا
-    std::string currentMode = "menu"; // ده اللي هيعرفنا إحنا فين
+struct AudioManager {
+    AudioManager(); //الconstructor اللي بيحمل الاصوات
+
 
     void playMusic(std::string type) ;// دالة واحدة بتبدل بين المنيو والجيم بلاي
-    void stopMusic();
-    void setVolume(float volume); // دالة لتغيير مستوى الصوت
+    void setVolume(float volume);
     void startFootsteps();
     void stopFootsteps();
-    void playTypeSound();
+    void playTypingSound();
     void playpickupSound();
     void playClickSound();
     void playhoverSound();
-private:
+
 
     sf::Music bgm;
+    std::string currentMode = "menu";  // ده اللي هيعرفنا احنا بنلعب ولا في الmainmenu
+    std::string filePath;  //الpath بتاع الmusic
+
     sf::SoundBuffer footstepsBuffer;
     sf::SoundBuffer typingBuffer;
     sf::SoundBuffer pickupBuffer , clickBuffer , hoverBuffer;
+
     sf::Sound pickupSound , clickSound , hoverSound ;
     sf::Sound footsteps;
     sf::Sound typingSound;
+
 };
 extern AudioManager audioManager;
 
