@@ -81,7 +81,7 @@ int main() {
     interactPrompt.setOutlineThickness(1);
 
     float spawnX = 470;
-    float spawnY = 600;
+    float spawnY = 900;
 
     initCutsceneSystem();
     phaseInit(world.phaseSys);

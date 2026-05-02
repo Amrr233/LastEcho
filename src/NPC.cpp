@@ -63,7 +63,7 @@ void initNPCs(World& world) {
     Receptionist.avatarSprite.setTexture(Receptionist.avatarTexture);
     Receptionist.avatarSprite.setScale(3.f, 1.f);
     Receptionist.isStatic = true;
-    Receptionist.isWaiting = false;
+    Receptionist.isWaiting = true;
     Receptionist.currentMap = "lobby";
     Receptionist.pos = {200.0f, 680.0f};
     Receptionist.waypointsCount = 0;
