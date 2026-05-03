@@ -13,14 +13,15 @@ void initReviewGame(MovieReview& review) {
         "And what's ______ starts getting revealed through every passing moment,\n"
         "as if it was always there waiting for its time to shine.\n";
 
-    review.solutions.clear();
-    review.solutions.push_back("gateway");
-    review.solutions.push_back("unknown");
+    
+    review.totalWords = 2;
+    review.solutions[0] = "gateway";
+    review.solutions[1] = "unknown";
 
-    review.hints.clear();
-    review.hints.push_back("A path or entrance to another place");
-    review.hints.push_back("Something not identified or familiar");
+    review.hints[0] = "A path or entrance to another place";
+    review.hints[1] = "Something not identified or familiar";
 
+    // Reset game state variables
     review.currentWordIdx = 0;
     review.userInput = "";
     review.errorMessage = "";
@@ -30,15 +31,16 @@ void initReviewGame(MovieReview& review) {
 void updateReviewInput(sf::Event& event, MovieReview& review) {
     if (review.isCleared) return;
 
-    // لو فيه رسالة خطأ، أي ضغطة زرار تمسحها وترجعنا لشاشة الكتابة
+    // Reset error state on any key press to resume typing
     if (review.errorMessage != "" && event.type == sf::Event::KeyPressed) {
         review.errorMessage = "";
-        review.userInput = ""; // بنصفر الـ input عشان يبدأ على نظافة
+        review.userInput = "";
         return;
     }
 
+    // Process Character Entry
     if (event.type == sf::Event::TextEntered) {
-        if (event.text.unicode == 8) { // Backspace
+        if (event.text.unicode == 8) { // Handle Backspace
             if (!review.userInput.empty()) review.userInput.pop_back();
         }
         else if (event.text.unicode < 128 && event.text.unicode != 13) {
@@ -46,32 +48,32 @@ void updateReviewInput(sf::Event& event, MovieReview& review) {
         }
     }
 
-if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
-    if (!review.userInput.empty()) {
-        string temp = review.userInput;
-        // 1. تنظيف الكلمة تماماً
-        for (auto & c: temp) c = tolower(c);
-        temp.erase(0, temp.find_first_not_of(' '));
-        temp.erase(temp.find_last_not_of(' ') + 1);
+    // Process Submission on Enter
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+        if (!review.userInput.empty()) {
+            string temp = review.userInput;
 
-        // 2. المقارنة
-        if (temp == review.solutions[review.currentWordIdx]) {
-            // لو صح: بنصفر الخطأ ونزود الـ Index للكلمة اللي بعدها
-            review.errorMessage = "";
-            review.currentWordIdx++;
-            review.userInput = "";
+            // Normalize input: Lowercase conversion and trimming
+            for (auto & c: temp) c = tolower(c);
+            temp.erase(0, temp.find_first_not_of(' '));
+            temp.erase(temp.find_last_not_of(' ') + 1);
 
-            if (review.currentWordIdx >= review.solutions.size()) {
-                review.isCleared = true;
+            // Validation against current array element
+            if (temp == review.solutions[review.currentWordIdx]) {
+                review.errorMessage = "";
+                review.currentWordIdx++;
+                review.userInput = "";
+
+                // Check for overall win condition
+                if (review.currentWordIdx >= review.totalWords) {
+                    review.isCleared = true;
+                }
+            } else {
+                // Trigger error state with contextual hint from the array
+                review.errorMessage = "ACCESS DENIED\n\nHINT: " + review.hints[review.currentWordIdx];
             }
-        } else {
-            // لو غلط: بنعرض الهينت الخاص بالكلمة الحالية (اللي اللاعب واقف عندها)
-            // بما إن currentWordIdx لسه م زادش، هيفضل واقف عند 0 لو بيغلط في أول كلمة
-            review.errorMessage = "ACCESS DENIED\n\nSYSTEM LOCKED\n\nHINT: " + review.hints[review.currentWordIdx] + "\n\n[Press any key to retry]";
-            // ملحوظة: م بنصفرش الـ userInput هنا عشان لو اللاعب عايز يشوف هو كتب إيه غلط قبل ما الشاشة تقلب
         }
     }
-}
 }
 
 void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& font, MovieReview& review) {
@@ -82,7 +84,7 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     sf::Text text;
     text.setFont(font);
 
-    // --- متغيرات الأنيميشن ---
+    // Animation variables (Static to persist between frame calls)
     static float lineAlpha[5] = { 0, 0, 0, 0, 0 };
     static int currentLineVisible = 0;
     static int charCount = 0;
@@ -91,13 +93,9 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     const float fadeSpeed = 165.0f;
     const float typeSpeed = 0.05f;
 
-    // 1. شاشة الفوز (Fade + Typewriter للسطر الأخير)
+    // 1. Victory State Visuals: Fade-in and Typewriter animation
     if (review.isCleared) {
-        string winLines[] = {
-            "ACCESS GRANTED",
-            "CONNECTION ESTABLISHED",
-            "\"A GATEWAY TO THE UNKNOWN\""
-        };
+        string winLines[] = { "ACCESS GRANTED", "CONNECTION ESTABLISHED", "\"A GATEWAY TO THE UNKNOWN\"" };
         int totalWinLines = 3;
 
         if (currentLineVisible < totalWinLines) {
@@ -109,7 +107,7 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
                 }
             } else {
                 charTimer += 0.016f;
-                if (charTimer >= typeSpeed && charCount < winLines[2].length()) {
+                if (charTimer >= typeSpeed && charCount < (int)winLines[2].length()) {
                     charCount++;
                     charTimer = 0.0f;
                 }
@@ -118,12 +116,11 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
 
         for (int i = 0; i < totalWinLines; i++) {
             text.setCharacterSize(28);
-            text.setFillColor(sf::Color(0, 255, 0));
-
             if (i < 2) {
                 text.setFillColor(sf::Color(0, 255, 0, (sf::Uint8)lineAlpha[i]));
                 text.setString(winLines[i]);
             } else if (i == 2 && currentLineVisible >= 2) {
+                text.setFillColor(sf::Color(0, 255, 0));
                 text.setString(winLines[2].substr(0, charCount));
             } else continue;
 
@@ -135,13 +132,9 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         return;
     }
 
-    // 2. شاشة الخطأ
+    // 2. Error State Visuals
     if (review.errorMessage != "") {
-        string errLines[] = {
-            "ACCESS DENIED",
-            "HINT: " + review.hints[review.currentWordIdx],
-            "[Press any key to retry]"
-        };
+        string errLines[] = { "ACCESS DENIED", "HINT: " + review.hints[review.currentWordIdx], "[Press any key to retry]" };
         int totalErrLines = 3;
 
         if (currentLineVisible < totalErrLines) {
@@ -165,8 +158,9 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
             }
         }
     }
-    // 3. شاشة اللعب العادية
+    // 3. Main UI State
     else {
+        // Reset animations when returning to normal state
         currentLineVisible = 0;
         charCount = 0;
         charTimer = 0.0f;
@@ -175,30 +169,29 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         float startX = pos.x - (bounds.width * 0.42f);
         float startY = pos.y - (bounds.height * 0.40f);
 
-        // --- العنوان ---
+        // Render Movie Title
         text.setCharacterSize(20);
         text.setFillColor(sf::Color(255, 128, 0));
         text.setString(review.title);
         text.setPosition(startX + 40.f, startY + 20.f);
         window.draw(text);
 
-        // --- عداد الكلمات (Progress Tracker) ---
-        // يظهر في ركن العنوان بلون هادئ
-        std::string progress = std::to_string(review.currentWordIdx) + " / " + std::to_string(review.solutions.size()) + " WORDS";
+        // Progress Tracker: Displays current word index vs total count
+        string progress = to_string(review.currentWordIdx) + " / " + to_string(review.totalWords) + " WORDS";
         text.setCharacterSize(17);
         text.setFillColor(sf::Color(150, 150, 150));
         text.setString(progress);
         text.setPosition(startX + (bounds.width * 0.58f), startY + 25.f);
         window.draw(text);
 
-        // --- الريفيو ---
+        // Render Review Content
         text.setCharacterSize(17);
         text.setFillColor(sf::Color::Green);
         text.setString(review.reviewTemplate);
         text.setPosition(startX, startY + (bounds.height * 0.12f));
         window.draw(text);
 
-        // --- الإدخال ---
+        // Render User Input Field
         text.setCharacterSize(18);
         text.setFillColor(sf::Color::White);
         text.setString("> " + review.userInput + "_");
