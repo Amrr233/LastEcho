@@ -1,10 +1,11 @@
     #include "MainMenu.h"
     #include <iostream>
+
+#include "audio.h"
     using namespace std;
     using namespace sf;
 
     menus mainmenu;
-
     void MenuStart(RenderWindow& window)
     {
         float W = window.getSize().x;
@@ -77,6 +78,7 @@
             mainmenu.options[i].setPosition(mainmenu.buttonSprites[i].getPosition());
             mainmenu.options[i].setFillColor(Color::White);
         }
+        audioManager.playMusic("menu");
     }
 
     void MenuUpdate(RenderWindow& window, AppState& currentState)
@@ -84,17 +86,25 @@
         if (currentState != STATE_MENU) return;
 
         Vector2f mousePos = window.mapPixelToCoords(Mouse::getPosition(window));
-
+        static int lastHoveredIndex = -1;
         for (int i = 0; i < 4; i++)
         {
             if (mainmenu.buttonSprites[i].getGlobalBounds().contains(mousePos))
             {
                 mainmenu.options[i].setFillColor(Color::Yellow);
                 mainmenu.buttonSprites[i].setColor(Color::White);
+                if (lastHoveredIndex != i) {
+                    audioManager.playhoverSound();
+                    lastHoveredIndex = i; // سجل إننا بقينا هنا
+                }
 
                 if (Mouse::isButtonPressed(Mouse::Left))
                 {
-                    if (i == 0) currentState = STATE_PLAYING;
+                    audioManager.playClickSound();
+                    if (i == 0) {
+                        currentState = STATE_PLAYING;
+                        audioManager.playMusic("game");
+                    }
                     if (i == 1) currentState = STATE_LOAD;
                     if (i == 2) {
                         currentState = STATE_SETTINGS;
@@ -109,6 +119,9 @@
             {
                 mainmenu.options[i].setFillColor(Color(Color::White));
                 mainmenu.buttonSprites[i].setColor(Color(200, 200, 200, 180));
+                if (lastHoveredIndex == i) {
+                    lastHoveredIndex = -1;
+                }
             }
         }
     }

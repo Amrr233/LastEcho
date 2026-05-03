@@ -2,10 +2,11 @@
 #include "GameMap.h"
 #include <SFML/Graphics.hpp>
 #include <cmath>
+
+#include "audio.h"
 #include "enemies.h"
 #include "NPC.h"
 #include "Cutscene.h"
-
 using namespace sf;
 
 extern Player player;
@@ -150,10 +151,139 @@ void handlingHurt(float dt) {
 void updatePlayerAnimation(Direction dir, float dt, bool moving) {
     player.facing = dir;
 
-    if (player.currentState == ATTACKING) {
-        if (player.swordEquipped == WEAPON_SWORD)
-            playerSprite.setTexture(player.swordTextures[player.facing]);
-        else
+    WeaponConfig sword = {15.f, 32.f, 600.f, 90.f, sf::Color::White};
+    WeaponConfig book  = {20.f, 20.f, 300.f, 45.f, sf::Color::Blue};
+
+    Vector2f getWeaponOffset(Direction dir) {
+        switch (dir) {
+            case SOUTH: return Vector2f(0.f, 10.f);  // Sword is slightly below player center
+            case NORTH: return Vector2f(0.f, -10.f); // Sword is above player center
+            case EAST:  return Vector2f(15.f, 0.f);  // Sword is to the right
+            case WEST:  return Vector2f(-15.f, 0.f);// Sword is to the left
+        }
+        return Vector2f(0.f, 0.f);
+    }
+
+    void updateWeapon(float dt) {
+        Vector2f offset = getWeaponOffset(player.facing);
+        weapon.weaponShape.setPosition(player.pos.x + offset.x, player.pos.y + offset.y);
+
+        // 2. Swing Logic
+        if (player.currentState == ATTACKING) {
+            weapon.weaponRotation += weapon.weaponSwingSpeed * dt;
+            if (weapon.weaponRotation > weapon.weaponSwingTarget) {
+                weapon.weaponRotation = weapon.weaponSwingTarget;
+            }
+        } else {
+            weapon.weaponRotation = -90.f;
+        }
+
+        // 3. Apply rotation to the shape
+        weapon.weaponShape.setRotation(weapon.weaponRotation);
+    }
+
+    void weapons::switching(weaponType type) {
+        currentWeapon = type;
+        switch(type) {
+            case WEAPON_FIST:   weaponShape.setSize({8.f, 32.f}); weaponShape.setFillColor(sf::Color::White); weaponShape.setOrigin(4.f, 28.f); break;
+            case WEAPON_BOOK:   weaponShape.setSize({20.f, 20.f}); weaponShape.setFillColor(sf::Color::Blue); weaponShape.setOrigin(10.f, 10.f); break;
+        }
+    }
+
+    void updatePlayer(float dt, World& world) {
+        // 🔥 إضافة السطر ده: لو فيه كت سين، اخرج ومتحسبش حركة الكيبورد
+        // (الكت سين هي اللي هتحرك الـ player.pos مباشرة)
+        if (isCutsceneActive()) {
+            playerSprite.setPosition(player.pos); // بس حدث مكان السبرايت
+            return;
+        }
+        GameMap* currentMapPtr = worldGetCurrentMap(world);
+        if (!currentMapPtr) return;
+        GameMap& myMap = *currentMapPtr;
+
+        Vector2f velocity(0.f, 0.f);
+
+        // ===== الحركة =====
+        if (player.currentState != ATTACKING && player.currentState != HURT) {
+            if (Keyboard::isKeyPressed(Keyboard::W)) velocity.y -= 1;
+            if (Keyboard::isKeyPressed(Keyboard::S)) velocity.y += 1;
+            if (Keyboard::isKeyPressed(Keyboard::A)) velocity.x -= 1;
+            if (Keyboard::isKeyPressed(Keyboard::D)) velocity.x += 1;
+
+            if (velocity.x != 0.f || velocity.y != 0.f) {
+                player.isMoving = true;
+                audioManager.startFootsteps();
+
+                if (velocity.x > 0)      player.facing = EAST;
+                else if (velocity.x < 0) player.facing = WEST;
+                else if (velocity.y > 0) player.facing = SOUTH;
+                else if (velocity.y < 0) player.facing = NORTH;
+
+                float length = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+                velocity /= length;
+            } else {
+                player.isMoving = false;
+                audioManager.stopFootsteps();
+            }
+        }
+
+        Vector2f movement = velocity * player.speed * dt;
+        Vector2f oldPos = player.pos;
+        // ===== X AXIS =====
+        player.pos.x += movement.x;
+        playerSprite.setPosition(player.pos);
+
+        // تحديث hitbox
+        sf::FloatRect bounds = playerSprite.getGlobalBounds();
+        float hbW = bounds.width * 0.3f;
+        float hbH = bounds.height * 0.2f;
+
+        hitboxDebug.setSize({hbW, hbH});
+        hitboxDebug.setPosition(
+            bounds.left + (bounds.width - hbW) / 2.f,
+            bounds.top + bounds.height - hbH
+        );
+
+        if (mapCheckCollision(myMap, hitboxDebug.getGlobalBounds(), world.currentMapName) ||
+            checkNPCCollision(hitboxDebug.getGlobalBounds(), world.currentMapName)) {
+
+            player.pos.x = oldPos.x;
+            playerSprite.setPosition(player.pos);
+        }
+
+        // ===== Y AXIS =====
+        player.pos.y += movement.y;
+        playerSprite.setPosition(player.pos);
+
+        // تحديث hitbox تاني
+        bounds = playerSprite.getGlobalBounds();
+
+        hitboxDebug.setPosition(
+            bounds.left + (bounds.width - hbW) / 2.f,
+            bounds.top + bounds.height - hbH
+        );
+
+        if (mapCheckCollision(myMap, hitboxDebug.getGlobalBounds(), world.currentMapName) ||
+            checkNPCCollision(hitboxDebug.getGlobalBounds(), world.currentMapName)) {
+
+            player.pos.y = oldPos.y;
+            playerSprite.setPosition(player.pos);
+        }
+
+        // ===== حدود الماب =====
+        float mapW = (float)(myMap.width * myMap.tileSize);
+        float mapH = (float)(myMap.height * myMap.tileSize);
+
+        if (player.pos.x < 0) player.pos.x = 0;
+        if (player.pos.x > mapW) player.pos.x = mapW;
+        if (player.pos.y < 0) player.pos.y = 0;
+        if (player.pos.y > mapH) player.pos.y = mapH;
+
+        // ===== الأنيميشن =====
+        handlingHurt(dt);
+        handlingAttack(dt);
+
+        if (player.currentState == ATTACKING) {
             playerSprite.setTexture(player.attackTextures[player.facing]);
     } else {
         playerSprite.setTexture(player.walkTextures[player.facing]);

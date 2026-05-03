@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "audio.h"
+
 
 void inventory::initNote() {
     if (noteTex.loadFromFile("assets/items/note_message.png")) { // صورة الرسالة المفتوحة
@@ -176,7 +178,7 @@ bool inventory::addItem(std::string name, std::string texturePath) {
 }
 
 void inventory::triggerPickupEffect(std::string texturePath) {
-
+    audioManager.playpickupSound();
     if (feedbackTex.loadFromFile(texturePath)) {
         feedbackSprite.setTexture(feedbackTex);
         feedbackSprite.setOrigin(feedbackTex.getSize().x / 2.0f, feedbackTex.getSize().y / 2.0f);
