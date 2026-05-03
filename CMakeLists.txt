@@ -44,6 +44,8 @@ add_executable(LastEcho
         src/Guitarminigame.h
         src/HiddenWordsminigame.cpp
         src/HiddenWordsminigame.h
+        src/boss.cpp
+        src/boss.h
 
 )
 
