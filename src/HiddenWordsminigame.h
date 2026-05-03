@@ -13,7 +13,6 @@ struct MovieReview {
     string title;            // Movie title header
     string reviewTemplate;   // Main text with underscores
 
-    // Static arrays instead of vectors for manual memory control
     string solutions[MAX_WORDS];
     string hints[MAX_WORDS];
     int totalWords = 0;      // Actual count of words in the current level

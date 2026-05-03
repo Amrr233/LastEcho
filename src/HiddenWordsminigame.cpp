@@ -13,7 +13,7 @@ void initReviewGame(MovieReview& review) {
         "And what's ______ starts getting revealed through every passing moment,\n"
         "as if it was always there waiting for its time to shine.\n";
 
-    
+
     review.totalWords = 2;
     review.solutions[0] = "gateway";
     review.solutions[1] = "unknown";
