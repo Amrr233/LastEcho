@@ -34,8 +34,8 @@ void initPlayer(Vector2f startPos) {
     player.attackTextures[EAST].loadFromFile("assets/sprites/player/punching/crosspunching.east.png");
 
     // sword textures
-    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
-    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
+    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
+    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
     player.swordTextures[EAST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordEast.png");
     player.swordTextures[WEST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordWest.png");
 
@@ -47,7 +47,7 @@ void initPlayer(Vector2f startPos) {
     player.isInvincible = false;
     player.currentState = IDLE;
 
-    player.hasSword = false;
+    player.hasSword = true;
     player.swordEquipped = WEAPON_FIST;
 
     playerSprite.setTexture(player.walkTextures[SOUTH]);
