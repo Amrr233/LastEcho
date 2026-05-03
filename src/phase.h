@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <SFML/Graphics.hpp>
+#include "hintsystem.h"
 
 #define MAX_FLAGS 100
 #define MAX_QUESTS_PER_PHASE 5
@@ -44,12 +46,12 @@ struct PhaseSystem {
 // ════════════════════════════════════════════════════════════════
 
 void phaseInit(PhaseSystem& ps);
-
-// Main dispatcher - routes to phase-specific handlers
-void updatePhaseLogic(PhaseSystem& ps, std::string npcName);
-
-// Check if dialogue reward is pending
+void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs);
+void pickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 void checkDialogueReward(PhaseSystem& ps);
+void updateStrings(PhaseSystem& ps, sf::Vector2f playerPos,std::string currentMap);
+void drawStrings(sf::RenderWindow& window, PhaseSystem& ps,std::string currentMap);
+bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 
 // ════════════════════════════════════════════════════════════════
 // PHASE-SPECIFIC HANDLER DECLARATIONS

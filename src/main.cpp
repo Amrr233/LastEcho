@@ -20,6 +20,7 @@
 #include "GuitarMiniGame.h"
 #include "boss.h"
 #include "HiddenWordsminigame.h"
+#include "HintSystem.h"
 
 using namespace sf;
 using namespace std;
@@ -62,22 +63,37 @@ int main() {
     }
 
     GameMap* currentMap = worldGetCurrentMap(world);
-    if (!currentMap) return -1;
+    if (!currentMap) {
+        cout << "CRITICAL ERROR: No current map available!" << endl;
+        return -1;
+    }
 
-    // --- Assets Setup ---
     interactBoxTex.loadFromFile("assets/sprites/items/Text_Box.png");
     interactBoxSprite.setTexture(interactBoxTex);
     interactBoxSprite.setScale(0.35f, 0.35f);
-    interactBoxSprite.setPosition(SCREEN_W - 350.f, SCREEN_H - 100.f);
+
+    float boxW = interactBoxSprite.getGlobalBounds().width;
+    float boxH = interactBoxSprite.getGlobalBounds().height;
+    interactBoxSprite.setPosition(SCREEN_W - boxW - 170.f, SCREEN_H - boxH - 20.f);
 
     interactPrompt.setFont(font);
     interactPrompt.setString("Press E to interact");
     interactPrompt.setCharacterSize(16);
     interactPrompt.setFillColor(sf::Color(60, 30, 10));
+    interactPrompt.setOutlineColor(sf::Color::Black);
+    interactPrompt.setOutlineThickness(1);
+
+    float spawnX = 350;
+    float spawnY = 900;
 
     // --- Systems Initialization ---
     initCutsceneSystem();
     phaseInit(world.phaseSys);
+    initHintSystem(world.hintSys);
+    //*******************************************************************
+    //world.hintSys.hintsUnlocked = 1;
+    //world.hintSys.hasNewHint = true;
+    //-------------------------------------------------------------------
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initBoss();
@@ -86,7 +102,7 @@ int main() {
     startRound(1);
     initNPCs(world);
     initChest(sf::Vector2f(100.f, 150.f), "sclab");
-    initweapon(Vector2f(350, 900));
+    initweapon(Vector2f(spawnX, spawnY));
     initGuitar();
     initDialogue();
 
@@ -114,7 +130,7 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
-        cout << player.pos.x << " " << player.pos.y << endl;
+        cout << "x  : " << player.pos.x << "  y  : " << player.pos.y << endl;
         gState.deltaTime = clock.restart().asSeconds();
         Event event;
 
@@ -132,22 +148,33 @@ int main() {
                 if (myReview.isCleared && event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) isMinigameActive = false;
                 continue;
             }
-
-            // --- B. Playing State Inputs ---
-            if (gState.currentState == STATE_PLAYING && !isCutsceneActive() && !isGuitarOpen()) {
-                // Open Minigame
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) {
-                    isMinigameActive = true;
-                    initReviewGame(myReview);
-                    continue;
-                }
-                // Interact (E)
-                if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
-                    if (isDialogueActive()) nextLine();
-                    else if (tryOpenChest(player.pos, world.currentMapName));
-                    else {
-                        string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-                        if (npcName != "") updatePhaseLogic(world.phaseSys, npcName);
+            else if (gState.currentState == STATE_SETTINGS) {
+                SettingsUpdate(window, gState.currentState);
+            }
+            else if (gState.currentState == STATE_PLAYING) {
+                if (!isCutsceneActive() && !isGuitarOpen()) {
+                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+                        if (isDialogueActive()) {
+                            nextLine();
+                        }
+                        else if (tryOpenChest(player.pos, world.currentMapName)) {
+                            // chest opened
+                        }
+                        else if (canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys)) {
+                            pickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
+                        }
+                        else {
+                            string npcName = getNearbyNPCName(player.pos, world.currentMapName);
+                            if (npcName != "") {
+                                updatePhaseLogic(world.phaseSys, npcName, world.hintSys);
+                            }
+                        }
+                    }
+                    if (event.key.code == sf::Keyboard::F) {
+                        weapon.switching(WEAPON_FIST);
+                    }
+                    if (event.key.code == sf::Keyboard::B) {
+                        weapon.switching(WEAPON_BOOK);
                     }
                 }
                 // Other Keys (B, N)
@@ -155,12 +182,13 @@ int main() {
                     if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
                     if (event.key.code == sf::Keyboard::N) {
                         inv.triggerPickupEffect("assets/items/note.png");
-                        inv.addItem("note","assets/items/note.png");
+                        inv.addItem("note", "assets/items/note.png");
                     }
                 }
             }
 
-            // --- C. Guitar Inputs ---
+        // ── UPDATE ───────────────────────────────────────────────────────
+        if (gState.currentState == STATE_PLAYING) {
             if (isGuitarOpen()) {
                 if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
                     handleGuitarClick(window, sf::Mouse::getPosition(window));
@@ -240,6 +268,7 @@ int main() {
             drawMap(window, *currentMap);
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawChest(window, world.currentMapName);
+            drawStrings(window, world.phaseSys, world.currentMapName);
             drawEnemy(window);
             drawBoss(window);
             drawFireballs(window);
@@ -261,6 +290,81 @@ int main() {
             drawHealthBar(window);
             drawXPBar(window);
             if (isGuitarOpen()) drawGuitar(window);
+            drawCutsceneOverlay(window, font);
+
+            if (inv.feedbackTimer > 0) {
+                window.draw(inv.feedbackSprite);
+                for (int i = 0; i < 5; i++) window.draw(inv.sparkles[i]);
+            }
+            window.setView(window.getDefaultView());
+            drawWeapons(window);
+            bool nearNPC    = getNearbyNPCName(player.pos, world.currentMapName) != "";
+            bool nearChest  = !gameChest.isOpen &&
+                              std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
+                                        std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f &&
+                              gameChest.mapName == world.currentMapName;
+            bool nearString = canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);;
+
+            if ((nearNPC || nearChest || nearString) && !isDialogueActive()) {
+                // غير النص حسب السياق
+                if (nearString && !nearNPC && !nearChest)
+                    interactPrompt.setString("Press E to pickup");
+                else
+                    interactPrompt.setString("Press E to interact");
+
+                window.draw(interactBoxSprite);
+
+                sf::FloatRect boxBounds  = interactBoxSprite.getGlobalBounds();
+                sf::FloatRect textBounds = interactPrompt.getLocalBounds();
+                interactPrompt.setPosition(
+                    boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f - textBounds.left,
+                    boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - textBounds.top - 5.f
+                );
+                window.draw(interactPrompt);
+            }
+
+            if (isDialogueActive()) {
+                drawDialogue(window);
+            } else {
+                inv.invt_draw(window);
+            }
+
+            drawHealthBar(window);
+            drawHintIcon(window, world.hintSys);
+            drawHintPage(window, world.hintSys);
+
+            if (warningTimer > 0) {
+                sf::Text popUp;
+                popUp.setFont(font);
+                popUp.setString(warningMessage.getString());
+                popUp.setCharacterSize(24);
+                popUp.setFillColor(sf::Color::Red);
+                popUp.setOutlineColor(sf::Color::Black);
+                popUp.setOutlineThickness(2);
+                popUp.setPosition(SCREEN_W / 2.0f - popUp.getGlobalBounds().width / 2.0f, 200.f);
+                window.draw(popUp);
+                warningTimer -= gState.deltaTime;
+            }
+
+            drawXPBar(window);
+            gameLogic.draw(window);
+
+            if (isGuitarOpen()) {
+                window.setView(window.getDefaultView());
+                drawGuitar(window);
+            }
+        }
+
+        window.setView(window.getDefaultView());
+        statusTrackerText.setFont(font);
+        statusTrackerText.setCharacterSize(20);
+        statusTrackerText.setFillColor(sf::Color::White);
+        statusTrackerText.setOutlineColor(sf::Color::Black);
+        statusTrackerText.setOutlineThickness(2);
+        statusTrackerText.setPosition(20.f, 140.f);
+
+        if (!isGuitarOpen()) {
+            window.draw(statusTrackerText);
         }
 
         // Final Overlays
