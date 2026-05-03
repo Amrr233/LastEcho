@@ -5,7 +5,7 @@
 #include "enemies.h"
 #include "NPC.h"
 #include "Cutscene.h"
-
+#include  "audio.h"
 using namespace sf;
 
 extern Player player;
@@ -197,6 +197,7 @@ void updatePlayer(float dt, World& world) {
 
         if (velocity.x != 0.f || velocity.y != 0.f) {
             player.isMoving = true;
+            audioManager.startFootsteps();
             if (velocity.x > 0)      player.facing = EAST;
             else if (velocity.x < 0) player.facing = WEST;
             else if (velocity.y > 0) player.facing = SOUTH;
@@ -206,6 +207,7 @@ void updatePlayer(float dt, World& world) {
             velocity /= length;
         } else {
             player.isMoving = false;
+            audioManager.stopFootsteps();
         }
     }
 
