@@ -35,25 +35,24 @@ Game         gameLogic;
 inventory    inv;
 AppState     last_state;
 bool         gameFlags[100] = { false };
-Text warningMessage;
-float warningTimer = 0.0f;
-float fadeAlpha = 255.0f;
-bool isFading = true;
-float fadeSpeed = 180.0f;
-Font font;
-Text statusTrackerText;
-sf::Texture interactBoxTex;
-sf::Sprite  interactBoxSprite;
-sf::Text    interactPrompt;
+Text         warningMessage;
+float        warningTimer = 0.0f;
+float        fadeAlpha    = 255.0f;
+bool         isFading     = true;
+float        fadeSpeed    = 180.0f;
+Font         font;
+Text         statusTrackerText;
+sf::Texture  interactBoxTex;
+sf::Sprite   interactBoxSprite;
+sf::Text     interactPrompt;
 extern GuitarGame g_guitar;
 
 int main() {
     window.create(sf::VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
-    if (!font.loadFromFile("assets/fonts/pixelsix00.ttf")) {
+    if (!font.loadFromFile("assets/fonts/pixelsix00.ttf"))
         cout << "ERROR: Font not found!" << endl;
-    }
 
     if (!worldLoadAllMaps(world)) {
         cout << "CRITICAL ERROR: Failed to load world!" << endl;
@@ -100,18 +99,28 @@ int main() {
 
     MovieReview myReview;
     initReviewGame(myReview);
-    sf::Texture terminalTex; terminalTex.loadFromFile("Assets/gameplay/terminalasset.png");
+
+    sf::Texture terminalTex;
+    terminalTex.loadFromFile("Assets/gameplay/terminalasset.png");
     sf::Sprite terminalSprite(terminalTex);
     terminalSprite.setScale(0.7f, 0.7f);
-    terminalSprite.setOrigin(terminalSprite.getLocalBounds().width / 2.f, terminalSprite.getLocalBounds().height / 2.f);
+    terminalSprite.setOrigin(
+        terminalSprite.getLocalBounds().width  / 2.f,
+        terminalSprite.getLocalBounds().height / 2.f);
     terminalSprite.setPosition(SCREEN_W / 2.f, SCREEN_H / 2.f);
-    sf::Font terminalFont; terminalFont.loadFromFile("Assets/fonts/pixelsix00.ttf");
+
+    sf::Font terminalFont;
+    terminalFont.loadFromFile("Assets/fonts/pixelsix00.ttf");
+
     bool isMinigameActive = false;
 
     Clock clock;
-    View mainView;
+    View  mainView;
     mainView.setSize(SCREEN_W, SCREEN_H);
 
+    // ════════════════════════════════════════════════════════════
+    // MAIN LOOP
+    // ════════════════════════════════════════════════════════════
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
         Event event;
@@ -119,60 +128,100 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
 
+            // ── Z: يفتح/يقفل الـ Movie Review minigame ──────────
+            if (event.type == sf::Event::KeyPressed &&
+                event.key.code == sf::Keyboard::Z)
+            {
+                if (isMinigameActive) {
+                    isMinigameActive = false;
+                }
+                else if (gState.currentState == STATE_PLAYING &&
+                         !isDialogueActive() &&
+                         !isCutsceneActive()  &&
+                         !isGuitarOpen())
+                {
+                    isMinigameActive = true;
+                }
+            }
+
+            // ── لو الميني جيم شغال، ابعت الـ input ليه وبس ───────
             if (isMinigameActive) {
                 updateReviewInput(event, myReview);
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) isMinigameActive = false;
                 continue;
             }
 
+            // ── باقي الـ events بتشتغل بس لو الميني جيم مش شغال ─
             if (gState.currentState == STATE_PLAYING) {
-                // ════════════════════════════════════════════════════════════
-                // التعديل هنا: الـ E بقت بتشتغل للحوار دايماً
-                // ════════════════════════════════════════════════════════════
-                if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
+
+                // E: حوار / تفاعل
+                if (event.type == Event::KeyPressed &&
+                    event.key.code == Keyboard::E)
+                {
                     if (isDialogueActive()) {
-                        nextLine(); // ده اللي هيخلي حوار عمرو يكمل
+                        nextLine();
                     }
                     else if (!isCutsceneActive() && !isGuitarOpen()) {
-                        // الأكشنز العادية تشتغل بس لو مفيش كونسين
                         if (tryOpenChest(player.pos, world.currentMapName)) {}
-                        else if (canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys)) {
-                            pickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
+                        else if (canPickupString(world.phaseSys, player.pos,
+                                                 world.currentMapName, world.hintSys)) {
+                            pickupString(world.phaseSys, player.pos,
+                                         world.currentMapName, world.hintSys);
                         }
                         else {
                             string npcName = getNearbyNPCName(player.pos, world.currentMapName);
-                            if (npcName != "") updatePhaseLogic(world.phaseSys, npcName, world.hintSys);
+                            if (npcName != "")
+                                updatePhaseLogic(world.phaseSys, npcName, world.hintSys);
                         }
                     }
                 }
 
+                // Guitar controls
                 if (isGuitarOpen()) {
-                    if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+                    if (event.type == Event::MouseButtonPressed &&
+                        event.mouseButton.button == sf::Mouse::Left)
                         handleGuitarClick(window, sf::Mouse::getPosition(window));
-                    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Q) {
+
+                    if (event.type == sf::Event::KeyPressed &&
+                        event.key.code == sf::Keyboard::Q)
+                    {
                         if (g_guitar.mode == GUITAR_FREE) {
-                            GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 5}, {1, 4}};
+                            GuitarNote pattern[12] = {
+                                {0,7},{1,4},{1,4},{0,7},
+                                {0,7},{1,4},{1,4},{0,7},
+                                {0,7},{1,4},{1,5},{1,4}
+                            };
                             openGuitarQuest(pattern, 12, 60.0f);
-                        } else openGuitarFreePlay();
+                        } else {
+                            openGuitarFreePlay();
+                        }
                     }
                 }
 
                 if (event.type == Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen()) openGuitarFreePlay();
-                    if (event.key.code == sf::Keyboard::R && isGuitarOpen()) closeGuitar();
-                    if (event.key.code == sf::Keyboard::F) weapon.switching(WEAPON_FIST);
-                    if (event.key.code == sf::Keyboard::B) weapon.switching(WEAPON_BOOK);
+                    if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen())
+                        openGuitarFreePlay();
+                    if (event.key.code == sf::Keyboard::R && isGuitarOpen())
+                        closeGuitar();
+                    if (event.key.code == sf::Keyboard::F)
+                        weapon.switching(WEAPON_FIST);
+                    if (event.key.code == sf::Keyboard::B)
+                        weapon.switching(WEAPON_BOOK);
                 }
             }
 
-            if (gState.currentState == STATE_MENU) MenuUpdate(window, gState.currentState);
-            else if (gState.currentState == STATE_SETTINGS) SettingsUpdate(window, gState.currentState);
+            if (gState.currentState == STATE_MENU)
+                MenuUpdate(window, gState.currentState);
+            else if (gState.currentState == STATE_SETTINGS)
+                SettingsUpdate(window, gState.currentState);
         }
 
-        // --- UPDATE ---
+        // ════════════════════════════════════════════════════════
+        // UPDATE
+        // ════════════════════════════════════════════════════════
         if (gState.currentState == STATE_PLAYING) {
-            if (isGuitarOpen()) updateGuitar(gState.deltaTime);
+            if (isGuitarOpen())    updateGuitar(gState.deltaTime);
             updateCutscene(gState.deltaTime);
+
             currentMap = worldGetCurrentMap(world);
             if (currentMap) {
                 mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
@@ -180,7 +229,12 @@ int main() {
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-                if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive) {
+                if (!gameLogic.isPaused  &&
+                    !isDialogueActive()  &&
+                    !isCutsceneActive()  &&
+                    !isGuitarOpen()      &&
+                    !isMinigameActive)
+                {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -189,11 +243,16 @@ int main() {
                     updateFireballs(gState.deltaTime);
 
                     for (auto& p : currentMap->portals) {
-                        if (sf::FloatRect(player.pos.x, player.pos.y, 48, 48).intersects(p.bounds)) {
+                        if (sf::FloatRect(player.pos.x, player.pos.y, 48, 48)
+                            .intersects(p.bounds))
+                        {
                             worldSetCurrentMap(world, p.targetMap);
                             currentMap = worldGetCurrentMap(world);
-                            player.pos = Vector2f(p.spawnPos.x * currentMap->tileSize, p.spawnPos.y * currentMap->tileSize);
-                            fadeAlpha = 255.0f; isFading = true;
+                            player.pos = Vector2f(
+                                p.spawnPos.x * currentMap->tileSize,
+                                p.spawnPos.y * currentMap->tileSize);
+                            fadeAlpha = 255.0f;
+                            isFading  = true;
                             break;
                         }
                     }
@@ -206,46 +265,70 @@ int main() {
             if (fadeAlpha <= 0) { fadeAlpha = 0; isFading = false; }
         }
 
-        // --- DRAW ---
+        // ════════════════════════════════════════════════════════
+        // DRAW
+        // ════════════════════════════════════════════════════════
         window.clear();
-        if (gState.currentState == STATE_MENU) MenuDraw(window, gState.currentState);
-        else if (gState.currentState == STATE_SETTINGS) settings.draw(window);
+
+        if (gState.currentState == STATE_MENU)
+            MenuDraw(window, gState.currentState);
+        else if (gState.currentState == STATE_SETTINGS)
+            settings.draw(window);
         else if (gState.currentState == STATE_PLAYING) {
+
+            // World view
             window.setView(mainView);
             drawMap(window, *currentMap);
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawChest(window, world.currentMapName);
             drawStrings(window, world.phaseSys, world.currentMapName);
-            drawEnemy(window); drawBoss(window); drawFireballs(window);
-            drawPlayer(window); drawWeapons(window);
+            drawEnemy(window);
+            drawBoss(window);
+            drawFireballs(window);
+            drawPlayer(window);
+            drawWeapons(window);
 
+            // UI view
             window.setView(window.getDefaultView());
 
             bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
-            bool nearChest = !gameChest.isOpen && (std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) + std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f) && (gameChest.mapName == world.currentMapName);
-            bool nearString = canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
+            bool nearChest = !gameChest.isOpen &&
+                (std::sqrt(std::pow(player.pos.x - gameChest.pos.x, 2) +
+                           std::pow(player.pos.y - gameChest.pos.y, 2)) < 80.f) &&
+                (gameChest.mapName == world.currentMapName);
+            bool nearString = canPickupString(world.phaseSys, player.pos,
+                                              world.currentMapName, world.hintSys);
 
-            if ((nearNPC || nearChest || nearString) && !isDialogueActive() && !isCutsceneActive()) {
-                if (nearString && !nearNPC && !nearChest) interactPrompt.setString("Press E to pickup");
-                else interactPrompt.setString("Press E to interact");
+            if ((nearNPC || nearChest || nearString) &&
+                !isDialogueActive() && !isCutsceneActive() && !isMinigameActive)
+            {
+                if (nearString && !nearNPC && !nearChest)
+                    interactPrompt.setString("Press E to pickup");
+                else
+                    interactPrompt.setString("Press E to interact");
 
                 window.draw(interactBoxSprite);
-                sf::FloatRect boxBounds = interactBoxSprite.getGlobalBounds();
+                sf::FloatRect boxBounds  = interactBoxSprite.getGlobalBounds();
                 sf::FloatRect textBounds = interactPrompt.getLocalBounds();
-                interactPrompt.setPosition(boxBounds.left + (boxBounds.width - textBounds.width) / 2.f, boxBounds.top + (boxBounds.height - textBounds.height) / 2.f - 5.f);
+                interactPrompt.setPosition(
+                    boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f,
+                    boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - 5.f);
                 window.draw(interactPrompt);
             }
 
             if (isDialogueActive()) drawDialogue(window);
-            else inv.invt_draw(window);
+            else                    inv.invt_draw(window);
 
-            drawHealthBar(window); drawXPBar(window);
-            drawHintIcon(window, world.hintSys); drawHintPage(window, world.hintSys);
+            drawHealthBar(window);
+            drawXPBar(window);
+            drawHintIcon(window, world.hintSys);
+            drawHintPage(window, world.hintSys);
             drawCutsceneOverlay(window, font);
             gameLogic.draw(window);
             if (isGuitarOpen()) drawGuitar(window);
         }
 
+        // ── Movie Review minigame overlay ────────────────────────
         if (isMinigameActive) {
             sf::RectangleShape overlay(sf::Vector2f(SCREEN_W, SCREEN_H));
             overlay.setFillColor(sf::Color(0, 0, 0, 230));
@@ -253,12 +336,15 @@ int main() {
             drawReviewGame(window, terminalSprite, terminalFont, myReview);
         }
 
+        // ── Fade overlay ─────────────────────────────────────────
         if (fadeAlpha > 0) {
             sf::RectangleShape fO(sf::Vector2f(SCREEN_W, SCREEN_H));
             fO.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));
             window.draw(fO);
         }
+
         window.display();
     }
+
     return 0;
 }
