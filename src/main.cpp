@@ -102,6 +102,7 @@ int main() {
     mainView.setSize(SCREEN_W, SCREEN_H);
 
     while (window.isOpen()) {
+        cout << player.pos.x << " " << player.pos.y << endl;
         gState.deltaTime = clock.restart().asSeconds();
 
         Event event;
