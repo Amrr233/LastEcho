@@ -27,6 +27,9 @@ struct Player {
     // frame sizes
     int frameWidth = 48;
     int frameHeight = 48;
+    // Quest Data
+    int stringsCollected = 0;
+    bool hasChestKey = false;
 
     // Combat variables
     int   attack_damage ;
@@ -68,7 +71,7 @@ void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
 void initweapon(sf::Vector2f startPos);
-void updateWeapon(float dt);
+ void updateWeapon(float dt);
 void getWeaponOffset ();
 void drawPlayer(sf::RenderWindow& window);
 void drawWeapons(sf::RenderWindow& window);

@@ -218,7 +218,10 @@ int main() {
                 updatePlayer(gState.deltaTime, world);
                 checkDialogueReward(world.phaseSys);
                 updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
-                updateWeapon(gState.deltaTime);
+                //
+                // updateWeapon(gState.deltaTime);
+                //
+                //
                 updateEnemies(gState.deltaTime);
                 updateChest(gState.deltaTime, world.currentMapName);
                 updateBoss(gState.deltaTime);
