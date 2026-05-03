@@ -26,8 +26,6 @@ void initEnemy(int index, Vector2f startPos, EnemyType type) {
     enemies[index].hurt_timer = 0.f;
     enemies[index].isInvincible = false;
     enemies[index].currentState = IDLE;
-    //just trying smth out
-    // blah
 
     if (type == BASIC_ENEMY) {
         enemies[index].hp = 50;
@@ -92,8 +90,6 @@ void drawEnemy(RenderWindow& window) {
 }
 
 void checkAttackHits() {
-    std::cout << "state: " << player.currentState
-              << " frame: " << player.currentFrame << std::endl;
     if (player.currentState != ATTACKING || player.currentFrame != 3) return;
     FloatRect hitbox = attackHitBox();
     for (int i = 0; i < enemyCount; i++) {
@@ -109,7 +105,7 @@ void checkAttackHits() {
         Vector2f pushDir = enemies[i].pos - player.pos;
         float length = std::sqrt(pushDir.x * pushDir.x + pushDir.y * pushDir.y);
         pushDir /= length;
-        enemies[i].pos += pushDir * 50.f;
+        enemies[i].pos += pushDir * 25.f;
         }
     }
     // Check if player hit the boss

@@ -11,7 +11,7 @@
 
 
 constexpr int MAX_FIREBALLS = 4;
-// ── Change these values to tune the boss ──────────────────
+// changable
 struct BossConfig {
     int   maxHp          = 300;
     float phase2Threshold = 0.66f;  // switches to phase 2 at 66% HP
@@ -32,10 +32,9 @@ struct BossConfig {
     int   damagePhase3   = 28;
     float scalePhase3    = 2.4f;
 
-    // Where boss spawns relative to guide position
+    // makan el boss belnsba ll guide
     sf::Vector2f spawnOffset = sf::Vector2f(150.f, 0.f);
 };
-// ─────────────────────────────────────────────────────────
 struct Fireball {
     sf::Vector2f pos;
     sf::Vector2f velocity;
@@ -73,7 +72,7 @@ struct Boss {
     sf::Texture walkTextures[4];
     sf::Texture runTextures[4];
     sf::Texture fireballThrowTextures[4];
-    sf::Texture fireballTexture;      // single frame projectile
+    sf::Texture fireballTexture;      // single frame
     sf::Texture crossPunchingTexture[4];
 
     // Fireball system
