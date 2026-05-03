@@ -42,6 +42,10 @@ add_executable(LastEcho
         src/chest.h
         src/Guitarminigame.cpp
         src/Guitarminigame.h
+        src/boss.cpp
+        src/boss.h
+
+        # ويفضل تضيف الهيدر كمان للتنظيم
 
 )
 

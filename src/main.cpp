@@ -18,6 +18,7 @@
 #include "chest.h"
 #include "Cutscene.h"
 #include "GuitarMiniGame.h"
+#include "boss.h"
 
 using namespace sf;
 using namespace std;
@@ -85,6 +86,10 @@ int main() {
     phaseInit(world.phaseSys);
     initPlayer(Vector2f(spawnX, spawnY));
     initEnemy(0, sf::Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+    initBoss();
+    // To test right now — remove this line later when cutscene triggers it
+    // Init section — replace spawnBoss with:
+    startRound(1);
     initNPCs(world);
     initChest(sf::Vector2f(100.f, 150.f), "sclab"); // ← adjust position
     initweapon(Vector2f(spawnX, spawnY));
@@ -216,6 +221,11 @@ int main() {
                 updateWeapon(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
                 updateChest(gState.deltaTime, world.currentMapName);
+                updateBoss(gState.deltaTime);
+                // Update block — add next to updateBoss:
+                updateRounds(gState.deltaTime);
+                updateEnemies(gState.deltaTime);
+                updateFireballs(gState.deltaTime);
 
                 for (auto& p : currentMap->portals) {
                     sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
@@ -262,6 +272,8 @@ int main() {
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawChest(window, world.currentMapName);
             drawEnemy(window);
+            drawBoss(window);
+            drawFireballs(window);
             drawPlayer(window);
             drawCutsceneOverlay(window, font);
 
