@@ -47,8 +47,8 @@ void initPlayer(Vector2f startPos) {
     player.isInvincible = false;
     player.currentState = IDLE;
 
-    player.hasSword = true;
-    player.swordEquipped = WEAPON_SWORD;
+    player.hasSword = false;
+    player.swordEquipped = WEAPON_FIST;
 
     playerSprite.setTexture(player.walkTextures[SOUTH]);
     playerSprite.setScale(1.7f, 1.7f);
