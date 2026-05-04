@@ -206,6 +206,16 @@ int main() {
                         weapon.switching(WEAPON_FIST);
                     if (event.key.code == sf::Keyboard::B)
                         weapon.switching(WEAPON_BOOK);
+
+                    // Q: hint system (برّا الجيتار)
+                    if (event.key.code == sf::Keyboard::Q && !isGuitarOpen()) {
+                        if (world.hintSys.isOpen) {
+                            world.hintSys.isOpen     = false;
+                            world.hintSys.hasNewHint = false;
+                        } else if (world.hintSys.hintsUnlocked > 0) {
+                            world.hintSys.isOpen = true;
+                        }
+                    }
                 }
             }
 
@@ -319,7 +329,7 @@ int main() {
             if (isDialogueActive()) drawDialogue(window);
             else                    inv.invt_draw(window);
 
-            drawHealthBar(window);
+            drawHealthBar(window);ص
             drawXPBar(window);
             drawHintIcon(window, world.hintSys);
             drawHintPage(window, world.hintSys);
