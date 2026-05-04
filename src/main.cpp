@@ -90,7 +90,6 @@ int main() {
     initweapon(Vector2f(spawnX, spawnY));
     initGuitar();
     initDialogue();
-    startRound(1);
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -252,11 +251,13 @@ int main() {
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
                     updateChest(gState.deltaTime, world.currentMapName);
-                    updateBoss(gState.deltaTime);
+                    if (boss.isActive) {
+                        updateBoss(gState.deltaTime);
+                        updateRounds(gState.deltaTime);
+                        updateFireballs(gState.deltaTime);
+                    }
                     // Update block — add next to updateBoss:
-                    updateRounds(gState.deltaTime);
                     updateEnemies(gState.deltaTime);
-                    updateFireballs(gState.deltaTime);
                     for (auto& p : currentMap->portals) {
                         sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
                         if (playerBounds.intersects(p.bounds)) {
@@ -305,10 +306,12 @@ int main() {
             drawChest(window, world.currentMapName);
             drawStrings(window, world.phaseSys, world.currentMapName);
             drawEnemy(window);
-            drawBoss(window);
-            drawFireballs(window);
             drawPlayer(window);
             drawWeapons(window);
+            if (boss.isActive && boss.isAlive) {
+                drawBoss(window);
+                drawFireballs(window);
+            }
 
 
             // UI view
