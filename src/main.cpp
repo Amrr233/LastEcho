@@ -1,4 +1,3 @@
-// include everything, every feature
 #include <SFML/Graphics.hpp>
 #include "Data.h"
 #include "player.h"
@@ -25,7 +24,6 @@
 using namespace sf;
 using namespace std;
 
-//Global Variables
 RenderWindow window;
 GameState    gState;
 Player       player;
@@ -48,15 +46,21 @@ Text     interactPrompt;
 extern AudioManager audioManager;
 extern GuitarGame g_guitar;
 
+// ── Lost screen variables ─────────────────────────────────────
+bool  bossLostScreen  = false;
+float lostScreenTimer = 0.f;
+float blurAlpha       = 0.f;
+sf::RectangleShape blurOverlay;
+sf::Font lostFont;
+sf::Text lostText;
+
 int main() {
     window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
-    //load the font
+
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf"))
         cout << "ERROR: Font not found!" << endl;
 
-
-    //load the current map
     if (!worldLoadAllMaps(world)) {
         cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
@@ -64,8 +68,6 @@ int main() {
     GameMap* currentMap = worldGetCurrentMap(world);
     if (!currentMap) return -1;
 
-
-    //load and set up the press e to interact box
     interactBoxTex.loadFromFile("assets/sprites/items/Text_Box.png");
     interactBoxSprite.setTexture(interactBoxTex);
     interactBoxSprite.setScale(0.35f, 0.35f);
@@ -78,13 +80,24 @@ int main() {
     interactPrompt.setOutlineColor(sf::Color::Black);
     interactPrompt.setOutlineThickness(1);
 
+    // ── Lost screen init ──────────────────────────────────────
+    blurOverlay.setSize(sf::Vector2f(SCREEN_W, SCREEN_H));
+    blurOverlay.setFillColor(sf::Color(0, 0, 0, 0));
+    lostFont.loadFromFile("assets/fonts/pixelsix00.ttf");
+    lostText.setFont(lostFont);
+    lostText.setString("YOU LOST");
+    lostText.setCharacterSize(72);
+    lostText.setFillColor(sf::Color(255, 0, 0, 0));
+    lostText.setStyle(sf::Text::Bold);
+    sf::FloatRect lostBounds = lostText.getLocalBounds();
+    lostText.setOrigin(lostBounds.width / 2.f, lostBounds.height / 2.f);
+    lostText.setPosition(SCREEN_W / 2.f, SCREEN_H / 2.f);
 
-    // --- Systems Initialization ---
     initCutsceneSystem();
     phaseInit(world.phaseSys);
     initHintSystem(world.hintSys);
     initPlayer(Vector2f(spawnX, spawnY));
-    initEnemy(0,Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
+    initEnemy(0, Vector2f(spawnX + 100.f, spawnY + 100.f), BASIC_ENEMY);
     initBoss();
     initNPCs(world);
     initChest(Vector2f(100.f, 150.f), "sclab");
@@ -92,8 +105,6 @@ int main() {
     initGuitar();
     initDialogue();
 
-
-    // when you first open the game your state will be menu (the main menu)
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
@@ -121,52 +132,34 @@ int main() {
     View  mainView;
     mainView.setSize(SCREEN_W, SCREEN_H);
 
-    // ════════════════════════════════════════════════════════════
-    // GAME LOOP
     while (window.isOpen()) {
         gState.deltaTime = clock.restart().asSeconds();
-        // ════════════════════════════════════════════════════════
-        // Events LOGIC
+
         Event event;
-        //go look if there is any event happened in the current frame return true if you found false if not
         while (window.pollEvent(event)) {
-            //if some line of code closed the game its considered an event
             if (event.type == Event::Closed) window.close();
 
-            // if the user pressed Z open HiddenWordMiniGame
-            if (event.type == Event::KeyPressed &&event.key.code == Keyboard::Z)
-            {
-                if (isMinigameActive) {
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::Z) {
+                if (isMinigameActive)
                     isMinigameActive = false;
-                }
-                else if (gState.currentState == STATE_PLAYING &&!isDialogueActive() && !isCutsceneActive() && !isGuitarOpen()){
+                else if (gState.currentState == STATE_PLAYING && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen())
                     isMinigameActive = true;
-                }
             }
 
-            // if the minigame IS active send him the input
             if (isMinigameActive) {
                 updateReviewInput(event, myReview);
                 continue;
             }
 
-            // if the state is playing look for other events
             if (gState.currentState == STATE_PLAYING) {
-
-                // If the user pressed E : (talking / interacting)
-                if (event.type == Event::KeyPressed &&event.key.code == Keyboard::E)
-                {
+                if (event.type == Event::KeyPressed && event.key.code == Keyboard::E) {
                     if (isDialogueActive()) {
                         nextLine();
-                    }
-                    else if (!isCutsceneActive() && !isGuitarOpen()) {
-                        if (tryOpenChest(player.pos, world.currentMapName) ) {
-
-                        }
-                        else if (canPickupString(world.phaseSys, player.pos,world.currentMapName, world.hintSys)) {
-                            pickupString(world.phaseSys, player.pos,world.currentMapName, world.hintSys);
-                        }
-                        else {
+                    } else if (!isCutsceneActive() && !isGuitarOpen()) {
+                        if (tryOpenChest(player.pos, world.currentMapName)) {
+                        } else if (canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys)) {
+                            pickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
+                        } else {
                             string npcName = getNearbyNPCName(player.pos, world.currentMapName);
                             if (npcName != "")
                                 updatePhaseLogic(world.phaseSys, npcName, world.hintSys);
@@ -174,13 +167,10 @@ int main() {
                     }
                 }
 
-                // Guitar controls
                 if (isGuitarOpen()) {
-                    if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    if (event.type == Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
                         handleGuitarClick(window, sf::Mouse::getPosition(window));
-                    }
-                    if (event.type == Event::KeyPressed &&event.key.code == sf::Keyboard::Q)
-                    {
+                    if (event.type == Event::KeyPressed && event.key.code == sf::Keyboard::Q) {
                         if (g_guitar.mode == GUITAR_FREE) {
                             GuitarNote pattern[12] = {
                                 {0,7},{1,4},{1,4},{0,7},
@@ -188,8 +178,7 @@ int main() {
                                 {0,7},{1,4},{1,5},{1,4}
                             };
                             openGuitarQuest(pattern, 12, 60.0f);
-                        }
-                        else {
+                        } else {
                             openGuitarFreePlay();
                         }
                     }
@@ -200,8 +189,6 @@ int main() {
                         openGuitarFreePlay();
                     if (event.key.code == sf::Keyboard::R && isGuitarOpen())
                         closeGuitar();
-
-                    // Q: hint system
                     if (event.key.code == sf::Keyboard::Q && !isGuitarOpen()) {
                         if (world.hintSys.isOpen) {
                             world.hintSys.isOpen     = false;
@@ -210,10 +197,8 @@ int main() {
                             world.hintSys.isOpen = true;
                         }
                     }
-                    if (event.type == Event::KeyPressed &&event.key.code == Keyboard::X &&isCutsceneActive())
-                    {
+                    if (event.type == Event::KeyPressed && event.key.code == Keyboard::X && isCutsceneActive())
                         stopCutscene();
-                    }
                 }
             }
 
@@ -225,32 +210,25 @@ int main() {
 
         // ════════════════════════════════════════════════════════
         // UPDATE LOGIC
-
-
         if (gState.currentState == STATE_PLAYING) {
-            if (isGuitarOpen()) {
+            if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
-            }
             updateCutscene(gState.deltaTime);
 
-            // the tracker
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
             statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
-
-            // check what map are we in now
             currentMap = worldGetCurrentMap(world);
 
             if (currentMap) {
-                //set up the camera
                 mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
                 gameLogic.update(window, gState.currentState);
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-                // if we are not talking or in any minigame or in settings update
-                if (!gameLogic.isPaused  &&!isDialogueActive()  &&!isCutsceneActive()  &&!isGuitarOpen()  &&!isMinigameActive){
+                // pause everything during lost screen
+                if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -260,7 +238,7 @@ int main() {
                         updateRounds(gState.deltaTime);
                         updateFireballs(gState.deltaTime);
                     }
-                    //loop over all the portals to see if the player intersect with any of them
+
                     for (auto& p : currentMap->portals) {
                         FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
                         if (playerBounds.intersects(p.bounds)) {
@@ -280,8 +258,36 @@ int main() {
                         }
                     }
                 }
+
+                // ── Lost screen trigger ───────────────────────
+                if (roundMan.playerDied && !bossLostScreen) {
+                    bossLostScreen  = true;
+                    lostScreenTimer = 0.f;
+                    blurAlpha       = 0.f;
+                    roundMan.playerDied = false;
+                }
+
+                // ── Lost screen update ────────────────────────
+                if (bossLostScreen) {
+                    lostScreenTimer += gState.deltaTime;
+
+                    // blur fades in over 1 second
+                    blurAlpha = std::min(200.f, blurAlpha + 200.f * gState.deltaTime);
+                    blurOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)blurAlpha));
+
+                    // after 3 seconds restart round
+                    if (lostScreenTimer >= 3.f) {
+                        bossLostScreen  = false;
+                        player.hp       = player.maxHp;
+                        player.currentState = IDLE;
+                        player.isInvincible = false;
+                        player.hurt_timer   = 0.f;
+                        startRound(roundMan.currentRound);
+                    }
+                }
             }
         }
+
         if (isFading) {
             fadeAlpha -= fadeSpeed * gState.deltaTime;
             if (fadeAlpha <= 0) { fadeAlpha = 0; isFading = false; }
@@ -296,7 +302,6 @@ int main() {
         else if (gState.currentState == STATE_SETTINGS)
             settings.draw(window);
         else if (gState.currentState == STATE_PLAYING) {
-            // The camera view thing moves with it not static
             window.setView(mainView);
             drawMap(window, *currentMap);
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
@@ -310,17 +315,14 @@ int main() {
                 drawFireballs(window);
             }
 
-
-            // UI view (static)
             window.setView(window.getDefaultView());
-            bool nearNPC = getNearbyNPCName(player.pos, world.currentMapName) != "";
-            bool nearChest = !gameChest.isOpen &&
-                ( sqrt(pow(player.pos.x - gameChest.pos.x, 2) + pow(player.pos.y - gameChest.pos.y, 2)) < 80.f) &&
+            bool nearNPC    = getNearbyNPCName(player.pos, world.currentMapName) != "";
+            bool nearChest  = !gameChest.isOpen &&
+                (sqrt(pow(player.pos.x - gameChest.pos.x, 2) + pow(player.pos.y - gameChest.pos.y, 2)) < 80.f) &&
                 (gameChest.mapName == world.currentMapName);
-            bool nearString = canPickupString(world.phaseSys, player.pos,world.currentMapName, world.hintSys);
+            bool nearString = canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
 
-            if ((nearNPC || nearChest || nearString) && !isDialogueActive() && !isCutsceneActive() && !isMinigameActive)
-            {
+            if ((nearNPC || nearChest || nearString) && !isDialogueActive() && !isCutsceneActive() && !isMinigameActive) {
                 if (nearString && !nearNPC && !nearChest)
                     interactPrompt.setString("Press E to pickup");
                 else
@@ -328,21 +330,22 @@ int main() {
                 window.draw(interactBoxSprite);
                 FloatRect boxBounds  = interactBoxSprite.getGlobalBounds();
                 FloatRect textBounds = interactPrompt.getLocalBounds();
-                interactPrompt.setPosition( boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f, boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - 5.f);
+                interactPrompt.setPosition(
+                    boxBounds.left + (boxBounds.width  - textBounds.width)  / 2.f,
+                    boxBounds.top  + (boxBounds.height - textBounds.height) / 2.f - 5.f);
                 window.draw(interactPrompt);
             }
 
-            if (isDialogueActive()) {
+            if (isDialogueActive())
                 drawDialogue(window);
-            }
-            else {
+            else
                 inv.invt_draw(window);
-            }
 
             drawHealthBar(window);
             drawXPBar(window);
             drawHintIcon(window, world.hintSys);
             drawHintPage(window, world.hintSys);
+
             if (warningTimer > 0) {
                 Text popUp;
                 popUp.setFont(font);
@@ -355,14 +358,26 @@ int main() {
                 window.draw(popUp);
                 warningTimer -= gState.deltaTime;
             }
+
             drawCutsceneOverlay(window, font);
             gameLogic.draw(window);
-            if (isGuitarOpen()) {
+            if (isGuitarOpen())
                 drawGuitar(window);
+
+            // ── Lost screen draw (on top of everything) ───────
+            if (bossLostScreen) {
+                window.setView(window.getDefaultView());
+                window.draw(blurOverlay);
+
+                // text fades in after 0.5s
+                if (lostScreenTimer >= 0.5f) {
+                    sf::Uint8 alpha = (sf::Uint8)std::min(255.f, (lostScreenTimer - 0.5f) * 200.f);
+                    lostText.setFillColor(sf::Color(255, 0, 0, alpha));
+                    window.draw(lostText);
+                }
             }
         }
 
-        // ── Movie Review minigame overlay ────────────────────────
         if (isMinigameActive) {
             RectangleShape overlay(Vector2f(SCREEN_W, SCREEN_H));
             overlay.setFillColor(Color(0, 0, 0, 230));
@@ -376,11 +391,9 @@ int main() {
         statusTrackerText.setOutlineColor(sf::Color::Black);
         statusTrackerText.setOutlineThickness(2);
         statusTrackerText.setPosition(20.f, 140.f);
-        if (!isGuitarOpen()) {
+        if (!isGuitarOpen())
             window.draw(statusTrackerText);
-        }
 
-        // ── Fade overlay ─────────────────────────────────────────
         if (fadeAlpha > 0) {
             sf::RectangleShape fO(sf::Vector2f(SCREEN_W, SCREEN_H));
             fO.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)fadeAlpha));

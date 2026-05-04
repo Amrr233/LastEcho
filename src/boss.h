@@ -93,6 +93,7 @@ struct RoundManager {
     float breakTimer  = 0.f;
     float breakDuration = 3.f; // seconds between rounds
     bool  inBreak     = false;
+    bool  playerDied    = false;
 };
 extern RoundManager roundMan;
 void initBoss();

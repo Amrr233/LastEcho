@@ -29,7 +29,8 @@ enum AppState {
     STATE_PAUSED,      // اللعبة واقفة مؤقتاً
     STATE_GAME_OVER,   // الخسارة
     STATE_SETTINGS,    // الإعدادات
-    STATE_LOAD         // شاشة التحميل (بين المابات)
+    STATE_LOAD ,        // شاشة التحميل (بين المابات)
+    STATE_BOSS_LOST
 };
 
 
