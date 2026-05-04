@@ -6,9 +6,7 @@
 #include <vector>
 #include "Data.h"
 
-// ════════════════════════════════════════════════════════════════
-// ENUMS
-// ════════════════════════════════════════════════════════════════
+// Character emotion states for overhead emotes
 enum Emotion {
     EMOTION_NONE = -1,
     EMOTION_QUESTION = 0,
@@ -27,6 +25,7 @@ enum Emotion {
     EMOTION_SHY
 };
 
+// Types of actions that can be performed during a cutscene
 enum CutsceneActionType {
     CUTSCENE_MOVE,
     CUTSCENE_SPEAK,
@@ -39,19 +38,15 @@ enum CutsceneActionType {
     CUTSCENE_SET_DIRECTION
 };
 
-// ════════════════════════════════════════════════════════════════
-// MOVER TARGET
-// startDelay = استنى كام ثانية من بداية الـ group قبل ما تبدأ تتحرك
-//   0.f  = يبدأ فوراً مع بداية الـ group
-//   0.8f = يستنى 0.8 ثانية وبعدين يبدأ (والـ NPC التاني ماشي)
-// ════════════════════════════════════════════════════════════════
+// Movement target configuration
+// startDelay defines how many seconds to wait before this specific mover begins
 struct MoverTarget {
     enum MoverType { NPC, PLAYER } type;
     std::string npcName;
     float targetX;
     float targetY;
     float speed;
-    float startDelay;   // ← الجديد: استنى كام ثانية قبل ما تبدأ تتحرك
+    float startDelay;
 
     MoverTarget(MoverType t, std::string name, float x, float y,
                 float spd = 160.f, float delay = 0.f)
@@ -59,13 +54,12 @@ struct MoverTarget {
           targetX(x), targetY(y), speed(spd), startDelay(delay) {}
 };
 
+// Group of simultaneous movements
 struct MoveGroup {
     std::vector<MoverTarget> movers;
 };
 
-// ════════════════════════════════════════════════════════════════
-// CUTSCENE ACTION
-// ════════════════════════════════════════════════════════════════
+// Individual action definition within a cutscene sequence
 struct CutsceneAction {
     CutsceneActionType type = CUTSCENE_WAIT;
     std::string characterName;
@@ -81,16 +75,13 @@ struct CutsceneAction {
     std::string targetMap;
     sf::Vector2f spawnPos;
 
-    // MoveGroup fields
     MoveGroup moveGroup;
     bool  isStarted          = false;
     float completionDistance = 20.f;
     int direction = 0;
 };
 
-// ════════════════════════════════════════════════════════════════
-// CUTSCENE + RUNTIME
-// ════════════════════════════════════════════════════════════════
+// Cutscene data structure containing ID and sequence of actions
 struct Cutscene {
     std::string cutsceneID;
     std::vector<CutsceneAction> actions;
@@ -98,6 +89,7 @@ struct Cutscene {
     int currentActionIdx = 0;
 };
 
+// Global runtime state for the active cutscene
 struct CutsceneRuntime {
     Cutscene* currentCutscene = nullptr;
 
@@ -106,17 +98,16 @@ struct CutsceneRuntime {
         sf::Vector2f pos;
         sf::Vector2f targetPos;
         bool         isMoving       = false;
-        bool         isStarted      = false;   // ابدأ يتحرك؟
-        bool         isArrived      = false;   // وصل للـ target؟
-        float        startDelay     = 0.f;     // كام ثانية قبل ما يبدأ
-        float        delayTimer     = 0.f;     // عداد الـ delay
+        bool         isStarted      = false;
+        bool         isArrived      = false;
+        float        startDelay     = 0.f;
+        float        delayTimer     = 0.f;
         Emotion      currentEmotion = EMOTION_NONE;
         float        emotionTimer   = 0.f;
         int          currentFrame   = 0;
         float        speed          = 160.f;
     } characters[5];
 
-    // Player start delay tracking
     bool  playerMoving      = false;
     bool  playerStarted     = false;
     float playerStartDelay  = 0.f;
@@ -137,9 +128,7 @@ struct CutsceneRuntime {
 
 extern CutsceneRuntime g_cutscene;
 
-// ════════════════════════════════════════════════════════════════
-// FUNCTIONS
-// ════════════════════════════════════════════════════════════════
+// Core cutscene system functions
 void        initCutsceneSystem();
 void        updateCutscene(float deltaTime);
 void        drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font);

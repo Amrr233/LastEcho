@@ -2,8 +2,9 @@
 #include <iostream>
 #include <iomanip> // عشان نظبط شكل التايمر (00:00)
 #include <sstream>
-
+#include "boss.h"
 GuitarGame g_guitar;
+extern void startRound(int round);
 
 void initGuitar() {
     g_guitar.isOpen = false;
@@ -137,6 +138,11 @@ void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos) {
                 if (g_guitar.mode == GUITAR_QUEST && g_guitar.questActive) {
                     if (isNoteCorrect(s, f)) {
                         g_guitar.notesPlayedCorrect++;
+                        if (g_guitar.notesPlayedCorrect >= 12) { // لما يخلص الـ 12 نوتة
+                            g_guitar.questActive = false;
+                            closeGuitar();      // قفل واجهة الجيتار
+                            startRound(1);       // شغل فانكشن الماين فوراً
+                        }
                         if (g_guitar.notesPlayedCorrect >= g_guitar.targetSequenceLength) {
                             g_guitar.questActive = false;
                         }

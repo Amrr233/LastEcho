@@ -10,13 +10,13 @@ static Cutscene g_activeScene;
 extern Player player;
 extern World  world;
 
-// ════════════════════════════════════════════════════════════════
 void startGenericCutscene(std::string id, std::vector<CutsceneAction> steps) {
     g_activeScene.cutsceneID       = id;
     g_activeScene.actions          = steps;
     g_activeScene.currentActionIdx = 0;
     g_activeScene.isActive         = true;
 
+    // Reset action timer for the first step
     if (!g_activeScene.actions.empty())
         g_activeScene.actions[0].actionTimer = 0.f;
 
@@ -24,6 +24,7 @@ void startGenericCutscene(std::string id, std::vector<CutsceneAction> steps) {
     g_cutscene.isActive        = true;
     g_cutscene.characterCount  = 0;
 
+    // Reset emotions for all tracked characters
     for (int i = 0; i < 5; i++)
         g_cutscene.characters[i].currentEmotion = EMOTION_NONE;
 
@@ -37,9 +38,11 @@ void stopCutscene() {
     g_cutscene.currentCutscene = nullptr;
 }
 
+// Find existing character in runtime or register a new one
 static int getOrCreateChar(const std::string& name) {
     for (int i = 0; i < g_cutscene.characterCount; i++)
         if (g_cutscene.characters[i].name == name) return i;
+
     if (g_cutscene.characterCount < 5) {
         int idx = g_cutscene.characterCount++;
         g_cutscene.characters[idx] = {};
@@ -49,7 +52,6 @@ static int getOrCreateChar(const std::string& name) {
     return -1;
 }
 
-// ════════════════════════════════════════════════════════════════
 void updateCutscene(float deltaTime) {
     if (!g_cutscene.isActive || !g_cutscene.currentCutscene) return;
 
@@ -62,10 +64,11 @@ void updateCutscene(float deltaTime) {
     CutsceneAction& action = scene.actions[scene.currentActionIdx];
     action.actionTimer += deltaTime;
 
-    // ── تحريك الـ NPCs المسجلين ──────────────────────────────────
+    // Update state for all characters tracked in the cutscene
     for (int i = 0; i < g_cutscene.characterCount; i++) {
         auto& cs = g_cutscene.characters[i];
 
+        // Animate overhead emotes
         if (cs.currentEmotion != EMOTION_NONE) {
             cs.emotionTimer += deltaTime;
             if (cs.emotionTimer >= 0.15f) {
@@ -74,6 +77,7 @@ void updateCutscene(float deltaTime) {
             }
         }
 
+        // Handle delayed movement start
         if (!cs.isStarted && cs.isMoving) {
             cs.delayTimer += deltaTime;
             if (cs.delayTimer >= cs.startDelay) {
@@ -81,6 +85,7 @@ void updateCutscene(float deltaTime) {
             }
         }
 
+        // Processing active movement
         if (cs.isStarted && cs.isMoving) {
             sf::Vector2f diff = cs.targetPos - cs.pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
@@ -90,16 +95,17 @@ void updateCutscene(float deltaTime) {
                 cs.isMoving  = false;
                 cs.isStarted = false;
                 cs.isArrived = true;
-                setNPCFrame(cs.name, 0);
+                setNPCFrame(cs.name, 0); // Reset to idle frame
             } else {
                 sf::Vector2f dir = diff / dist;
                 cs.pos += dir * cs.speed * deltaTime;
 
+                // Determine animation direction based on movement vector
                 int direction;
                 if (std::abs(dir.x) > std::abs(dir.y))
-                    direction = (dir.x > 0) ? 3 : 2;
+                    direction = (dir.x > 0) ? 3 : 2; // East or West
                 else
-                    direction = (dir.y > 0) ? 0 : 1;
+                    direction = (dir.y > 0) ? 0 : 1; // South or North
 
                 updateNPCAnimation(cs.name, direction, deltaTime);
             }
@@ -109,6 +115,7 @@ void updateCutscene(float deltaTime) {
 
     bool stepFinished = false;
 
+    // Action Logic Dispatcher
     switch (action.type) {
 
     case CUTSCENE_WAIT:
@@ -155,6 +162,7 @@ void updateCutscene(float deltaTime) {
         int idx = -1;
         for (int i = 0; i < g_cutscene.characterCount; i++)
             if (g_cutscene.characters[i].name == action.characterName) { idx = i; break; }
+
         if (idx != -1) {
             sf::Vector2f diff = g_cutscene.characters[idx].targetPos - g_cutscene.characters[idx].pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
@@ -221,6 +229,7 @@ void updateCutscene(float deltaTime) {
             g_cutscene.playerStarted    = false;
             g_cutscene.playerDelayTimer = 0.f;
 
+            // Initialize all movers in the group
             for (auto& mover : action.moveGroup.movers) {
                 if (mover.type == MoverTarget::NPC) {
                     int idx = getOrCreateChar(mover.npcName);
@@ -247,6 +256,8 @@ void updateCutscene(float deltaTime) {
         }
 
         bool allDone = true;
+
+        // Process Player part of the group
         if (g_cutscene.playerMoving) {
             if (!g_cutscene.playerStarted) {
                 g_cutscene.playerDelayTimer += deltaTime;
@@ -273,6 +284,7 @@ void updateCutscene(float deltaTime) {
             }
         }
 
+        // Check if all NPCs in the group finished moving
         for (auto& mover : action.moveGroup.movers) {
             if (mover.type == MoverTarget::NPC) {
                 int idx = -1;
@@ -284,7 +296,7 @@ void updateCutscene(float deltaTime) {
         if (allDone) stepFinished = true;
         break;
     }
-    } // end switch
+    }
 
     if (stepFinished) {
         scene.currentActionIdx++;
@@ -293,29 +305,31 @@ void updateCutscene(float deltaTime) {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
 sf::IntRect calculateEmoteRect(Emotion emotion, int frame) {
     if (emotion == EMOTION_NONE) return sf::IntRect(0, 0, 0, 0);
+    // Emotes are 16x16 on the sheet, assuming emotion maps to row
     return sf::IntRect(frame * 16, static_cast<int>(emotion) * 16, 16, 16);
 }
 
 void initCutsceneSystem() {
     if (!g_cutscene.emoteSheet.loadFromFile("assets/sprites/emotes/emotes.png"))
         std::cout << "[ERROR] Could not load emotes.png" << std::endl;
+
     g_cutscene.emoteSprite.setTexture(g_cutscene.emoteSheet);
-    g_cutscene.emoteSprite.setOrigin(8.f, 16.f);
+    g_cutscene.emoteSprite.setOrigin(8.f, 16.f); // Bottom center
     g_cutscene.emoteSprite.setScale(3.0f, 3.0f);
 }
 
 void drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font) {
     if (!g_cutscene.isActive) return;
+
     for (int i = 0; i < g_cutscene.characterCount; i++) {
         auto& cs = g_cutscene.characters[i];
         if (cs.currentEmotion != EMOTION_NONE) {
             sf::Vector2f pos = getNPCPosition(cs.name);
             g_cutscene.emoteSprite.setTextureRect(
                 calculateEmoteRect(cs.currentEmotion, cs.currentFrame));
-            g_cutscene.emoteSprite.setPosition(pos.x, pos.y - 55.f);
+            g_cutscene.emoteSprite.setPosition(pos.x, pos.y - 55.f); // Draw above head
             window.draw(g_cutscene.emoteSprite);
         }
     }
