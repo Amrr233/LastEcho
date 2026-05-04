@@ -5,8 +5,8 @@
 
 extern Player player;
 
-static sf::Texture hpTexture;
-static sf::Sprite  hpSprite;
+static sf::Texture healthbarTexture;
+static sf::Sprite  healthbarSprite;
 static bool hpLoaded = false;
 
 void healing(int heal) {
@@ -23,31 +23,35 @@ void damaging(int damage) {
 
 void drawHealthBar(sf::RenderWindow& window) {
     if (!hpLoaded) {
-        if (hpTexture.loadFromFile("assets/settings/HP.png")) {
-            hpSprite.setTexture(hpTexture);
-            // ضبط الـ Origin والـ Scale زي كود الـ XP اللي بعته
-            hpSprite.setOrigin(-14.0f, -0.0f);
-            hpSprite.setScale(0.3f, 0.4f);
+        if (healthbarTexture.loadFromFile("assets/settings/HP.png")) {
+            healthbarSprite.setTexture(healthbarTexture);
+            healthbarSprite.setOrigin(0.f, 0.f);
+            healthbarSprite.setScale(0.3f, 0.4f);
             hpLoaded = true;
         }
     }
 
-    // المكان (فوق عالشمال - تحت الـ XP)
     float startX = 10.0f;
-    float startY = 10.0f; // زودنا الـ Y عشان ميبقوش فوق بعض
-    hpSprite.setPosition(startX, startY);
+    float startY = 10.0f;
+    healthbarSprite.setPosition(startX, startY);
 
-    // 1. حساب نسبة الـ HP
+    sf::FloatRect frameBounds = healthbarSprite.getGlobalBounds();
+
     float ratio = (float)player.hp / player.maxHp;
     if (ratio > 1.0f) ratio = 1.0f;
     if (ratio < 0.0f) ratio = 0.0f;
 
-    // 2. نفس متغيرات التقسيم اللي طلبتها بالظبط
+
+    float innerLeftOffset = frameBounds.width * 0.23f;
+    float innerTopOffset  = frameBounds.height * 0.25f;
+    float innerTotalWidth = frameBounds.width * 0.72f;
+    float barHeight       = frameBounds.height * 0.50f;
+
     int totalSegments = 10;
-    float totalWidth = 285.0f * 0.63f;
-    float barHeight = 35.0f * 1.3f;
     float gap = 2.0f;
-    float segmentWidth = (totalWidth - (gap * (totalSegments - 1))) / totalSegments;
+    float segmentWidth = (innerTotalWidth - (gap * (totalSegments - 1))) / totalSegments;
+
+    window.draw(healthbarSprite);
 
     for (int i = 0; i < totalSegments; i++) {
         float segmentStart = (float)i / totalSegments;
@@ -61,18 +65,13 @@ void drawHealthBar(sf::RenderWindow& window) {
         }
 
         sf::RectangleShape bar(sf::Vector2f(currentDrawWidth, barHeight));
-
-        // لون أحمر محمر (Red Brown) للـ HP
         bar.setFillColor(sf::Color(165, 42, 42));
+        bar.setOrigin(0.f, 0.f);
 
-        // نفس الـ Origin والـ Offset اللي في كود الـ XP بتاعك
-        bar.setOrigin(38.f, 0.f);
+        float xPos = frameBounds.left + innerLeftOffset + (i * (segmentWidth + gap));
+        float yPos = frameBounds.top + innerTopOffset;
 
-        float xOffset = (185.0f * 0.5f) + (i * (segmentWidth + gap));
-        float yOffset = (0.f * 1.05f);
-
-        bar.setPosition(startX + xOffset, startY + yOffset);
+        bar.setPosition(xPos, yPos);
         window.draw(bar);
     }
-    window.draw(hpSprite);
 }

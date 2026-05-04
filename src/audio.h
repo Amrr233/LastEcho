@@ -13,7 +13,8 @@ struct AudioManager {
 
 
     void playMusic(std::string type) ;// دالة واحدة بتبدل بين المنيو والجيم بلاي
-    void setVolume(float volume);
+    void setMusicVolume(float volume);
+    void setSFXVolume(float volume);
     void startFootsteps();
     void stopFootsteps();
     void playTypingSound();

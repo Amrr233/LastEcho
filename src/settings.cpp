@@ -8,22 +8,22 @@ extern AppState last_state;
 settingsMenu settings;
 
 void settingsMenu::init(float W, float H) {
-    // 1. تحميل الصور (تأكد إن الأسامي دي بالظبط في فولدر assets)
+    // تحميل الصور
     backTex.loadFromFile("assets/mainMenu/mainbackground.png");
-    bgTex.loadFromFile("assets/settings/settings bg.png");
+    settings_window_tex.loadFromFile("assets/settings/settings bg.png");
     volbar_tex.loadFromFile("assets/settings/volumebar.png");
     sliderTexture.loadFromFile("assets/settings/slider.png");
 
-    // 2. إعداد اللوحة الخشبية (Background)
+    //  background
     backSprite.setTexture(backTex);
-    settings_window.setTexture(bgTex);
-    settings_window.setOrigin(bgTex.getSize().x / 2.f, bgTex.getSize().y / 2.f);
+    settings_window.setTexture(settings_window_tex);
+    settings_window.setOrigin(settings_window_tex.getSize().x / 2.f, settings_window_tex.getSize().y / 2.f);
     settings_window.setPosition(W / 2.f, H / 2.f);
     backSprite.setOrigin(backTex.getSize().x / 2.f, backTex.getSize().y / 2.f);
     backSprite.setPosition(W / 2.f, H / 2.f);
     backSprite.setScale(1.35f, 1.35f);
 
-    // 3. إعداد Master Slider
+    //  Master Slider
     masterBar.setTexture(volbar_tex);
     masterBar.setOrigin(volbar_tex.getSize().x / 2.f, volbar_tex.getSize().y / 2.f);
     masterBar.setPosition(W / 2.f - 150.0f, H / 2.f - 180.f); // رفعتها فوق شوية عن المركز
@@ -31,7 +31,7 @@ void settingsMenu::init(float W, float H) {
     masterHandle.setTexture(sliderTexture);
     masterHandle.setOrigin(sliderTexture.getSize().x / 2.f, sliderTexture.getSize().y / 2.f);
 
-    // 4. إعداد Music Slider
+    //  Music Slider
     musicBar.setTexture(volbar_tex);
     musicBar.setOrigin(volbar_tex.getSize().x / 2.f, volbar_tex.getSize().y / 2.f);
     musicBar.setPosition(W / 2.f - 150.0f, H / 2.f);
@@ -39,7 +39,7 @@ void settingsMenu::init(float W, float H) {
     musicHandle.setTexture(sliderTexture);
     musicHandle.setOrigin(sliderTexture.getSize().x / 2.f, sliderTexture.getSize().y / 2.f);
 
-    // 5. إعداد SFX Slider
+    //  SFX Slider
     sfxBar.setTexture(volbar_tex);
     sfxBar.setOrigin(volbar_tex.getSize().x / 2.f, volbar_tex.getSize().y / 2.f);
     sfxBar.setPosition(W / 2.f - 150.0f, H / 2.f + 180.f); // نزلتها تحت شوية
@@ -47,37 +47,37 @@ void settingsMenu::init(float W, float H) {
     sfxHandle.setTexture(sliderTexture);
     sfxHandle.setOrigin(sliderTexture.getSize().x / 2.f, sliderTexture.getSize().y / 2.f);
 
-    // تحديث الأماكن بناءً على القيم الافتراضية (50%)
+    // بتخلي الhandle في نص الbar
     updateMaster(0);
     updateMusic(0);
     updateSFX(0);
-    // 1. تصغير البوردة الخشب (الخلفية)
+    //  تصغيرال settings window
     settings_window.setScale(2.0f, 2.0f);
 
-    // 2. تصغير البارات التلاتة (الخشب الصغير)
+    // تصغير البارات التلاتة
     masterBar.setScale(0.4f, 0.4f);
     musicBar.setScale(0.4f, 0.4f);
     sfxBar.setScale(0.4f, 0.4f);
 
-    // 3. تصغير المقابض (الـ Handles)
+    //  تصغيرال Handles
     masterHandle.setScale(0.3f, 0.3f);
     musicHandle.setScale(0.3f, 0.3f);
     sfxHandle.setScale(0.3f, 0.3f);
     std::string labelFiles[] = {"assets/settings/Master.png", "assets/settings/Music.png", "assets/settings/SFX.png"};
-    sf::Sprite* bars[] = {&masterBar, &musicBar, &sfxBar};
+    sf::Sprite* bars[] = {&masterBar, &musicBar, &sfxBar};// هتساعدنا في تظبيط مكان الlableTex
 
     for (int i = 0; i < 3; i++) {
         labelTex[i].loadFromFile(labelFiles[i]);
         labelSprites[i].setTexture(labelTex[i]);
 
-        // 1. تظبط الـ Scale (لو الصور كبيرة، 0.4f او 0.5f هيكون مثالي)
+        //  تظبيط ال Scale
         labelSprites[i].setScale(0.4f, 0.4f);
 
-        // 2. تظبط الـ Origin في نص الصورة عشان تتحاذى صح مع البار
+        //  تظبط ال Origin في نص الصورة
         labelSprites[i].setOrigin(labelTex[i].getSize().x / 2.f, labelTex[i].getSize().y / 2.f);
 
-        // 3. تظبط المكان (جنب الـ Slider بتاعه بالظبط)
-        // بنطرح من الـ x عشان تيجي على الشمال، والـ y بياخد نفس ارتفاع البار
+        //  تظبط المكان جنب الـ Slider بتاعه بالظبط
+        // بنطرح من ال x عشان تيجي على الشمال، وال y بياخد نفس ارتفاع البار
         labelSprites[i].setPosition(bars[i]->getPosition().x + 370.f, bars[i]->getPosition().y);
     }
 }
@@ -89,10 +89,10 @@ void settingsMenu::updateMaster(float delta) {
     }
     sf::Listener::setGlobalVolume(masterVolume);
 
-    // بنجيب حدود الخشبة الفعلية بعد الـ Scale
+    // بنجيب حدود الخشبة الفعلية بعد ال Scale
     sf::FloatRect bounds = masterBar.getGlobalBounds();
 
-    // بنسيب هامش صغير (10 بكسل) عشان المقبض ميوصلش للطرف الحاد
+    // بنسيب هامش صغير (10 بكسل) عشان المقبض ميوصلش للطرف
     float usableWidth = bounds.width - 110.f;
     float startX = bounds.left + 55.f + (masterVolume / 100.f * usableWidth);
 
@@ -104,7 +104,7 @@ void settingsMenu::updateMusic(float delta) {
     if (musicVolume < 1.0f) {
         musicVolume = 0.0f;
     }
-    audioManager.setVolume(musicVolume);
+    audioManager.setMusicVolume(musicVolume);
 
     sf::FloatRect bounds = musicBar.getGlobalBounds();
     float usableWidth = bounds.width - 110.f;
@@ -118,12 +118,14 @@ void settingsMenu::updateSFX(float delta) {
     if (musicVolume < 1.0f) {
         musicVolume = 0.0f;
     }
-    float barWidth = volbar_tex.getSize().x - 620.f;
-    float startX = sfxBar.getPosition().x - (barWidth / 2.f) + (sfxVolume / 100.f * barWidth);
+    audioManager.setSFXVolume(sfxVolume);
+    sf::FloatRect bounds = sfxBar.getGlobalBounds();
+    float usableWidth = bounds.width - 110.f;
+    float startX = bounds.left + 55.f +(sfxVolume / 100.f * usableWidth);
     sfxHandle.setPosition(startX, sfxBar.getPosition().y - 15.f);
 }
 
-// دالة الرسم (عشان الشاشة متبقاش سودة)
+// draw function
 void settingsMenu::draw(sf::RenderWindow &window) {
     window.draw(backSprite);
     window.draw(settings_window);
@@ -135,7 +137,7 @@ void settingsMenu::draw(sf::RenderWindow &window) {
     }
 }
 
-// دالة التحديث والتحكم (الرجوع بـ Escape وحركة الماوس)
+// update function
 void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
     // 1. الرجوع للمنيو
     static bool escWasPressed = false;

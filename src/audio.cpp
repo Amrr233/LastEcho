@@ -46,15 +46,17 @@ void AudioManager::playMusic(std::string type) {
     }
 }
 
-
-void AudioManager::setVolume(float volume) {
-    footsteps.setVolume(volume * 0.5f); // الخطوات دايماً أهدى شوية من المزيكا
+void AudioManager::setMusicVolume(float volume) {
     if (currentMode == "game") {
         bgm.setVolume(volume);
     }
     else {
         bgm.setVolume(volume * 1.f); // دي بتظبط الmain theme
     }
+}
+
+void AudioManager::setSFXVolume(float volume) {
+    footsteps.setVolume(volume * 0.5f); // الخطوات دايماً أهدى شوية من المزيكا
     typingSound.setVolume(volume);
     hoverSound.setVolume(volume*0.5f);
     clickSound.setVolume(volume*3.f);

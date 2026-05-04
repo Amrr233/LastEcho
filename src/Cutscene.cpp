@@ -329,7 +329,7 @@ void drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font) {
             sf::Vector2f pos = getNPCPosition(cs.name);
             g_cutscene.emoteSprite.setTextureRect(
                 calculateEmoteRect(cs.currentEmotion, cs.currentFrame));
-            g_cutscene.emoteSprite.setPosition(pos.x, pos.y - 55.f); // Draw above head
+            g_cutscene.emoteSprite.setPosition(pos.x+40.0f, pos.y -170.0f); // Draw above head
             window.draw(g_cutscene.emoteSprite);
         }
     }
