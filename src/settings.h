@@ -19,7 +19,7 @@ struct settingsMenu {
  sf::Texture volbar_tex;
  sf::Texture sliderTexture;
 
- //  السلايدرز التلاتة
+
 
  // Master Slider
  sf::Sprite masterBar;
@@ -38,22 +38,19 @@ struct settingsMenu {
 
 
 
-  // هنضيف دي عشان نعرف الماوس فوق الزرار ولا لأ (للـ Hover effect)
-  bool isBackHovered = false;
-
 
  void init(float W, float H);
  void updateMaster(float delta);
  void updateMusic(float delta);
  void updateSFX(float delta);
 
- // دالة الرسم (اللي بنناديها في المين)
+
  void draw(sf::RenderWindow &window);
 };
 
 extern settingsMenu settings;
 
-// دالة تحديث المنطق والتحكم (الماوس والكيبورد)
+
 void SettingsUpdate(sf::RenderWindow& window, AppState& currentState);
 
 #endif // LASTECHO_SETTINGS_H

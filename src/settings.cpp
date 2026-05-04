@@ -77,7 +77,6 @@ void settingsMenu::init(float W, float H) {
         labelSprites[i].setOrigin(labelTex[i].getSize().x / 2.f, labelTex[i].getSize().y / 2.f);
 
         //  تظبط المكان جنب الـ Slider بتاعه بالظبط
-        // بنطرح من ال x عشان تيجي على الشمال، وال y بياخد نفس ارتفاع البار
         labelSprites[i].setPosition(bars[i]->getPosition().x + 370.f, bars[i]->getPosition().y);
     }
 }
@@ -89,10 +88,10 @@ void settingsMenu::updateMaster(float delta) {
     }
     sf::Listener::setGlobalVolume(masterVolume);
 
-    // بنجيب حدود الخشبة الفعلية بعد ال Scale
+    // بنجيب حدود الخشبة بعد ال Scale
     sf::FloatRect bounds = masterBar.getGlobalBounds();
 
-    // بنسيب هامش صغير (10 بكسل) عشان المقبض ميوصلش للطرف
+    // بنسيب مساحة الحدود بتاعت البار
     float usableWidth = bounds.width - 110.f;
     float startX = bounds.left + 55.f + (masterVolume / 100.f * usableWidth);
 
@@ -115,8 +114,8 @@ void settingsMenu::updateMusic(float delta) {
 
 void settingsMenu::updateSFX(float delta) {
     sfxVolume = std::max(0.f, std::min(100.f, sfxVolume + delta));
-    if (musicVolume < 1.0f) {
-        musicVolume = 0.0f;
+    if (sfxVolume < 1.0f) {
+        sfxVolume = 0.0f;
     }
     audioManager.setSFXVolume(sfxVolume);
     sf::FloatRect bounds = sfxBar.getGlobalBounds();
@@ -139,7 +138,6 @@ void settingsMenu::draw(sf::RenderWindow &window) {
 
 // update function
 void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
-    // 1. الرجوع للمنيو
     static bool escWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
         audioManager.playClickSound();
@@ -157,7 +155,7 @@ void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
 
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-    // 2. سحب السلايدر بالماوس
+    //  سحب السلايدر بالماوس
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 
         // مصفوفة عشان نلف على التلاتة ونوفر كود
@@ -166,7 +164,7 @@ void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
 
         for (int i = 0; i < 3; i++) {
             if (bars[i]->getGlobalBounds().contains(mousePos)) {
-                // بنجيب حدود الخشبة الفعلية اللي ظاهرة قدامنا (بعد الـ Scale)
+
                 sf::FloatRect bounds = bars[i]->getGlobalBounds();
 
                 // بنحسب الماوس فين بالنسبة لعرض الخشبة (0 لـ 1)
@@ -174,9 +172,9 @@ void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
 
                 // بنحولها لـ Volume (من 0 لـ 100)
                 float newVol = percentage * 100.f;
-                newVol = std::max(0.f, std::min(100.f, newVol)); // قفل الأطراف
+                newVol = std::max(0.f, std::min(100.f, newVol));
 
-                // تحديث الصوت بناءً على النوع
+
                 if (i == 0) settings.updateMaster(newVol - settings.masterVolume);
                 else if (i == 1) settings.updateMusic(newVol - settings.musicVolume);
                 else if (i == 2) settings.updateSFX(newVol - settings.sfxVolume);

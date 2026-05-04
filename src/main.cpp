@@ -48,7 +48,6 @@ Texture  interactBoxTex;
 Sprite   interactBoxSprite;
 RectangleShape blurOverlay;
 Text     interactPrompt;
-extern AudioManager audioManager;
 extern GuitarGame g_guitar;
 
 int main() {
