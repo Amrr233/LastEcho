@@ -28,7 +28,7 @@ RenderWindow window;
 GameState    gState;
 Player       player;
 World        world;
-Game         gameLogic;
+//Game         gameLogic;
 inventory    inv;
 AppState     last_state;
 float        warningTimer = 0.0f;
@@ -108,7 +108,7 @@ int main() {
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
-    gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
+    //gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
 
     MovieReview myReview;
@@ -223,12 +223,12 @@ int main() {
 
             if (currentMap) {
                 mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
-                gameLogic.update(window, gState.currentState);
+                //gameLogic.update(window, gState.currentState);
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
                 // pause everything during lost screen
-                if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
+                if (/*!gameLogic.isPaused &&*/ !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -360,7 +360,7 @@ int main() {
             }
 
             drawCutsceneOverlay(window, font);
-            gameLogic.draw(window);
+            //gameLogic.draw(window);
             if (isGuitarOpen())
                 drawGuitar(window);
 
