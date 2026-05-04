@@ -8,43 +8,40 @@
 struct settingsMenu {
  sf::Texture labelTex[3];
  sf::Sprite labelSprites[3];
- // 1. اللوحة الخلفية (البوردة الخشب)
+ // 1. اللوحة الخشب
  sf::Sprite settings_window;
- sf::Texture bgTex;
+ sf::Texture settings_window_tex ;
  // bg behind the settings window
  sf::Sprite backSprite; // صورة الكليه اللى ورا
  sf::Texture backTex;
 
  // 2. التكستشرز اللي هنستخدمها لكل السلايدرز
- sf::Texture volbar_tex;    // صورة الخط الخشبي (المسار)
- sf::Texture sliderTexture; // صورة المقبض (الـ Knob)
+ sf::Texture volbar_tex;
+ sf::Texture sliderTexture;
 
- // --- السلايدرز التلاتة ---
+ //  السلايدرز التلاتة
 
- // Master Slider (الصوت الكلي)
+ // Master Slider
  sf::Sprite masterBar;
  sf::Sprite masterHandle;
  float masterVolume = 50.0f;
 
- // Music Slider (المزيكا)
+ // Music Slider
  sf::Sprite musicBar;
  sf::Sprite musicHandle;
  float musicVolume = 50.0f;
 
- // SFX Slider (المؤثرات)
+ // SFX Slider
  sf::Sprite sfxBar;
  sf::Sprite sfxHandle;
  float sfxVolume = 50.0f;
 
 
- // escape
-  sf::Sprite backButton;
-  sf::Texture backBtnTex;
 
   // هنضيف دي عشان نعرف الماوس فوق الزرار ولا لأ (للـ Hover effect)
   bool isBackHovered = false;
 
- // --- الدوال الأساسية للمنيو ---
+
  void init(float W, float H);
  void updateMaster(float delta);
  void updateMusic(float delta);
@@ -54,7 +51,6 @@ struct settingsMenu {
  void draw(sf::RenderWindow &window);
 };
 
-// إعلان الكائن عشان يقرأه أي ملف تاني (زي المين)
 extern settingsMenu settings;
 
 // دالة تحديث المنطق والتحكم (الماوس والكيبورد)
