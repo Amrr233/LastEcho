@@ -90,6 +90,7 @@ int main() {
     initweapon(Vector2f(spawnX, spawnY));
     initGuitar();
     initDialogue();
+    startRound(1);
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -198,7 +199,7 @@ int main() {
                 }
 
                 if (event.type == Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen())
+                    if (event.key.code == sf::Keyboard::Tab && !isGuitarOpen() && inv.itemNames[inv.selectedSlot] == "magical_guitar")
                         openGuitarFreePlay();
                     if (event.key.code == sf::Keyboard::R && isGuitarOpen())
                         closeGuitar();
@@ -252,8 +253,10 @@ int main() {
                     updateEnemies(gState.deltaTime);
                     updateChest(gState.deltaTime, world.currentMapName);
                     updateBoss(gState.deltaTime);
+                    // Update block — add next to updateBoss:
+                    updateRounds(gState.deltaTime);
+                    updateEnemies(gState.deltaTime);
                     updateFireballs(gState.deltaTime);
-
                     for (auto& p : currentMap->portals) {
                         sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
                         if (playerBounds.intersects(p.bounds)) {
