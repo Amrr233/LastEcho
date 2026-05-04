@@ -374,12 +374,8 @@ void updateRounds(float dt) {
     }
 
     // Player died — restart current round
-    if (player.hp <= 0 && !roundMan.roundOver) {
-        player.hp = player.maxHp;
-        player.currentState = IDLE;
-        player.isInvincible = false;
-        player.hurt_timer   = 0.f;
-        startRound(roundMan.currentRound);
+    if (player.hp <= 0 && !roundMan.roundOver && !roundMan.playerDied) {
+        roundMan.playerDied = true;  // signal main.cpp to show lost screen
     }
 
     // Break between rounds

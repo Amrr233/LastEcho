@@ -122,13 +122,13 @@ void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos) {
 
     if (g_guitar.changeModeBtn.bounds.contains(mouseViewPos)) {
         if (g_guitar.mode == GUITAR_FREE) {
-            GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 5}, {1, 4}};
+             GuitarNote pattern[12] = {{0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 4}, {0, 7}, {0, 7}, {1, 4}, {1, 5}, {1, 4}};
             openGuitarQuest(pattern, 12, 60.0f);
         } else {
             openGuitarFreePlay();
         }
         return;
-    }
+     }
 
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
@@ -141,7 +141,8 @@ void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos) {
                         if (g_guitar.notesPlayedCorrect >= 12) { // لما يخلص الـ 12 نوتة
                             g_guitar.questActive = false;
                             closeGuitar();      // قفل واجهة الجيتار
-                            startRound(1);       // شغل فانكشن الماين فوراً
+                            startRound(1);       // شغل فانكشن المين فوراً
+
                         }
                         if (g_guitar.notesPlayedCorrect >= g_guitar.targetSequenceLength) {
                             g_guitar.questActive = false;
