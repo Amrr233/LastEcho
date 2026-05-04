@@ -65,7 +65,7 @@ void AudioManager::setSFXVolume(float volume) {
 
 void AudioManager::startFootsteps() {
     if (footsteps.getStatus() != sf::Sound::Status::Playing) { //بنتاكد ان الصوت مش شغال قبل كده عشان ميمعلش restart كل شويه
-        footsteps.setPitch(1.0f); // السرعة اللي تليق مع مشية اللاعب
+        footsteps.setPitch(1.4f); // السرعة اللي تليق مع مشية اللاعب
         footsteps.play();
     }
 }

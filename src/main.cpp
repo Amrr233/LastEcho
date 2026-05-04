@@ -45,7 +45,6 @@ Font         font;
 Texture  interactBoxTex;
 Sprite   interactBoxSprite;
 Text     interactPrompt;
-extern AudioManager audioManager;
 extern GuitarGame g_guitar;
 
 int main() {
