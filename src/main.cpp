@@ -239,12 +239,7 @@ int main() {
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-                if (!gameLogic.isPaused  &&
-                    !isDialogueActive()  &&
-                    !isCutsceneActive()  &&
-                    !isGuitarOpen()      &&
-                    !isMinigameActive)
-                {
+                if (!gameLogic.isPaused  &&!isDialogueActive()  &&!isCutsceneActive()  &&!isGuitarOpen()  &&!isMinigameActive){
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -266,6 +261,8 @@ int main() {
                             break;
                         }
                     }
+                }else {
+                    audioManager.stopFootsteps();
                 }
             }
         }
@@ -329,7 +326,7 @@ int main() {
             if (isDialogueActive()) drawDialogue(window);
             else                    inv.invt_draw(window);
 
-            drawHealthBar(window);ص
+            drawHealthBar(window);
             drawXPBar(window);
             drawHintIcon(window, world.hintSys);
             drawHintPage(window, world.hintSys);
