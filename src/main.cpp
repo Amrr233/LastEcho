@@ -216,6 +216,10 @@ int main() {
                             world.hintSys.isOpen = true;
                         }
                     }
+                    if (event.type == sf::Event::KeyPressed &&event.key.code == sf::Keyboard::X &&isCutsceneActive())
+                    {
+                        stopCutscene();
+                    }
                 }
             }
 
