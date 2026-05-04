@@ -2,6 +2,7 @@
 #include "Data.h"
 #include <iostream>
 #include "NPC.h"
+#include "audio.h"
 
 using namespace sf;
 using namespace std;
@@ -236,6 +237,8 @@ void updateDialogue(float deltaTime) {
             charIdx++;
 
             dialogueText.setString(wrapTextSimple(displayText));
+
+            audioManager.playTypingSound();
         }
     }
 }

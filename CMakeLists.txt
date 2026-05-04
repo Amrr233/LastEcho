@@ -42,10 +42,12 @@ add_executable(LastEcho
         src/chest.h
         src/Guitarminigame.cpp
         src/Guitarminigame.h
+        src/HiddenWordsminigame.cpp
+        src/HiddenWordsminigame.h
         src/boss.cpp
         src/boss.h
-
-        # ويفضل تضيف الهيدر كمان للتنظيم
+        src/hintsystem.cpp
+        src/hintsystem.h
 
 )
 

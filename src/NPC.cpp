@@ -128,7 +128,28 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     guard.pos = {500, 600};
     guard.currentMap = "outside";
     allNPCs[npcCount++] = guard;
-
+    // ===== gardener =====
+    NPC gardener;
+    gardener.name = "Gardener";
+    gardener.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
+    gardener.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
+    gardener.walkTextures[WEST].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
+    gardener.walkTextures[EAST].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
+    gardener.avatarPath = "assets/sprites/npcs/gardener/gardener.png";
+    gardener.avatarTexture.loadFromFile(gardener.avatarPath);
+    gardener.avatarSprite.setTexture(gardener.avatarTexture);
+    gardener.isStatic = false;
+    gardener.isWaiting = true;
+    gardener.waitTime = 3.f;
+    gardener.waitTimer = 0.f;
+    gardener.speed = 40.f;
+    gardener.currentMap = "lobby";
+    gardener.waypointsCount = 2;
+    gardener.waypoints[0] = {300.f, 400.f};
+    gardener.waypoints[1] = {350.f, 400.f};
+    gardener.pos = gardener.waypoints[0];
+    gardener.currentWaypoint = 0;
+    allNPCs[npcCount++] = gardener;
 
     NPC amr;
     amr.name = "amr";

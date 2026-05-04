@@ -5,13 +5,14 @@
 #include "enemies.h"
 #include "NPC.h"
 #include "Cutscene.h"
-
+#include  "audio.h"
 using namespace sf;
 
 extern Player player;
 weapons weapon;
 static Sprite playerSprite;
 static sf::RectangleShape hitboxDebug;
+extern AudioManager audioManager;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
@@ -34,8 +35,8 @@ void initPlayer(Vector2f startPos) {
     player.attackTextures[EAST].loadFromFile("assets/sprites/player/punching/crosspunching.east.png");
 
     // sword textures
-    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
-    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
+    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
+    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
     player.swordTextures[EAST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordEast.png");
     player.swordTextures[WEST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordWest.png");
 
@@ -47,7 +48,7 @@ void initPlayer(Vector2f startPos) {
     player.isInvincible = false;
     player.currentState = IDLE;
 
-    player.hasSword = false;
+    player.hasSword = true;
     player.swordEquipped = WEAPON_FIST;
 
     playerSprite.setTexture(player.walkTextures[SOUTH]);
@@ -197,6 +198,7 @@ void updatePlayer(float dt, World& world) {
 
         if (velocity.x != 0.f || velocity.y != 0.f) {
             player.isMoving = true;
+            audioManager.startFootsteps();
             if (velocity.x > 0)      player.facing = EAST;
             else if (velocity.x < 0) player.facing = WEST;
             else if (velocity.y > 0) player.facing = SOUTH;
@@ -205,7 +207,10 @@ void updatePlayer(float dt, World& world) {
             float length = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
             velocity /= length;
         } else {
-            player.isMoving = false;
+            if (player.isMoving) {
+                player.isMoving = false;
+                audioManager.stopFootsteps();
+            }
         }
     }
 

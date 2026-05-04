@@ -3,7 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <algorithm>
 #include "audio.h"
-extern AudioManager audio;
+
 extern AppState last_state;
 settingsMenu settings;
 
@@ -104,7 +104,7 @@ void settingsMenu::updateMusic(float delta) {
     if (musicVolume < 1.0f) {
         musicVolume = 0.0f;
     }
-    audio.setVolume(musicVolume);
+    audioManager.setVolume(musicVolume);
 
     sf::FloatRect bounds = musicBar.getGlobalBounds();
     float usableWidth = bounds.width - 110.f;
@@ -140,6 +140,7 @@ void SettingsUpdate(sf::RenderWindow& window, AppState& currentState) {
     // 1. الرجوع للمنيو
     static bool escWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        audioManager.playClickSound();
         if (!escWasPressed) {
             currentState = last_state;
             escWasPressed = true;
