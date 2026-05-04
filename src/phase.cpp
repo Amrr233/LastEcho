@@ -10,8 +10,6 @@
 
 extern inventory inv;
 extern NPC allNPCs[MAX_NPCS];
-extern bool gameFlags[100];
-
 // ════════════════════════════════════════════════════════════════
 // HELPER - makeGroup
 //
