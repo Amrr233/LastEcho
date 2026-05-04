@@ -28,6 +28,7 @@ AudioManager::AudioManager() {
 }
 
 void AudioManager::playMusic(std::string type) {
+    //footsteps.play();
     bgm.stop();
     currentMode = type;
 
@@ -62,7 +63,7 @@ void AudioManager::setVolume(float volume) {
 
 void AudioManager::startFootsteps() {
     if (footsteps.getStatus() != sf::Sound::Status::Playing) { //بنتاكد ان الصوت مش شغال قبل كده عشان ميمعلش restart كل شويه
-        footsteps.setPitch(1.5f); // السرعة اللي تليق مع مشية اللاعب 
+        footsteps.setPitch(1.0f); // السرعة اللي تليق مع مشية اللاعب
         footsteps.play();
     }
 }

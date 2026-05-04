@@ -6,7 +6,7 @@
 #include <vector>
 #include "Data.h"
 
-// 1. الـ Enums الأول
+// Character emotion states for overhead emotes
 enum Emotion {
     EMOTION_NONE = -1,
     EMOTION_QUESTION = 0,
@@ -25,6 +25,7 @@ enum Emotion {
     EMOTION_SHY
 };
 
+// Types of actions that can be performed during a cutscene
 enum CutsceneActionType {
     CUTSCENE_MOVE,
     CUTSCENE_SPEAK,
@@ -32,64 +33,108 @@ enum CutsceneActionType {
     CUTSCENE_WAIT,
     CUTSCENE_CHANGE_MAP,
     CUTSCENE_PLAYER_MOVE,
-    CUTSCENE_PLAYER_TELEPORT
+    CUTSCENE_PLAYER_TELEPORT,
+    CUTSCENE_MOVE_GROUP,
+    CUTSCENE_SET_DIRECTION
 };
 
-// 2. الـ Action لازم يجي قبل الـ Cutscene
-struct CutsceneAction {
-    CutsceneActionType type;
-    std::string characterName;
+// Movement target configuration
+// startDelay defines how many seconds to wait before this specific mover begins
+struct MoverTarget {
+    enum MoverType { NPC, PLAYER } type;
+    std::string npcName;
     float targetX;
     float targetY;
-    float duration;
-    std::string lines[MAX_DIALOGUE_LINES];
-    int lineCount;
-    Emotion emotion;
-    float emotionDuration;
-    float waitTime;
-    float actionTimer = 0.0f;
-    std::string targetMap;
-    sf::Vector2f spawnPos;
+    float speed;
+    float startDelay;
+
+    MoverTarget(MoverType t, std::string name, float x, float y,
+                float spd = 160.f, float delay = 0.f)
+        : type(t), npcName(std::move(name)),
+          targetX(x), targetY(y), speed(spd), startDelay(delay) {}
 };
 
-// 3. الـ Cutscene لازم يجي قبل الـ Runtime (عشان الـ Pointer اللي جواه)
+// Group of simultaneous movements
+struct MoveGroup {
+    std::vector<MoverTarget> movers;
+};
+
+// Individual action definition within a cutscene sequence
+struct CutsceneAction {
+    CutsceneActionType type = CUTSCENE_WAIT;
+    std::string characterName;
+    float targetX           = 0.f;
+    float targetY           = 0.f;
+    float duration          = 0.f;
+    std::string lines[MAX_DIALOGUE_LINES];
+    int lineCount           = 0;
+    Emotion emotion         = EMOTION_NONE;
+    float emotionDuration   = 0.f;
+    float waitTime          = 0.f;
+    float actionTimer       = 0.f;
+    std::string targetMap;
+    sf::Vector2f spawnPos;
+
+    MoveGroup moveGroup;
+    bool  isStarted          = false;
+    float completionDistance = 20.f;
+    int direction = 0;
+};
+
+// Cutscene data structure containing ID and sequence of actions
 struct Cutscene {
     std::string cutsceneID;
     std::vector<CutsceneAction> actions;
-    bool isActive = false;
+    bool isActive        = false;
     int currentActionIdx = 0;
 };
 
-// 4. الـ Runtime اللي شايل كل حاجة
+// Global runtime state for the active cutscene
 struct CutsceneRuntime {
-    Cutscene* currentCutscene = nullptr; // هنا الكومبيلر خلاص عرف يعني ايه Cutscene
+    Cutscene* currentCutscene = nullptr;
+
     struct CharState {
-        std::string name;
+        std::string  name;
         sf::Vector2f pos;
         sf::Vector2f targetPos;
-        bool isMoving = false;
-        Emotion currentEmotion = EMOTION_NONE;
-        float emotionTimer = 0.f;
-        int currentFrame = 0;
+        bool         isMoving       = false;
+        bool         isStarted      = false;
+        bool         isArrived      = false;
+        float        startDelay     = 0.f;
+        float        delayTimer     = 0.f;
+        Emotion      currentEmotion = EMOTION_NONE;
+        float        emotionTimer   = 0.f;
+        int          currentFrame   = 0;
+        float        speed          = 160.f;
     } characters[5];
-    int characterCount = 0;
-    bool isActive = false;
+
+    bool  playerMoving      = false;
+    bool  playerStarted     = false;
+    float playerStartDelay  = 0.f;
+    float playerDelayTimer  = 0.f;
+    float playerTargetX     = 0.f;
+    float playerTargetY     = 0.f;
+    float playerSpeed       = 180.f;
+
+    int  characterCount = 0;
+    bool isActive       = false;
 
     sf::Texture emoteSheet;
-    sf::Sprite emoteSprite;
-    const int EMOTE_SIZE = 64;
-    const int FRAME_COUNT = 4;
-    const float FRAME_TIME = 0.15f;
+    sf::Sprite  emoteSprite;
+    const int   EMOTE_SIZE  = 64;
+    const int   FRAME_COUNT = 4;
+    const float FRAME_TIME  = 0.15f;
 };
 
 extern CutsceneRuntime g_cutscene;
 
-// 5. الدوال في الآخر خالص
-void initCutsceneSystem();
-void updateCutscene(float deltaTime);
-void drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font);
-bool isCutsceneActive();
-void startGenericCutscene(std::string id, std::vector<CutsceneAction> steps);
+// Core cutscene system functions
+void        initCutsceneSystem();
+void        updateCutscene(float deltaTime);
+void        drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font);
+bool        isCutsceneActive();
+void        startGenericCutscene(std::string id, std::vector<CutsceneAction> steps);
+void        stopCutscene();
 sf::IntRect calculateEmoteRect(Emotion emotion, int frame);
 
 #endif

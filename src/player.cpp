@@ -12,6 +12,7 @@ extern Player player;
 weapons weapon;
 static Sprite playerSprite;
 static sf::RectangleShape hitboxDebug;
+extern AudioManager audioManager;
 
 void initPlayer(Vector2f startPos) {
     player.pos = startPos;
@@ -206,8 +207,10 @@ void updatePlayer(float dt, World& world) {
             float length = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
             velocity /= length;
         } else {
-            player.isMoving = false;
-            audioManager.stopFootsteps();
+            if (player.isMoving) {
+                player.isMoving = false;
+                audioManager.stopFootsteps();
+            }
         }
     }
 
