@@ -89,8 +89,8 @@ int main() {
     initBoss();
     // To test right now — remove this line later when cutscene triggers it
     // Init section — replace spawnBoss with:
-    startRound(1);
-    initNPCs(world);
+    // startRound(1);
+     initNPCs(world);
     initChest(sf::Vector2f(100.f, 150.f), "sclab"); // ← adjust position
     initweapon(Vector2f(spawnX, spawnY));
     initGuitar();
@@ -226,7 +226,7 @@ int main() {
                 updateChest(gState.deltaTime, world.currentMapName);
                 updateBoss(gState.deltaTime);
                 // Update block — add next to updateBoss:
-                updateRounds(gState.deltaTime);
+                // updateRounds(gState.deltaTime);
                 updateEnemies(gState.deltaTime);
                 updateFireballs(gState.deltaTime);
 
