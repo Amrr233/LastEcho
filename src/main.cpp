@@ -235,6 +235,9 @@ int main() {
         if (gState.currentState == STATE_PLAYING) {
             if (isGuitarOpen())    updateGuitar(gState.deltaTime);
             updateCutscene(gState.deltaTime);
+            Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
+            Quest& cq = cp.quests[cp.currentQuestIdx];
+            statusTrackerText.setString("Phase: " + cp.phaseTitle + "\n" + "Quest: " + cq.title);
 
             currentMap = worldGetCurrentMap(world);
             if (currentMap) {
@@ -252,16 +255,21 @@ int main() {
                     updateFireballs(gState.deltaTime);
 
                     for (auto& p : currentMap->portals) {
-                        if (sf::FloatRect(player.pos.x, player.pos.y, 48, 48)
-                            .intersects(p.bounds))
-                        {
+                        sf::FloatRect playerBounds(player.pos.x, player.pos.y, 48.f, 48.f);
+                        if (playerBounds.intersects(p.bounds)) {
+                            if (p.targetMap == "lobby" && world.phaseSys.currentPhaseIdx == 0 &&
+                                world.phaseSys.allPhases[0].currentQuestIdx < 2) {
+                                warningMessage.setString("The gate is locked. Talk to the security guard!");
+                                warningTimer = 1.0f;
+                                break;
+                                }
                             worldSetCurrentMap(world, p.targetMap);
                             currentMap = worldGetCurrentMap(world);
-                            player.pos = Vector2f(
-                                p.spawnPos.x * currentMap->tileSize,
-                                p.spawnPos.y * currentMap->tileSize);
+                            player.pos.x = p.spawnPos.x * currentMap->tileSize;
+                            player.pos.y = p.spawnPos.y * currentMap->tileSize;
+                            player.sprite.setPosition(player.pos);
                             fadeAlpha = 255.0f;
-                            isFading  = true;
+                            isFading = true;
                             break;
                         }
                     }
@@ -299,6 +307,7 @@ int main() {
             drawPlayer(window);
             drawWeapons(window);
 
+
             // UI view
             window.setView(window.getDefaultView());
 
@@ -334,6 +343,19 @@ int main() {
             drawXPBar(window);
             drawHintIcon(window, world.hintSys);
             drawHintPage(window, world.hintSys);
+            if (warningTimer > 0) {
+                sf::Text popUp;
+                popUp.setFont(font);
+                popUp.setString(warningMessage.getString());
+                popUp.setCharacterSize(24);
+                popUp.setFillColor(sf::Color::Red);
+                popUp.setOutlineColor(sf::Color::Black);
+                popUp.setOutlineThickness(2);
+                popUp.setPosition(SCREEN_W / 2.0f - popUp.getGlobalBounds().width / 2.0f, 200.f);
+                window.draw(popUp);
+                warningTimer -= gState.deltaTime;
+            }
+
             drawCutsceneOverlay(window, font);
             gameLogic.draw(window);
             if (isGuitarOpen()) drawGuitar(window);
@@ -345,6 +367,16 @@ int main() {
             overlay.setFillColor(sf::Color(0, 0, 0, 230));
             window.draw(overlay);
             drawReviewGame(window, terminalSprite, terminalFont, myReview);
+        }
+
+        statusTrackerText.setFont(font);
+        statusTrackerText.setCharacterSize(20);
+        statusTrackerText.setFillColor(sf::Color::White);
+        statusTrackerText.setOutlineColor(sf::Color::Black);
+        statusTrackerText.setOutlineThickness(2);
+        statusTrackerText.setPosition(20.f, 140.f);
+        if (!isGuitarOpen()) {
+            window.draw(statusTrackerText);
         }
 
         // ── Fade overlay ─────────────────────────────────────────

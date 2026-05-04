@@ -160,6 +160,7 @@ void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,
 
     if (player.stringsCollected >= 4) {
         ps.gameFlags[7] = true;
+        ps.allPhases[0].currentQuestIdx = 4;
         markAllStringsCollected(hs);
     }
 }
@@ -370,8 +371,10 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         else if (ps.allPhases[0].currentQuestIdx == 3 && !ps.gameFlags[7]) {
             std::string wait[] = { "You have to help me, please find them..." };
             startDialogue("Amr", wait, 1, getNPCAvatar("amr"));
+            ps.allPhases[0].currentQuestIdx = 4;
+            ps.gameFlags[7] = true;
         }
-        else if (ps.allPhases[0].currentQuestIdx == 3 && ps.gameFlags[7]) {
+        else if (ps.allPhases[0].currentQuestIdx == 4 && ps.gameFlags[7]) {
             std::string wait2[] = {
                 "You actually did it?",
                 "Impressive.",
