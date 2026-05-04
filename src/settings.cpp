@@ -8,16 +8,16 @@ extern AppState last_state;
 settingsMenu settings;
 
 void settingsMenu::init(float W, float H) {
-    // 1. تحميل الصور (تأكد إن الأسامي دي بالظبط في فولدر assets)
+    // 1. تحميل الصور
     backTex.loadFromFile("assets/mainMenu/mainbackground.png");
-    bgTex.loadFromFile("assets/settings/settings bg.png");
+    setting_widowTex.loadFromFile("assets/settings/settings bg.png");
     volbar_tex.loadFromFile("assets/settings/volumebar.png");
     sliderTexture.loadFromFile("assets/settings/slider.png");
 
-    // 2. إعداد اللوحة الخشبية (Background)
+    // 2. إعداد اللوحة الخشبية
     backSprite.setTexture(backTex);
-    settings_window.setTexture(bgTex);
-    settings_window.setOrigin(bgTex.getSize().x / 2.f, bgTex.getSize().y / 2.f);
+    settings_window.setTexture(setting_widowTex);
+    settings_window.setOrigin(setting_widowTex.getSize().x / 2.f, setting_widowTex.getSize().y / 2.f);
     settings_window.setPosition(W / 2.f, H / 2.f);
     backSprite.setOrigin(backTex.getSize().x / 2.f, backTex.getSize().y / 2.f);
     backSprite.setPosition(W / 2.f, H / 2.f);
@@ -47,19 +47,19 @@ void settingsMenu::init(float W, float H) {
     sfxHandle.setTexture(sliderTexture);
     sfxHandle.setOrigin(sliderTexture.getSize().x / 2.f, sliderTexture.getSize().y / 2.f);
 
-    // تحديث الأماكن بناءً على القيم الافتراضية (50%)
+    // بتخلي بداية الhandle في نص الbar
     updateMaster(0);
     updateMusic(0);
     updateSFX(0);
-    // 1. تصغير البوردة الخشب (الخلفية)
+    // 1. تصغير البوردة الخشب
     settings_window.setScale(2.0f, 2.0f);
 
-    // 2. تصغير البارات التلاتة (الخشب الصغير)
+    // 2. تصغير البارات التلاتة
     masterBar.setScale(0.4f, 0.4f);
     musicBar.setScale(0.4f, 0.4f);
     sfxBar.setScale(0.4f, 0.4f);
 
-    // 3. تصغير المقابض (الـ Handles)
+    // 3. تصغير الـ handles
     masterHandle.setScale(0.3f, 0.3f);
     musicHandle.setScale(0.3f, 0.3f);
     sfxHandle.setScale(0.3f, 0.3f);
@@ -70,7 +70,7 @@ void settingsMenu::init(float W, float H) {
         labelTex[i].loadFromFile(labelFiles[i]);
         labelSprites[i].setTexture(labelTex[i]);
 
-        // 1. تظبط الـ Scale (لو الصور كبيرة، 0.4f او 0.5f هيكون مثالي)
+        // 1. تظبط الـ Scale
         labelSprites[i].setScale(0.4f, 0.4f);
 
         // 2. تظبط الـ Origin في نص الصورة عشان تتحاذى صح مع البار

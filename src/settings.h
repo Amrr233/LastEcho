@@ -2,44 +2,40 @@
 #define LASTECHO_SETTINGS_H
 
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
 #include "Data.h" // ضروري عشان الـ AppState والـ States
 
 struct settingsMenu {
  sf::Texture labelTex[3];
  sf::Sprite labelSprites[3];
- // 1. اللوحة الخلفية (البوردة الخشب)
+ // 1. اللوحة الخشب
  sf::Sprite settings_window;
- sf::Texture bgTex;
+ sf::Texture setting_widowTex;
  // bg behind the settings window
  sf::Sprite backSprite; // صورة الكليه اللى ورا
  sf::Texture backTex;
 
  // 2. التكستشرز اللي هنستخدمها لكل السلايدرز
- sf::Texture volbar_tex;    // صورة الخط الخشبي (المسار)
- sf::Texture sliderTexture; // صورة المقبض (الـ Knob)
+ sf::Texture volbar_tex;    // صورة الخط الخشبي
+ sf::Texture sliderTexture; // صورة المقبض
 
- // --- السلايدرز التلاتة ---
+ //  السلايدرز التلاته
 
- // Master Slider (الصوت الكلي)
+ // Master Slider
  sf::Sprite masterBar;
  sf::Sprite masterHandle;
  float masterVolume = 50.0f;
 
- // Music Slider (المزيكا)
+ // Music Slider
  sf::Sprite musicBar;
  sf::Sprite musicHandle;
  float musicVolume = 50.0f;
 
- // SFX Slider (المؤثرات)
+ // SFX Slider
  sf::Sprite sfxBar;
  sf::Sprite sfxHandle;
  float sfxVolume = 50.0f;
 
 
- // escape
-  sf::Sprite backButton;
-  sf::Texture backBtnTex;
 
   // هنضيف دي عشان نعرف الماوس فوق الزرار ولا لأ (للـ Hover effect)
   bool isBackHovered = false;
@@ -52,9 +48,10 @@ struct settingsMenu {
 
  // دالة الرسم (اللي بنناديها في المين)
  void draw(sf::RenderWindow &window);
+
 };
 
-// إعلان الكائن عشان يقرأه أي ملف تاني (زي المين)
+
 extern settingsMenu settings;
 
 // دالة تحديث المنطق والتحكم (الماوس والكيبورد)
