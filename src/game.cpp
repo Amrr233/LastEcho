@@ -1,3 +1,4 @@
+#include "audio.h"
 #include "Game.h"
 #include "Data.h"
 
@@ -51,6 +52,7 @@ void Game::update(sf::RenderWindow& window, AppState& currentState) {
     // 1. منطق الـ Escape لفتح وقفل المنيو
     static bool escPress = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        audioManager.playClickSound();
         if (!escPress) {
             isPaused = !isPaused;
             escPress = true;
@@ -61,13 +63,19 @@ void Game::update(sf::RenderWindow& window, AppState& currentState) {
 
         // لو اللعبة مش واقفة، حدث الحركة والوحوش
         if (isPaused) {
+            static int lastHoveredIndex = -1;
+
             for (int i = 0; i < 3; i++) {
                 // فحص هل الماوس فوق الزرار
                 if (buttons[i].getGlobalBounds().contains(mousePos)) {
                     words[i].setFillColor(sf::Color::Yellow); // تأثير الـ Hover
-
+                    if (lastHoveredIndex != i) {//hoverSound logic
+                        audioManager.playhoverSound();
+                        lastHoveredIndex = i; // سجل إننا بقينا هنا
+                    }
                     // فحص الضغط
                     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                        audioManager.playClickSound();
                         if (i == 0) isPaused = false;               // Resume
                         if (i == 1) {
                             last_state = STATE_PLAYING;
@@ -79,6 +87,9 @@ void Game::update(sf::RenderWindow& window, AppState& currentState) {
                     }
                 } else {
                     words[i].setFillColor(sf::Color::White); // رجع اللون للأبيض
+                    if (lastHoveredIndex == i) {
+                        lastHoveredIndex = -1;
+                    }
                 }
         }
             // player.update();

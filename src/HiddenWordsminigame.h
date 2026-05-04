@@ -3,23 +3,27 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <vector>
 
 using namespace std;
 
-// ده الـ Struct اللي هيشيل بيانات المرحلة
+// Maximum capacity for the word system to ensure memory safety
+const int MAX_WORDS = 5;
+
 struct MovieReview {
-    string title;            // اسم الفيلم
-    string reviewTemplate;   // النص بالـ ____
-    vector<string> solutions; // الكلمات الصح
-    vector<string> hints;     // الهينت لكل كلمة
-    int currentWordIdx = 0;   // واصلين للكلمة الكام
-    string userInput = "";    // اللي اللاعب بيكتبه حالياً
-    bool isCleared = false;   // هل خلص المرحلة دي؟
-    string errorMessage = "";
+    string title;            // Movie title header
+    string reviewTemplate;   // Main text with underscores
+
+    string solutions[MAX_WORDS];
+    string hints[MAX_WORDS];
+    int totalWords = 0;      // Actual count of words in the current level
+
+    int currentWordIdx = 0;  // Tracks progress through word array
+    string userInput = "";   // Buffer for active keyboard input
+    bool isCleared = false;  // Level completion flag
+    string errorMessage = ""; // Buffer for error/hint messages
 };
 
-// الفانكشنز اللي هنستخدمها في الـ cpp
+// Function prototypes for game lifecycle management
 void initReviewGame(MovieReview& review);
 void updateReviewInput(sf::Event& event, MovieReview& review);
 void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& font, MovieReview& review);

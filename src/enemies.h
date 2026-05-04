@@ -6,7 +6,7 @@
 #ifndef LASTECHO_ENEMY_H
 #define LASTECHO_ENEMY_H
 
-// Maximum amount of enemies allowed on a map
+// maximum amount of enemies allowed on a map
 constexpr int MAX_ENEMIES = 20;
 
 enum EnemyType {
@@ -43,12 +43,11 @@ struct enemy {
 
     bool  isInvincible = false;
     bool  isAlive = false;
-    bool  isBoss = false; // Fixed typo from 'idBoss'
+    bool  isBoss = false;
 
     EnemyType enemyType;
 };
 
-// Function Prototypes
 void initEnemy(int index, sf::Vector2f startPos, EnemyType type);
 void updateEnemies(float dt);
 void drawEnemy(sf::RenderWindow& window);
