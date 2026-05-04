@@ -296,7 +296,7 @@ void updateCutscene(float deltaTime) {
         if (allDone) stepFinished = true;
         break;
     }
-    } 
+    }
 
     if (stepFinished) {
         scene.currentActionIdx++;
