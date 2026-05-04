@@ -10,6 +10,7 @@ static bool loaded = false;
 static sf::Font xpFont;
 static bool fontLoaded = false;
 
+//player.cpp ba3den
 void addXP(int amount) {
     player.xp += amount;
     while (player.xp >= player.xpToNextLevel) {
