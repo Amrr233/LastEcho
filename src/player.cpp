@@ -5,11 +5,10 @@
 #include "enemies.h"
 #include "NPC.h"
 #include "Cutscene.h"
-#include  "audio.h"
+#include "audio.h"
 using namespace sf;
 
 extern Player player;
-weapons weapon;
 static Sprite playerSprite;
 static sf::RectangleShape hitboxDebug;
 extern AudioManager audioManager;
@@ -35,8 +34,8 @@ void initPlayer(Vector2f startPos) {
     player.attackTextures[EAST].loadFromFile("assets/sprites/player/punching/crosspunching.east.png");
 
     // sword textures
-    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
-    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
+    player.swordTextures[SOUTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordSouth.png");
+    player.swordTextures[NORTH].loadFromFile("assets/sprites/player/swingingSword/swingingSwordNorth.png");
     player.swordTextures[EAST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordEast.png");
     player.swordTextures[WEST].loadFromFile("assets/sprites/player/swingingSword/swingingSwordWest.png");
 
@@ -48,78 +47,26 @@ void initPlayer(Vector2f startPos) {
     player.isInvincible = false;
     player.currentState = IDLE;
 
+    // for testing — revert to WEAPON_FIST and hasSword=false when done
     player.hasSword = true;
-    player.swordEquipped = WEAPON_FIST;
+    player.weaponEquipped = WEAPON_FIST;
 
     playerSprite.setTexture(player.walkTextures[SOUTH]);
     playerSprite.setScale(1.7f, 1.7f);
     playerSprite.setOrigin(24.f, 24.f);
 }
 
-void initweapon(Vector2f startPos) {
-    weapon.currentWeapon = WEAPON_FIST;
-    weapon.weaponOffset = Vector2f(0.f, 0.f);
-    weapon.weaponRotation = 0.f;
-    weapon.weaponSwingSpeed = 600.f;
-    weapon.weaponSwingTarget = 90.f;
-    weapon.weaponShape.setSize(sf::Vector2f(8.f, 32.f));
-    weapon.weaponShape.setFillColor(sf::Color::Red);
-    weapon.weaponShape.setOrigin(28.f, 15.f);
-}
-
-
-WeaponConfig sword = {15.f, 32.f, 600.f, 90.f, sf::Color::White};
-WeaponConfig book  = {20.f, 20.f, 300.f, 45.f, sf::Color::Blue};
-
-Vector2f getWeaponOffset(Direction dir) {
-    switch (dir) {
-        case SOUTH: return Vector2f(0.f, 10.f);
-        case NORTH: return Vector2f(0.f, -10.f);
-        case EAST:  return Vector2f(15.f, 0.f);
-        case WEST:  return Vector2f(-15.f, 0.f);
-        default:    return Vector2f(0.f, 0.f);
-    }
-}
-void updateWeapon(float dt) {
-    // 1. Get correct offset based on facing direction
-    sf::Vector2f offset = getWeaponOffset(player.facing);
-    weapon.weaponShape.setPosition(player.pos.x + offset.x, player.pos.y + offset.y);
-
-    // 2. Swing logic
-    if (player.currentState == ATTACKING) {
-        weapon.weaponRotation += weapon.weaponSwingSpeed * dt;
-        if (weapon.weaponRotation > weapon.weaponSwingTarget) {
-            weapon.weaponRotation = weapon.weaponSwingTarget;
-        }
-    } else {
-        weapon.weaponRotation = -90.f; // Rest position
-    }
-
-    // 3. Apply rotation to the shape
-    weapon.weaponShape.setRotation(weapon.weaponRotation);
-}
-
-void weapons::switching(weaponType type) {
-    currentWeapon = type;
-    switch(type) {
-        case WEAPON_FIST: weaponShape.setSize({8.f, 32.f}); weaponShape.setFillColor(sf::Color::White); weaponShape.setOrigin(4.f, 28.f); break;
-        case WEAPON_BOOK: weaponShape.setSize({20.f, 20.f}); weaponShape.setFillColor(sf::Color::Blue); weaponShape.setOrigin(10.f, 10.f); break;
-        default: break;
-    }
-}
-
 void handlingAttack(float dt) {
     if (player.currentState == ATTACKING) {
-        int totalFrames = (player.swordEquipped == WEAPON_SWORD) ? 9 : 6;
+        int totalFrames = (player.weaponEquipped == WEAPON_SWORD) ? 9 : 6;
 
         player.animationTimer += dt;
         if (player.animationTimer >= 0.08f) {
             player.animationTimer = 0.f;
             player.currentFrame++;
 
-            if (player.currentFrame == 3) {
+            if (player.currentFrame == 3)
                 checkAttackHits();
-            }
 
             if (player.currentFrame >= totalFrames) {
                 player.currentFrame = 0;
@@ -148,44 +95,21 @@ void handlingHurt(float dt) {
         player.currentState = IDLE;
     }
 }
-void updatePlayerAnimation(Direction dir, float dt, bool moving) {
-    player.facing = dir;
 
-    if (player.currentState == ATTACKING) {
-        if (player.swordEquipped == WEAPON_SWORD)
-            playerSprite.setTexture(player.swordTextures[player.facing]);
-        else
-            playerSprite.setTexture(player.attackTextures[player.facing]);
-    } else {
-        playerSprite.setTexture(player.walkTextures[player.facing]);
-        if (moving) {
-            player.animationTimer += dt;
-            if (player.animationTimer >= 0.1f) {
-                player.animationTimer = 0.f;
-                player.currentFrame = (player.currentFrame + 1) % 6;
-            }
-        } else {
-            player.currentFrame = 0;
-        }
-    }
-
-    playerSprite.setTextureRect(sf::IntRect(player.currentFrame * 68, 0, 68, 68));
-}
 void updatePlayer(float dt, World& world) {
     if (player.hp <= 0) {
         player.currentState = DEAD;
         return;
     }
 
-    // Check for cutscenes first
     if (isCutsceneActive()) {
         playerSprite.setPosition(player.pos);
         return;
     }
 
-    GameMap* currentMapPtr = worldGetCurrentMap(world);
-    if (!currentMapPtr) return;
-    GameMap& myMap = *currentMapPtr;
+    // GameMap* currentMapPtr = worldGetCurrentMap(world);
+    // if (!currentMapPtr) return;
+    GameMap& myMap = *worldGetCurrentMap(world);
 
     Vector2f velocity(0.f, 0.f);
 
@@ -199,11 +123,13 @@ void updatePlayer(float dt, World& world) {
         if (velocity.x != 0.f || velocity.y != 0.f) {
             player.isMoving = true;
             audioManager.startFootsteps();
+
             if (velocity.x > 0)      player.facing = EAST;
             else if (velocity.x < 0) player.facing = WEST;
             else if (velocity.y > 0) player.facing = SOUTH;
             else if (velocity.y < 0) player.facing = NORTH;
 
+            // normalize so diagonal isn't faster
             float length = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
             velocity /= length;
         } else {
@@ -217,7 +143,7 @@ void updatePlayer(float dt, World& world) {
     Vector2f movement = velocity * player.speed * dt;
     Vector2f oldPos = player.pos;
 
-    // ===== X AXIS COLLISION =====
+    // X axis collision
     player.pos.x += movement.x;
     playerSprite.setPosition(player.pos);
 
@@ -237,7 +163,7 @@ void updatePlayer(float dt, World& world) {
         playerSprite.setPosition(player.pos);
     }
 
-    // ===== Y AXIS COLLISION =====
+    // Y axis collision
     player.pos.y += movement.y;
     playerSprite.setPosition(player.pos);
 
@@ -253,7 +179,7 @@ void updatePlayer(float dt, World& world) {
         playerSprite.setPosition(player.pos);
     }
 
-    // ===== MAP BOUNDS =====
+    // map bounds
     float mapW = static_cast<float>(myMap.width * myMap.tileSize);
     float mapH = static_cast<float>(myMap.height * myMap.tileSize);
     if (player.pos.x < 0) player.pos.x = 0;
@@ -261,23 +187,23 @@ void updatePlayer(float dt, World& world) {
     if (player.pos.y < 0) player.pos.y = 0;
     if (player.pos.y > mapH) player.pos.y = mapH;
 
-    // ===== SWORD SWITCHING =====
+    // toggling between sword and fist by pressing t
     static bool tWasPressed = false;
     bool tNow = sf::Keyboard::isKeyPressed(sf::Keyboard::T);
     if (tNow && !tWasPressed && player.hasSword) {
-        if (player.swordEquipped == WEAPON_FIST)
-            player.swordEquipped = WEAPON_SWORD;
+        if (player.weaponEquipped == WEAPON_FIST)
+            player.weaponEquipped = WEAPON_SWORD;
         else
-            player.swordEquipped = WEAPON_FIST;
+            player.weaponEquipped = WEAPON_FIST;
     }
     tWasPressed = tNow;
 
     handlingHurt(dt);
     handlingAttack(dt);
 
-    // ===== ANIMATION =====
+    // animation
     if (player.currentState == ATTACKING) {
-        if (player.swordEquipped == WEAPON_SWORD)
+        if (player.weaponEquipped == WEAPON_SWORD)
             playerSprite.setTexture(player.swordTextures[player.facing]);
         else
             playerSprite.setTexture(player.attackTextures[player.facing]);
@@ -314,8 +240,4 @@ sf::FloatRect attackHitBox() {
 void drawPlayer(RenderWindow& window) {
     playerSprite.setPosition(player.pos);
     window.draw(playerSprite);
-}
-
-void drawWeapons(sf::RenderWindow& window) {
-    window.draw(weapon.weaponShape);
 }

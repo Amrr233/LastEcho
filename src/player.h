@@ -42,26 +42,7 @@ struct Player {
     // sword textures
     sf::Texture swordTextures[4];
     bool hasSword ;
-    weaponType swordEquipped;
-};
-
-struct weapons {
-    weaponType currentWeapon;
-    sf::Texture weaponTexture;
-    float weaponRotation;
-    float weaponSwingSpeed;
-    float weaponSwingTarget;
-    //offset from player's pos to player's hand
-    sf::Vector2f weaponOffset;
-    sf::RectangleShape weaponShape;
-    void switching(weaponType type);
-};
-struct WeaponConfig {
-    float width;
-    float height;
-    float swingSpeed;
-    float swingTarget;
-    sf::Color color;
+    weaponType weaponEquipped;
 };
 // FUNCTIONS
 
@@ -70,12 +51,7 @@ void updatePlayer(float dt, World& world);
 void handlingAttack(float dt);
 void handlingHurt(float dt);
 sf::FloatRect attackHitBox();
-void initweapon(sf::Vector2f startPos);
- void updateWeapon(float dt);
-void getWeaponOffset ();
 void drawPlayer(sf::RenderWindow& window);
-void drawWeapons(sf::RenderWindow& window);
 void updatePlayerAnimation(Direction dir, float dt, bool moving);
 
 extern Player   player;
-extern weapons weapon;
