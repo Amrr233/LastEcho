@@ -8,7 +8,6 @@
 #include "player.h"
 NPC allNPCs[MAX_NPCS];
 int npcCount = 0;
-// INIT
 sf::FloatRect getNPCHitbox(const NPC& npc) {
     sf::FloatRect bounds = npc.sprite.getGlobalBounds();
     float w = bounds.width * 0.3f;
@@ -21,7 +20,6 @@ sf::FloatRect getNPCHitbox(const NPC& npc) {
 }
 void initNPCs(World& world) {
     npcCount = 0;
-    // Key Keeper NPC
     NPC keyKeeper;
     keyKeeper.name = "Key_Keeper";
     keyKeeper.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
@@ -156,7 +154,6 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
     amr.currentWaypoint = 0;
     allNPCs[npcCount++] = amr;
 
-    //INIT
     for (int i = 0; i < npcCount; i++) {
         NPC& npc = allNPCs[i];
         npc.sprite.setTexture(npc.walkTextures[SOUTH]);
@@ -179,7 +176,6 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
             std::pow(npc.pos.y - playerPos.y, 2)
         );
 
-        //PLAYER HITBOX
         float px = playerPos.x;
         float py = playerPos.y;
 
@@ -190,7 +186,6 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
             20.f
         );
 
-        //MOVING NPC
         if (!npc.isStatic && npc.waypointsCount > 0) {
             if (npc.isWaiting) {
                 npc.waitTimer += deltaTime;
@@ -257,7 +252,6 @@ void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f player
             }
         }
 
-        //STATIC NPC
         else if (npc.isStatic) {
             if (distToPlayer < 120.0f) {
                 sf::Vector2f diff = playerPos - npc.pos;
@@ -311,7 +305,6 @@ void interactWithNPC(sf::Vector2f playerPos) {
     }
 }
 
-//INTERACTION
 
 std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
     for (int i = 0; i < npcCount; i++) {
@@ -381,7 +374,7 @@ void updateNPCAnimation(std::string name, int direction, float dt) {
             npc.animTimer += dt;
             if (npc.animTimer >= 0.1f) {
                 npc.animTimer = 0.f;
-                npc.currentFrame = (npc.currentFrame + 1) % 6; // عندك 6 فريمات
+                npc.currentFrame = (npc.currentFrame + 1) % 6;
             }
 
             npc.sprite.setTextureRect(sf::IntRect(npc.currentFrame * 68, 0, 68, 68));

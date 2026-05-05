@@ -6,7 +6,6 @@
 #include <vector>
 #include "Data.h"
 
-// Character emotion states for overhead emotes
 enum Emotion {
     EMOTION_NONE = -1,
     EMOTION_QUESTION = 0,
@@ -25,7 +24,7 @@ enum Emotion {
     EMOTION_SHY
 };
 
-// Types of actions that can be performed during a cutscene
+
 enum CutsceneActionType {
     CUTSCENE_MOVE,
     CUTSCENE_SPEAK,
@@ -38,8 +37,6 @@ enum CutsceneActionType {
     CUTSCENE_SET_DIRECTION
 };
 
-// Movement target configuration
-// startDelay defines how many seconds to wait before this specific mover begins
 struct MoverTarget {
     enum MoverType { NPC, PLAYER } type;
     std::string npcName;
@@ -54,12 +51,10 @@ struct MoverTarget {
           targetX(x), targetY(y), speed(spd), startDelay(delay) {}
 };
 
-// Group of simultaneous movements
 struct MoveGroup {
     std::vector<MoverTarget> movers;
 };
 
-// Individual action definition within a cutscene sequence
 struct CutsceneAction {
     CutsceneActionType type = CUTSCENE_WAIT;
     std::string characterName;
@@ -81,7 +76,6 @@ struct CutsceneAction {
     int direction = 0;
 };
 
-// Cutscene data structure containing ID and sequence of actions
 struct Cutscene {
     std::string cutsceneID;
     std::vector<CutsceneAction> actions;
@@ -89,7 +83,6 @@ struct Cutscene {
     int currentActionIdx = 0;
 };
 
-// Global runtime state for the active cutscene
 struct CutsceneRuntime {
     Cutscene* currentCutscene = nullptr;
 
@@ -128,7 +121,6 @@ struct CutsceneRuntime {
 
 extern CutsceneRuntime g_cutscene;
 
-// Core cutscene system functions
 void        initCutsceneSystem();
 void        updateCutscene(float deltaTime);
 void        drawCutsceneOverlay(sf::RenderWindow& window, sf::Font& font);

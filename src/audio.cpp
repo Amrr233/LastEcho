@@ -2,7 +2,6 @@
 AudioManager audioManager;
 
 AudioManager::AudioManager() {
-    // تحميل صوت الخطوات مرة واحدة في البداية
     if (!footstepsBuffer.loadFromFile("assets/audio/footsteps.wav")) {
         std::cout << "Error loading footsteps.wav" << std::endl;
     }
@@ -56,7 +55,7 @@ void AudioManager::setMusicVolume(float volume) {
 }
 
 void AudioManager::setSFXVolume(float volume) {
-    footsteps.setVolume(volume * 0.5f); // الخطوات دايماً أهدى شوية من المزيكا
+    footsteps.setVolume(volume * 0.5f);
     typingSound.setVolume(volume);
     hoverSound.setVolume(volume*0.5f);
     clickSound.setVolume(volume*3.f);
@@ -64,8 +63,8 @@ void AudioManager::setSFXVolume(float volume) {
 }
 
 void AudioManager::startFootsteps() {
-    if (footsteps.getStatus() != sf::Sound::Status::Playing) { //بنتاكد ان الصوت مش شغال قبل كده عشان ميمعلش restart كل شويه
-        footsteps.setPitch(1.4f); // السرعة اللي تليق مع مشية اللاعب
+    if (footsteps.getStatus() != sf::Sound::Status::Playing) {
+        footsteps.setPitch(1.4f); //سرعه صوت المشي
         footsteps.play();
     }
 }

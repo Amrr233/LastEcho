@@ -26,23 +26,17 @@ struct PhaseSystem {
     std::string pendingItemTexture = "";
 };
 
-// ════════════════════════════════════════════════════════════════
 // CORE
-// ════════════════════════════════════════════════════════════════
 void phaseInit(PhaseSystem& ps);
 void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 void checkDialogueReward(PhaseSystem& ps);
 
-// ════════════════════════════════════════════════════════════════
 // STRINGS
-// ════════════════════════════════════════════════════════════════
 bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 void pickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentMap);
 
-// ════════════════════════════════════════════════════════════════
 // PHASE HANDLERS
-// ════════════════════════════════════════════════════════════════
 void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 void updatePhase1(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 void updatePhase2(PhaseSystem& ps, std::string npcName, HintSystem& hs);

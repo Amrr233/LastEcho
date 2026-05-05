@@ -33,7 +33,7 @@ void loadGuitarAssets() {
         cout << "Button background texture missing!\n";
 
 
-    // 1. EXIT BUTTON
+
     g_guitar.exitBtn.sprite.setTexture(g_guitar.buttonBgTexture);
     g_guitar.exitBtn.sprite.setScale(0.25f, 0.25f);
     FloatRect originalExitBounds = g_guitar.exitBtn.sprite.getLocalBounds();
@@ -50,7 +50,7 @@ void loadGuitarAssets() {
     g_guitar.exitBtn.text.setPosition(g_guitar.exitBtn.sprite.getPosition());
     g_guitar.exitBtn.bounds = g_guitar.exitBtn.sprite.getGlobalBounds();
 
-    // 2. CHANGE MODE BUTTON
+
     g_guitar.changeModeBtn.sprite.setTexture(g_guitar.buttonBgTexture);
     g_guitar.changeModeBtn.sprite.setScale(0.25f, 0.25f);
     FloatRect originalModeBounds = g_guitar.changeModeBtn.sprite.getLocalBounds();
@@ -67,7 +67,7 @@ void loadGuitarAssets() {
     g_guitar.changeModeBtn.text.setPosition(g_guitar.changeModeBtn.sprite.getPosition());
     g_guitar.changeModeBtn.bounds = g_guitar.changeModeBtn.sprite.getGlobalBounds();
 
-    // Sounds & Generic UI
+
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
             string fileName = "assets/guitarMiniGame/sounds/" + to_string(s + 1) + "-" + to_string(f) + ".wav";
@@ -92,7 +92,6 @@ void setupFretButtons() {
     float startX = gPos.x - (gBounds.width / 2.0f) + 250.0f;
     float startY = gPos.y - (gBounds.height / 2.0f) + 320.0f;
     float spacingX = 42.0f; float spacingY = 17.0f;
-    // nos el guitar bel zabt w barg3 war shway w banzl taht w spacing el masafa bein kol wahd w el tany
     Vector2f rectSize(36.0f, 12.0f);
 
     for (int s = 0; s < MAX_STRINGS; s++) {
@@ -168,7 +167,6 @@ void updateGuitar(float deltaTime) {
         }
     }
 
-    // text update
     if (g_guitar.mode == GUITAR_FREE) {
         g_guitar.modeText.setString("Mode: Free Play");
     } else {
@@ -193,7 +191,6 @@ void updateGuitar(float deltaTime) {
         g_guitar.scoreText.setString(scoreStr);
         if (g_guitar.questActive) {
             g_guitar.questTimer -= deltaTime;
-            // to set a right timer for any device
             if (g_guitar.questTimer <= 0) {
                 g_guitar.questTimer = 0;
                 g_guitar.questActive = false;
@@ -201,14 +198,13 @@ void updateGuitar(float deltaTime) {
         }
     }
 
-    // hover effecr
+
     for (int s = 0; s < MAX_STRINGS; s++) {
         for (int f = 0; f < MAX_FRETS; f++) {
             if (g_guitar.frets[s][f].isPressed) {
                 g_guitar.frets[s][f].shape.setFillColor(Color(255, 255, 255, 150));
                 g_guitar.frets[s][f].isPressed = false;
             } else {
-                //c.alpha (shafifiah)
                 Color c = g_guitar.frets[s][f].shape.getFillColor();
                 if (c.a > 0) g_guitar.frets[s][f].shape.setFillColor(Color(255, 255, 255, max(0, (int)c.a - 5)));
             }
@@ -228,14 +224,12 @@ void drawGuitar(RenderWindow& window) {
     float guitarRatio = GUITAR_VM_WIDTH / GUITAR_VM_HEIGHT;
 
     float vpW, vpH, vpX, vpY;
-    // screen width is too big so vpW / multiply it by the ration
-    // screen height is too big so vpH / multiply it by the ration
     if (winRatio > guitarRatio) {
         vpW = (guitarRatio / winRatio) * animatedScale; vpH = animatedScale;
     } else {
         vpW = animatedScale; vpH = (winRatio / guitarRatio) * animatedScale;
     }
-    //(screen - guitar) / 2
+
     vpX = (1.0f - vpW) / 2.0f; vpY = (1.0f - vpH) / 2.0f;
 
     g_guitar.guitarView.setViewport(FloatRect(vpX, vpY, vpW, vpH));

@@ -21,7 +21,6 @@ void initReviewGame(MovieReview& review) {
     review.hints[0] = "A path or entrance to another place";
     review.hints[1] = "Something not identified or familiar";
 
-    // Reset game state variables
     review.currentWordIdx = 0;
     review.userInput = "";
     review.errorMessage = "";
@@ -31,14 +30,12 @@ void initReviewGame(MovieReview& review) {
 void updateReviewInput(sf::Event& event, MovieReview& review) {
     if (review.isCleared) return;
 
-    // Reset error state on any key press to resume typing
     if (review.errorMessage != "" && event.type == sf::Event::KeyPressed) {
         review.errorMessage = "";
         review.userInput = "";
         return;
     }
 
-    // Process Character Entry
     if (event.type == sf::Event::TextEntered) {
         if (event.text.unicode == 8) { // Handle Backspace
             if (!review.userInput.empty()) review.userInput.pop_back();
@@ -48,28 +45,23 @@ void updateReviewInput(sf::Event& event, MovieReview& review) {
         }
     }
 
-    // Process Submission on Enter
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
         if (!review.userInput.empty()) {
             string temp = review.userInput;
 
-            // Normalize input: Lowercase conversion and trimming
             for (auto & c: temp) c = tolower(c);
             temp.erase(0, temp.find_first_not_of(' '));
             temp.erase(temp.find_last_not_of(' ') + 1);
 
-            // Validation against current array element
             if (temp == review.solutions[review.currentWordIdx]) {
                 review.errorMessage = "";
                 review.currentWordIdx++;
                 review.userInput = "";
 
-                // Check for overall win condition
                 if (review.currentWordIdx >= review.totalWords) {
                     review.isCleared = true;
                 }
             } else {
-                // Trigger error state with contextual hint from the array
                 review.errorMessage = "ACCESS DENIED\n\nHINT: " + review.hints[review.currentWordIdx];
             }
         }
@@ -84,7 +76,6 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     sf::Text text;
     text.setFont(font);
 
-    // Animation variables (Static to persist between frame calls)
     static float lineAlpha[5] = { 0, 0, 0, 0, 0 };
     static int currentLineVisible = 0;
     static int charCount = 0;
@@ -93,7 +84,6 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
     const float fadeSpeed = 165.0f;
     const float typeSpeed = 0.05f;
 
-    // 1. Victory State Visuals: Fade-in and Typewriter animation
     if (review.isCleared) {
         string winLines[] = { "ACCESS GRANTED", "CONNECTION ESTABLISHED", "\"A GATEWAY TO THE UNKNOWN\"" };
         int totalWinLines = 3;
@@ -132,7 +122,6 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         return;
     }
 
-    // 2. Error State Visuals
     if (review.errorMessage != "") {
         string errLines[] = { "ACCESS DENIED", "HINT: " + review.hints[review.currentWordIdx], "[Press any key to retry]" };
         int totalErrLines = 3;
@@ -158,9 +147,7 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
             }
         }
     }
-    // 3. Main UI State
     else {
-        // Reset animations when returning to normal state
         currentLineVisible = 0;
         charCount = 0;
         charTimer = 0.0f;
@@ -169,14 +156,12 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         float startX = pos.x - (bounds.width * 0.42f);
         float startY = pos.y - (bounds.height * 0.40f);
 
-        // Render Movie Title
         text.setCharacterSize(20);
         text.setFillColor(sf::Color(255, 128, 0));
         text.setString(review.title);
         text.setPosition(startX + 40.f, startY + 20.f);
         window.draw(text);
 
-        // Progress Tracker: Displays current word index vs total count
         string progress = to_string(review.currentWordIdx) + " / " + to_string(review.totalWords) + " WORDS";
         text.setCharacterSize(17);
         text.setFillColor(sf::Color(150, 150, 150));
@@ -184,14 +169,12 @@ void drawReviewGame(sf::RenderWindow& window, sf::Sprite& screenBg, sf::Font& fo
         text.setPosition(startX + (bounds.width * 0.58f), startY + 25.f);
         window.draw(text);
 
-        // Render Review Content
         text.setCharacterSize(17);
         text.setFillColor(sf::Color::Green);
         text.setString(review.reviewTemplate);
         text.setPosition(startX, startY + (bounds.height * 0.12f));
         window.draw(text);
 
-        // Render User Input Field
         text.setCharacterSize(18);
         text.setFillColor(sf::Color::White);
         text.setString("> " + review.userInput + "_");

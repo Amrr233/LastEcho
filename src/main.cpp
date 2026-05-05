@@ -56,7 +56,6 @@ sf::Text lostText;
 int main() {
 
 
-    //initializaiton
     window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
@@ -82,7 +81,6 @@ int main() {
     interactPrompt.setOutlineColor(sf::Color::Black);
     interactPrompt.setOutlineThickness(1);
 
-    // ── Lost screen init ──────────────────────────────────────
     blurOverlay.setSize(sf::Vector2f(SCREEN_W, SCREEN_H));
     blurOverlay.setFillColor(sf::Color(0, 0, 0, 0));
     lostFont.loadFromFile("assets/fonts/pixelsix00.ttf");
@@ -209,8 +207,6 @@ int main() {
                 SettingsUpdate(window, gState.currentState);
         }
 
-        // ════════════════════════════════════════════════════════
-        // UPDATE LOGIC
         if (gState.currentState == STATE_PLAYING) {
             if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
@@ -229,7 +225,6 @@ int main() {
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-                // pause everything during lost screen
                 if (/*!gameLogic.isPaused &&*/ !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
@@ -261,7 +256,6 @@ int main() {
                     }
                 }
 
-                //  lost screen trigger
                 if (roundMan.playerDied && !bossLostScreen) {
                     bossLostScreen  = true;
                     lostScreenTimer = 0.f;
@@ -269,15 +263,12 @@ int main() {
                     roundMan.playerDied = false;
                 }
 
-                // lost screen update
                 if (bossLostScreen) {
                     lostScreenTimer += gState.deltaTime;
 
-                    // blur fades in over 1 second
                     blurAlpha = std::min(200.f, blurAlpha + 200.f * gState.deltaTime);
                     blurOverlay.setFillColor(sf::Color(0, 0, 0, (sf::Uint8)blurAlpha));
 
-                    // after 3 seconds restart round
                     if (lostScreenTimer >= 3.f) {
                         bossLostScreen  = false;
                         player.hp       = player.maxHp;
@@ -295,8 +286,6 @@ int main() {
             if (fadeAlpha <= 0) { fadeAlpha = 0; isFading = false; }
         }
 
-        // ════════════════════════════════════════════════════════
-        // DRAW LOGIC
         window.clear();
 
         if (gState.currentState == STATE_MENU)
@@ -361,16 +350,13 @@ int main() {
             }
 
             drawCutsceneOverlay(window, font);
-            //gameLogic.draw(window);
             if (isGuitarOpen())
                 drawGuitar(window);
 
-            // lost screen draw (on top of everything)
             if (bossLostScreen) {
                 window.setView(window.getDefaultView());
                 window.draw(blurOverlay);
 
-                // text fades in after 0.5s
                 if (lostScreenTimer >= 0.5f) {
                     sf::Uint8 alpha = (sf::Uint8)std::min(255.f, (lostScreenTimer - 0.5f) * 200.f);
                     lostText.setFillColor(sf::Color(255, 0, 0, alpha));

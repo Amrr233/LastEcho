@@ -20,11 +20,11 @@ Sprite avatarSprite;
 
 bool isOpen = false;
 
-string currentMessages[MAX_DIALOGUE_LINES]; //for each line
+string currentMessages[MAX_DIALOGUE_LINES];
 int totalLines = 0;
 int currentLineIdx = 0;
 
-string fullText; //for each word
+string fullText;
 string displayText;
 
 float typeTimer = 0.f;
@@ -38,12 +38,11 @@ void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
 
     float scaleX = boxSize.x / bounds.width;
     float scaleY = boxSize.y / bounds.height;
-    float scale = std::min(scaleX, scaleY); // to fit the avatar in the box without changing the avatar scale
-
+    float scale = std::min(scaleX, scaleY);
     sprite.setScale(scale, scale);
 
     bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f); // origin point is centered
+    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }
 
 
@@ -87,16 +86,14 @@ void centerText() {
     nameText.setOrigin(
     bounds.left + bounds.width / 2.0f,
     bounds.top  + bounds.height / 2.0f
-);                                                  // origin point is centered
-
+);
     float boxLeft = 930.f;
     float boxRight = 950.f;
 
-    float centerX = (boxLeft + boxRight) / 2.0f;    // center of the label box
-
+    float centerX = (boxLeft + boxRight) / 2.0f;
     nameText.setPosition(centerX+13.f, 499.f);
     FloatRect diagBounds = dialogueText.getLocalBounds();
-    dialogueText.setOrigin(diagBounds.left, diagBounds.top); // left alligment
+    dialogueText.setOrigin(diagBounds.left, diagBounds.top);
     dialogueText.setPosition(300.f, 320.f);
 }
 
@@ -132,13 +129,13 @@ void initDialogue() {
 
 void startDialogue(string name, string messages[], int count, sf::Texture& avatarTexture) {
 
-    isOpen = true;                  //name
+    isOpen = true;
     nameText.setString(name);
 
-    float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);        //dialogue box
+    float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);
     float boxY = SCREEN_H - boxSprite.getGlobalBounds().height - 20.0f;
 
-    avatarSprite.setTexture(avatarTexture, true);                               //avatar
+    avatarSprite.setTexture(avatarTexture, true);
     avatarSprite.setPosition(boxX + 758.f, boxY + 167.f);
     sf::Vector2f avatarBoxSize(120.f, 120.f);
     fitSpriteToBox(avatarSprite, avatarBoxSize);

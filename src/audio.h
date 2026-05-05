@@ -9,10 +9,8 @@
 #include <SFML/Audio.hpp>
 
 struct AudioManager {
-    AudioManager(); //الconstructor اللي بيحمل الاصوات
-
-
-    void playMusic(std::string type) ;// دالة واحدة بتبدل بين المنيو والجيم بلاي
+    AudioManager();
+    void playMusic(std::string type) ;
     void setMusicVolume(float volume);
     void setSFXVolume(float volume);
     void startFootsteps();
@@ -24,8 +22,8 @@ struct AudioManager {
 
 
     sf::Music bgm;
-    std::string currentMode = "menu";  // ده اللي هيعرفنا احنا بنلعب ولا في الmainmenu
-    std::string filePath;  //الpath بتاع الmusic
+    std::string currentMode = "menu";
+    std::string filePath;
 
     sf::SoundBuffer footstepsBuffer;
     sf::SoundBuffer typingBuffer;

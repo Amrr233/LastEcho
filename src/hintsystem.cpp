@@ -3,7 +3,6 @@
 #include <iostream>
 
 void initHintSystem(HintSystem& hs) {
-    // Load icon (small, shown in HUD)
     if (!hs.iconTex.loadFromFile("assets/sprites/items/hints.png")) {
         std::cerr << "[HintSystem] Failed to load hints.png" << std::endl;
     }
@@ -12,7 +11,6 @@ void initHintSystem(HintSystem& hs) {
     hs.iconSprite.setScale(iconScale, iconScale);
     hs.iconSprite.setPosition(40.f, 200.f);
 
-    // Load page (large, shown when Q is pressed)
     if (!hs.pageTex.loadFromFile("assets/sprites/items/hints.png")) {
         std::cerr << "[HintSystem] Failed to load page texture" << std::endl;
     }
@@ -71,17 +69,14 @@ void drawHintIcon(sf::RenderWindow& window, HintSystem& hs) {
 void drawHintPage(sf::RenderWindow& window, HintSystem& hs) {
     if (!hs.isOpen) return;
 
-    // dim background
     sf::RectangleShape dim(sf::Vector2f((float)SCREEN_W, (float)SCREEN_H));
     dim.setFillColor(sf::Color(0, 0, 0, 150));
     window.draw(dim);
 
-    // draw the note page
     window.draw(hs.pageSprite);
 
     sf::FloatRect pageBounds = hs.pageSprite.getGlobalBounds();
 
-    // text starts below the pin (top ~80px padding) and left margin
     float startX = pageBounds.left + 80.f;
     float startY = pageBounds.top  + 200.f;
 
@@ -112,11 +107,9 @@ void drawHintPage(sf::RenderWindow& window, HintSystem& hs) {
         return;
     }
 
-    // draw current active hint
     if (hs.hintsUnlocked > 0 && hs.hintsUnlocked <= 4) {
         int i = hs.hintsUnlocked - 1;
 
-        // "Hint X of 4" label
         sf::Text labelText;
         labelText.setFont(hs.font);
         labelText.setString("Hint " + std::to_string(i + 1) + " of 4");
@@ -125,7 +118,6 @@ void drawHintPage(sf::RenderWindow& window, HintSystem& hs) {
         labelText.setPosition(startX, startY);
         window.draw(labelText);
 
-        // hint body
         sf::Text hintText;
         hintText.setFont(hs.font);
         hintText.setString(hs.hints[i]);
