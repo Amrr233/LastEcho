@@ -23,7 +23,7 @@
         if (!mainmenu.bgTex.loadFromFile("assets/mainmenu/mainbackground.png"))
             cout << "Error: Background Texture not found!" << endl;
 
-        // Background — يملى الشاشة كلها
+
         mainmenu.background.setTexture(mainmenu.bgTex);
         Vector2u bgSize = mainmenu.bgTex.getSize();
         mainmenu.background.setScale(
@@ -31,7 +31,7 @@
             H / bgSize.y
         );
 
-        // Logo — فوق في المنتصف
+
         mainmenu.logo.setTexture(mainmenu.logoTex);
         mainmenu.logo.setOrigin(
             mainmenu.logoTex.getSize().x / 2.0f,
@@ -43,13 +43,13 @@
             (W * 0.4f) / mainmenu.logoTex.getSize().x
         );
 
-        // Buttons — متوزعين في النص تحت
+
         string choices[] = {"START", "LOAD", "SETTINGS", "EXIT"};
         float btnStartY  = H * 0.55f;
         float btnSpacing = H * 0.12f;
         float btnScaleX  = (W * 0.20f) / mainmenu.btnTex.getSize().x;
         float btnScaleY  = (H * 0.15f) / mainmenu.btnTex.getSize().y;
-        int   fontSize   = static_cast<int>(H * 0.045f);
+        int   fontSize   = (int)(H * 0.045f);
 
         for (int i = 0; i < 4; i++)
         {
@@ -95,7 +95,7 @@
                 mainmenu.buttonSprites[i].setColor(Color::White);
                 if (lastHoveredIndex != i) {
                     audioManager.playhoverSound();
-                    lastHoveredIndex = i; // سجل إننا بقينا هنا
+                    lastHoveredIndex = i;
                 }
 
                 if (Mouse::isButtonPressed(Mouse::Left))
@@ -108,7 +108,7 @@
                     if (i == 1) currentState = STATE_LOAD;
                     if (i == 2) {
                         currentState = STATE_SETTINGS;
-                        last_state = STATE_MENU; // خزن إننا كنا في المنيو
+                        last_state = STATE_MENU;
                         gState.currentState = STATE_SETTINGS;
                         sf::sleep(sf::milliseconds(250));
                     }

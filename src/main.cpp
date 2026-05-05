@@ -28,40 +28,39 @@ RenderWindow window;
 GameState    gState;
 Player       player;
 World        world;
-//Game         gameLogic;
 inventory    inv;
 AppState     last_state;
 float        warningTimer = 0.0f;
 float        fadeAlpha    = 255.0f;
 float        fadeSpeed    = 180.0f;
+float lostScreenTimer = 0.f;
+float blurAlpha       = 0.f;
 float spawnX = 350;
 float spawnY = 900;
 bool         isFading     = true;
+bool  bossLostScreen  = false;
 Text         warningMessage;
 Text         statusTrackerText;
+Text lostText;
 Font         font;
+Font lostFont;
 Texture  interactBoxTex;
 Sprite   interactBoxSprite;
+RectangleShape blurOverlay;
 Text     interactPrompt;
-extern AudioManager audioManager;
 extern GuitarGame g_guitar;
 
-// ── Lost screen variables ─────────────────────────────────────
-bool  bossLostScreen  = false;
-float lostScreenTimer = 0.f;
-float blurAlpha       = 0.f;
-sf::RectangleShape blurOverlay;
-sf::Font lostFont;
-sf::Text lostText;
-
 int main() {
+
+
+    //initializaiton
     window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf"))
         cout << "ERROR: Font not found!" << endl;
 
-    if (!worldLoadAllMaps(world)) {
+    if (!worldLoadAllMaps(world)){
         cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
     }
@@ -214,6 +213,7 @@ int main() {
             if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
             updateCutscene(gState.deltaTime);
+            checkDialogueReward(world.phaseSys);
 
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];

@@ -1,6 +1,5 @@
-#ifndef PHASE_H
-#define PHASE_H
 
+#pragma once
 #include <string>
 #include <vector>
 #include "HintSystem.h"
@@ -52,4 +51,3 @@ void updatePhase4(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 void updatePhase5(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 void updatePhase6(PhaseSystem& ps, std::string npcName, HintSystem& hs);
 
-#endif
