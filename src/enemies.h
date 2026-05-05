@@ -19,7 +19,7 @@ struct enemy {
     sf::Vector2f velocity;
     float speed;
 
-    // Textures & Animation
+    // textures & animation
     sf::Texture walkTextures[4];
     Direction   facing;
     playerState currentState;

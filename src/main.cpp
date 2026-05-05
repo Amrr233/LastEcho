@@ -50,6 +50,14 @@ RectangleShape blurOverlay;
 Text     interactPrompt;
 extern GuitarGame g_guitar;
 
+// Lost screen variables
+bool  bossLostScreen  = false;
+float lostScreenTimer = 0.f;
+float blurAlpha       = 0.f;
+sf::RectangleShape blurOverlay;
+sf::Font lostFont;
+sf::Text lostText;
+
 int main() {
 
 
@@ -100,7 +108,6 @@ int main() {
     initBoss();
     initNPCs(world);
     initChest(Vector2f(100.f, 150.f), "sclab");
-    initweapon(Vector2f(spawnX, spawnY));
     initGuitar();
     initDialogue();
 
@@ -259,7 +266,7 @@ int main() {
                     }
                 }
 
-                // ── Lost screen trigger ───────────────────────
+                //  lost screen trigger
                 if (roundMan.playerDied && !bossLostScreen) {
                     bossLostScreen  = true;
                     lostScreenTimer = 0.f;
@@ -267,7 +274,7 @@ int main() {
                     roundMan.playerDied = false;
                 }
 
-                // ── Lost screen update ────────────────────────
+                // lost screen update
                 if (bossLostScreen) {
                     lostScreenTimer += gState.deltaTime;
 
@@ -307,9 +314,8 @@ int main() {
             drawNPCs(window, world.currentMapName, world.phaseSys.currentPhaseIdx);
             drawChest(window, world.currentMapName);
             drawStrings(window, world.phaseSys, world.currentMapName);
-            drawEnemy(window);
+            // drawEnemy(window);
             drawPlayer(window);
-            drawWeapons(window);
             if (boss.isActive) {
                 drawBoss(window);
                 drawFireballs(window);
@@ -364,7 +370,7 @@ int main() {
             if (isGuitarOpen())
                 drawGuitar(window);
 
-            // ── Lost screen draw (on top of everything) ───────
+            // lost screen draw (on top of everything)
             if (bossLostScreen) {
                 window.setView(window.getDefaultView());
                 window.draw(blurOverlay);
