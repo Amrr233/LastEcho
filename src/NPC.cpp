@@ -28,7 +28,7 @@ void initNPCs(World& world) {
     keyKeeper.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
     keyKeeper.walkTextures[WEST].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
     keyKeeper.walkTextures[EAST].loadFromFile("assets/sprites/npcs/key_keeper/key_keeper.png");
-    keyKeeper.avatarPath = "assets/sprites/npcs/key_keeper/key_keeper_avatar.jpg";
+    keyKeeper.avatarPath = "assets/sprites/npcs/key_keeper/key_keeper_avatar.png";
     keyKeeper.avatarTexture.loadFromFile(keyKeeper.avatarPath);
     keyKeeper.avatarSprite.setTexture(keyKeeper.avatarTexture);
     keyKeeper.avatarSprite.setScale(3.f, 1.f);
@@ -116,24 +116,25 @@ friendNPC.avatarSprite.setTexture(friendNPC.avatarTexture);
 
     NPC gardener;
     gardener.name = "Gardener";
-    gardener.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
-    gardener.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
-    gardener.walkTextures[WEST].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
-    gardener.walkTextures[EAST].loadFromFile("assets/sprites/npcs/gardener/gardener.png");
-    gardener.avatarPath = "assets/sprites/npcs/gardener/gardener.png";
+    gardener.walkTextures[SOUTH].loadFromFile("assets/sprites/npcs/gardner/gardner.png");
+    gardener.walkTextures[NORTH].loadFromFile("assets/sprites/npcs/gardner/gardner.png");
+    gardener.walkTextures[WEST].loadFromFile("assets/sprites/npcs/gardner/gardner.png");
+    gardener.walkTextures[EAST].loadFromFile("assets/sprites/npcs/gardner/gardner.png");
+    gardener.avatarPath = "assets/sprites/npcs/gardner/gardner.png";
     gardener.avatarTexture.loadFromFile(gardener.avatarPath);
     gardener.avatarSprite.setTexture(gardener.avatarTexture);
-    gardener.isStatic = false;
-    gardener.isWaiting = true;
-    gardener.waitTime = 3.f;
-    gardener.waitTimer = 0.f;
-    gardener.speed = 40.f;
+    gardener.isStatic = true;  //
+    gardener.isWaiting = false; //
+    gardener.pos = {300.f, 400.f};
+    // gardener.waitTime = 3.f;
+    // gardener.waitTimer = 0.f;
+    // gardener.speed = 40.f;
     gardener.currentMap = "lobby";
-    gardener.waypointsCount = 2;
-    gardener.waypoints[0] = {300.f, 400.f};
-    gardener.waypoints[1] = {350.f, 400.f};
-    gardener.pos = gardener.waypoints[0];
-    gardener.currentWaypoint = 0;
+    // gardener.waypointsCount = 2;
+    // gardener.waypoints[0] = {300.f, 400.f};
+    // gardener.waypoints[1] = {350.f, 400.f};
+    // gardener.pos = gardener.waypoints[0];
+    // gardener.currentWaypoint = 0;
     allNPCs[npcCount++] = gardener;
 
     NPC amr;
