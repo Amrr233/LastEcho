@@ -45,13 +45,11 @@ void unlockHint(HintSystem& hs, int stringIndex) {
 }
 
 void markAllStringsCollected(HintSystem& hs) {
-    hs.allDone    = true;
-    hs.hasNewHint = true;
+    if (hs.hintsUnlocked >= 4) {
+        hs.allDone    = true;
+        hs.hasNewHint = true;
+    }
 }
-
-void updateHintSystem(HintSystem& hs) {
-}
-
 void drawHintIcon(sf::RenderWindow& window, HintSystem& hs) {
     if (!hs.initialized) return;
     if (hs.hintsUnlocked == 0 && !hs.allDone) return;

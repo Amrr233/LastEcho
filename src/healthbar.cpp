@@ -9,6 +9,7 @@ static sf::Texture healthbarTexture;
 static sf::Sprite  healthbarSprite;
 static bool hpLoaded = false;
 
+//hankelha player.cpp ba3den
 void healing(int heal) {
     player.hp += heal;
     if (player.hp > player.maxHp) {

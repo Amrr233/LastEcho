@@ -28,22 +28,26 @@ RenderWindow window;
 GameState    gState;
 Player       player;
 World        world;
-Game         gameLogic;
 inventory    inv;
 AppState     last_state;
 float        warningTimer = 0.0f;
 float        fadeAlpha    = 255.0f;
 float        fadeSpeed    = 180.0f;
+float lostScreenTimer = 0.f;
+float blurAlpha       = 0.f;
 float spawnX = 350;
 float spawnY = 900;
 bool         isFading     = true;
+bool  bossLostScreen  = false;
 Text         warningMessage;
 Text         statusTrackerText;
+Text lostText;
 Font         font;
+Font lostFont;
 Texture  interactBoxTex;
 Sprite   interactBoxSprite;
+RectangleShape blurOverlay;
 Text     interactPrompt;
-extern AudioManager audioManager;
 extern GuitarGame g_guitar;
 
 // Lost screen variables
@@ -55,13 +59,16 @@ sf::Font lostFont;
 sf::Text lostText;
 
 int main() {
+
+
+    //initializaiton
     window.create(VideoMode(SCREEN_W, SCREEN_H), "The Last Echo of FCIS");
     window.setFramerateLimit(60);
 
     if (!font.loadFromFile("assets/fonts/pixelsix00.ttf"))
         cout << "ERROR: Font not found!" << endl;
 
-    if (!worldLoadAllMaps(world)) {
+    if (!worldLoadAllMaps(world)){
         cout << "CRITICAL ERROR: Failed to load world!" << endl;
         return -1;
     }
@@ -107,7 +114,7 @@ int main() {
     gState.currentState = STATE_MENU;
     MenuStart(window);
     settings.init(SCREEN_W, SCREEN_H);
-    gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
+    //gameLogic.init((float)SCREEN_W, (float)SCREEN_H);
     inv.invt_init((float)SCREEN_W, (float)SCREEN_H);
 
     MovieReview myReview;
@@ -184,7 +191,7 @@ int main() {
                 }
 
                 if (event.type == Event::KeyPressed) {
-                    if (event.key.code == Keyboard::Tab && !isGuitarOpen() && inv.itemNames[inv.selectedSlot] == "magical_guitar")
+                    if (event.key.code == Keyboard::Tab && !isGuitarOpen())
                         openGuitarFreePlay();
                     if (event.key.code == sf::Keyboard::R && isGuitarOpen())
                         closeGuitar();
@@ -213,6 +220,7 @@ int main() {
             if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
             updateCutscene(gState.deltaTime);
+            checkDialogueReward(world.phaseSys);
 
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];
@@ -222,12 +230,12 @@ int main() {
 
             if (currentMap) {
                 mainView = updateMapView(mainView, *currentMap, player.pos, gState.deltaTime);
-                gameLogic.update(window, gState.currentState);
+                //gameLogic.update(window, gState.currentState);
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
                 // pause everything during lost screen
-                if (!gameLogic.isPaused && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
+                if (/*!gameLogic.isPaused &&*/ !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -358,7 +366,7 @@ int main() {
             }
 
             drawCutsceneOverlay(window, font);
-            gameLogic.draw(window);
+            //gameLogic.draw(window);
             if (isGuitarOpen())
                 drawGuitar(window);
 

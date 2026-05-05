@@ -107,9 +107,9 @@ void updatePlayer(float dt, World& world) {
         return;
     }
 
-    GameMap* currentMapPtr = worldGetCurrentMap(world);
-    if (!currentMapPtr) return;
-    GameMap& myMap = *currentMapPtr;
+    // GameMap* currentMapPtr = worldGetCurrentMap(world);
+    // if (!currentMapPtr) return;
+    GameMap& myMap = *worldGetCurrentMap(world);
 
     Vector2f velocity(0.f, 0.f);
 
