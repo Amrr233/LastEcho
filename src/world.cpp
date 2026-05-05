@@ -164,67 +164,7 @@ string worldGetMapAtWorldPosition(  World& world, float worldX, float worldY) {
     return "";
 }// el x , y mahbosa gowa ana rectangle fe el le3ba w mnha ba7dd
 
-FloatRect worldGetMapWorldBounds(  World& world,   string& mapName) {
-    int idx = findLayoutIndex(world, mapName);
-    if (idx >= 0) {
-          MapLayout& l = world.mapLayouts[idx];
-        return FloatRect((float)l.worldOffsetX, (float)l.worldOffsetY, (float)l.pixelWidth, (float)l.pixelHeight);
-    }
-    cout << "[ERROR] Map '" << mapName << "' not found" << endl;
-    return FloatRect(0, 0, 0, 0);
-}
 
-void worldRegisterEntitySpawnPoint(World& world,   string& mapName,   string& entityId, Vector2f localPos) {
-    int listIdx = findSpawnListIndex(world, mapName);
-    if (listIdx < 0) {
-        if (world.spawnListCount >= MAX_MAPS) { cout << "[ERROR] Too many spawn lists" << endl; return; }
-        listIdx = world.spawnListCount++;
-        world.entitySpawns[listIdx].mapName = mapName;
-        world.entitySpawns[listIdx].count = 0;
-    }
-    MapSpawnList& list = world.entitySpawns[listIdx];
-    if (list.count >= MAX_SPAWNS_PER_MAP) { cout << "[ERROR] Too many spawns in map '" << mapName << "'" << endl; return; }
-    list.spawns[list.count].entityId = entityId;
-    list.spawns[list.count].localPos = localPos;
-    list.count++;
-    cout << "[REGISTERED] Entity '" << entityId << "' in map '" << mapName << "'" << endl;
-}
-
-int worldGetEntitySpawnPoints(  World& world,   string& mapName, EntitySpawn* outSpawns, int maxOut) {
-    int listIdx = findSpawnListIndex(world, mapName);
-    if (listIdx < 0) return 0;
-      MapSpawnList& list = world.entitySpawns[listIdx];
-    int count = 0;
-    for (int i = 0; i < list.count && count < maxOut; i++)
-        outSpawns[count++] = list.spawns[i];
-    return count;
-}
-
-void worldMarkMapDirty(World& world,   string& mapName) {
-    int idx = findDirtyIndex(world, mapName);
-    if (idx >= 0) { world.mapDirtyFlags[idx].dirty = true; cout << "[DIRTY] Map '" << mapName << "' marked as changed" << endl; }
-}
-
-bool worldIsMapDirty(  World& world,   string& mapName) {
-    int idx = findDirtyIndex(world, mapName);
-    return (idx >= 0) ? world.mapDirtyFlags[idx].dirty : false;
-}
-
-void worldSaveMapState(World& world,   string& mapName) {
-    cout << "[SAVE] Map '" << mapName << "' state saved (placeholder)" << endl;
-}
-
-void worldLoadMapState(World& world,   string& mapName) {
-    cout << "[LOAD] Map '" << mapName << "' state loaded (placeholder)" << endl;
-}
-
-void worldOnPlayerEnterMap(World& world,   string& mapName) {
-    cout << "[ENTER] Player entered map: " << mapName << endl;
-}
-
-void worldOnPlayerLeaveMap(World& world,   string& mapName) {
-    cout << "[LEAVE] Player left map: " << mapName << endl;
-}
 
 void worldChangeMapTileSet(World& world,   string& mapName,   string& cursedTexturePath) {
     int idx = findMapIndex(world, mapName);

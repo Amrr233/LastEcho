@@ -63,13 +63,8 @@ GameMap*  worldGetMapByName(World& world,string& mapName); // from mapNames
 Vector2f  worldMapToWorldCoords( World& world, string& mapName,Vector2f localPos);
 Vector2f  worldWorldToMapCoords( World& world, string& mapName,Vector2f worldPos);
 string    worldGetMapAtWorldPosition( World& world, float worldX,float worldY);
-FloatRect worldGetMapWorldBounds( World& world, string& mapName); // the borders of the map needed for the camera
-void      worldRegisterEntitySpawnPoint(World& world, string& mapName,const string& entityId, Vector2f localPos);
-int       worldGetEntitySpawnPoints( World& world, string& mapName, EntitySpawn* outSpawns, int maxOut);// * arrays passed like poiter to the 1st elemeent
 void      worldSaveMapState(World& world,  string& mapName);
 void      worldLoadMapState(World& world,  string& mapName);
-void      worldMarkMapDirty(World& world,  string& mapName);
-bool      worldIsMapDirty( World& world, string& mapName);
 void      worldOnPlayerEnterMap(World& world,  string& mapName);
 void      worldOnPlayerLeaveMap(World& world,  string& mapName);
 void      worldChangeMapTileSet(World& world,  string& mapName,  string& cursedTexturePath);
