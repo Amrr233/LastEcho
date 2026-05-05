@@ -20,16 +20,15 @@ Sprite avatarSprite;
 
 bool isOpen = false;
 
-string currentMessages[MAX_DIALOGUE_LINES];
+string currentMessages[MAX_DIALOGUE_LINES]; //for each line
 int totalLines = 0;
 int currentLineIdx = 0;
 
-string fullText;
+string fullText; //for each word
 string displayText;
 
 float typeTimer = 0.f;
 float typeSpeed = 0.03f;
-
 int charIdx = 0;
 float maxWidth = 500.f;
 
@@ -39,13 +38,12 @@ void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
 
     float scaleX = boxSize.x / bounds.width;
     float scaleY = boxSize.y / bounds.height;
-
-    float scale = std::min(scaleX, scaleY);
+    float scale = std::min(scaleX, scaleY); // to fit the avatar in the box without changing the avatar scale
 
     sprite.setScale(scale, scale);
 
     bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f); // origin point is centered
 }
 
 
@@ -82,31 +80,25 @@ string wrapTextSimple(const string& text) {
     return result + line;
 }
 
-
-
-
 void centerText() {
-
 
     FloatRect bounds = nameText.getLocalBounds();
 
-        nameText.setOrigin(
-        bounds.left + bounds.width / 2.0f,
-        bounds.top  + bounds.height / 2.0f
-    );
+    nameText.setOrigin(
+    bounds.left + bounds.width / 2.0f,
+    bounds.top  + bounds.height / 2.0f
+);                                                  // origin point is centered
 
     float boxLeft = 930.f;
     float boxRight = 950.f;
 
-    float centerX = (boxLeft + boxRight) / 2.0f;
+    float centerX = (boxLeft + boxRight) / 2.0f;    // center of the label box
 
     nameText.setPosition(centerX+13.f, 499.f);
     FloatRect diagBounds = dialogueText.getLocalBounds();
-    dialogueText.setOrigin(diagBounds.left, diagBounds.top);
+    dialogueText.setOrigin(diagBounds.left, diagBounds.top); // left alligment
     dialogueText.setPosition(300.f, 320.f);
 }
-
-
 
 
 void initDialogue() {
