@@ -222,6 +222,30 @@ void updatePlayer(float dt, World& world) {
 
     playerSprite.setTextureRect(IntRect(player.currentFrame * 68, 0, 68, 68));
 }
+void updatePlayerAnimation(Direction dir, float dt, bool moving) {
+    player.facing = dir;
+
+    if (player.currentState == ATTACKING) {
+        if (player.weaponEquipped == WEAPON_SWORD)
+            playerSprite.setTexture(player.swordTextures[player.facing]);
+        else
+            playerSprite.setTexture(player.attackTextures[player.facing]);
+    }
+    else {
+        playerSprite.setTexture(player.walkTextures[player.facing]);
+        if (moving) {
+            player.animationTimer += dt;
+            if (player.animationTimer >= 0.1f) {
+                player.animationTimer = 0.f;
+                player.currentFrame = (player.currentFrame + 1) % 6;
+            }
+        } else {
+            player.currentFrame = 0;
+        }
+    }
+
+    playerSprite.setTextureRect(sf::IntRect(player.currentFrame * 68, 0, 68, 68));
+}
 
 sf::FloatRect attackHitBox() {
     float x = player.pos.x;
