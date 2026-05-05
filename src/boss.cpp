@@ -294,33 +294,27 @@ void updateFireballs(float dt) {
             player.pos.y - 24,
             48, 48
         );
-        std::cout << "FB pos: " << boss.fireballs[i].pos.x << ","
-                  << boss.fireballs[i].pos.y
-                  << " Player pos: " << player.pos.x << ","
-                  << player.pos.y << std::endl;
-
-        if (fbBounds.intersects(pbBounds)) {
-            std::cout << "FIREBALL HIT!" << std::endl;
-
+        // std::cout << "FB pos: " << boss.fireballs[i].pos.x << ","
+        //           << boss.fireballs[i].pos.y
+        //           << " Player pos: " << player.pos.x << ","
+        //           << player.pos.y << std::endl;
 
         if (fbBounds.intersects(pbBounds)) {
             if (!player.isInvincible) {
                 player.hp           -= boss.damage;
-                damaging(boss.damage);        // trigger health bar update
+                damaging(boss.damage);        // triggering health bar update
                 player.currentState  = HURT;
                 player.hurt_timer    = 0.4f;
                 player.isInvincible  = true;
             }
             boss.fireballs[i].isActive = false;
         }
-
             // Deactivate if too far
             sf::Vector2f d = boss.fireballs[i].pos - boss.pos;
             if (std::sqrt(d.x*d.x + d.y*d.y) > 600.f)
                 boss.fireballs[i].isActive = false;
         }
     }
-}
 
 void drawFireballs(sf::RenderWindow& window) {
     for (int i = 0; i < MAX_FIREBALLS; i++) {
