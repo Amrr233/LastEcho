@@ -24,7 +24,6 @@ void startGenericCutscene(std::string id, std::vector<CutsceneAction> steps) {
     g_cutscene.isActive        = true;
     g_cutscene.characterCount  = 0;
 
-    // Reset emotions for all tracked characters
     for (int i = 0; i < 5; i++)
         g_cutscene.characters[i].currentEmotion = EMOTION_NONE;
 
@@ -38,7 +37,6 @@ void stopCutscene() {
     g_cutscene.currentCutscene = nullptr;
 }
 
-// Find existing character in runtime or register a new one
 static int getOrCreateChar(const std::string& name) {
     for (int i = 0; i < g_cutscene.characterCount; i++)
         if (g_cutscene.characters[i].name == name) return i;
@@ -64,11 +62,9 @@ void updateCutscene(float deltaTime) {
     CutsceneAction& action = scene.actions[scene.currentActionIdx];
     action.actionTimer += deltaTime;
 
-    // Update state for all characters tracked in the cutscene
     for (int i = 0; i < g_cutscene.characterCount; i++) {
         auto& cs = g_cutscene.characters[i];
 
-        // Animate overhead emotes
         if (cs.currentEmotion != EMOTION_NONE) {
             cs.emotionTimer += deltaTime;
             if (cs.emotionTimer >= 0.15f) {
@@ -77,7 +73,7 @@ void updateCutscene(float deltaTime) {
             }
         }
 
-        // Handle delayed movement start
+
         if (!cs.isStarted && cs.isMoving) {
             cs.delayTimer += deltaTime;
             if (cs.delayTimer >= cs.startDelay) {
@@ -85,7 +81,7 @@ void updateCutscene(float deltaTime) {
             }
         }
 
-        // Processing active movement
+
         if (cs.isStarted && cs.isMoving) {
             sf::Vector2f diff = cs.targetPos - cs.pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
@@ -100,7 +96,7 @@ void updateCutscene(float deltaTime) {
                 sf::Vector2f dir = diff / dist;
                 cs.pos += dir * cs.speed * deltaTime;
 
-                // Determine animation direction based on movement vector
+
                 int direction;
                 if (std::abs(dir.x) > std::abs(dir.y))
                     direction = (dir.x > 0) ? 3 : 2; // East or West
@@ -115,7 +111,7 @@ void updateCutscene(float deltaTime) {
 
     bool stepFinished = false;
 
-    // Action Logic Dispatcher
+
     switch (action.type) {
 
     case CUTSCENE_WAIT:
@@ -257,7 +253,6 @@ void updateCutscene(float deltaTime) {
 
         bool allDone = true;
 
-        // Process Player part of the group
         if (g_cutscene.playerMoving) {
             if (!g_cutscene.playerStarted) {
                 g_cutscene.playerDelayTimer += deltaTime;
@@ -284,7 +279,6 @@ void updateCutscene(float deltaTime) {
             }
         }
 
-        // Check if all NPCs in the group finished moving
         for (auto& mover : action.moveGroup.movers) {
             if (mover.type == MoverTarget::NPC) {
                 int idx = -1;

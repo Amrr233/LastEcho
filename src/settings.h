@@ -8,30 +8,24 @@
 struct settingsMenu {
  sf::Texture labelTex[3];
  sf::Sprite labelSprites[3];
- // 1. اللوحة الخشب
  sf::Sprite settings_window;
  sf::Texture settings_window_tex ;
- // bg behind the settings window
- sf::Sprite backSprite; // صورة الكليه اللى ورا
+ sf::Sprite backSprite;
  sf::Texture backTex;
 
- // 2. التكستشرز اللي هنستخدمها لكل السلايدرز
  sf::Texture volbar_tex;
  sf::Texture sliderTexture;
 
 
 
- // Master Slider
  sf::Sprite masterBar;
  sf::Sprite masterHandle;
  float masterVolume = 50.0f;
 
- // Music Slider
  sf::Sprite musicBar;
  sf::Sprite musicHandle;
  float musicVolume = 50.0f;
 
- // SFX Slider
  sf::Sprite sfxBar;
  sf::Sprite sfxHandle;
  float sfxVolume = 50.0f;
@@ -53,4 +47,4 @@ extern settingsMenu settings;
 
 void SettingsUpdate(sf::RenderWindow& window, AppState& currentState);
 
-#endif // LASTECHO_SETTINGS_H
+#endif

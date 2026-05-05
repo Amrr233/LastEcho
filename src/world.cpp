@@ -34,7 +34,7 @@ static int findDirtyIndex(  World& world,   string& mapName) {
 }
 
 bool worldLoadAllMaps(World& world) {
-    //input file stream to start making a configFile able to be read 
+
     ifstream configFile("assets/world_config.json");
     if (!configFile.is_open()) {
         cout << "[ERROR] Cannot open assets/world_config.json" << endl;
@@ -55,7 +55,7 @@ bool worldLoadAllMaps(World& world) {
             int end = line.find("\"", start);
             mapName = line.substr(start, end - start); // strtidx,length
         }
-        //stoi = string to integer
+
         if (line.find("\"worldX\"") != string::npos)
             worldX = stoi(line.substr(line.find(':') + 1));
         if (line.find("\"worldY\"") != string::npos)
@@ -144,8 +144,7 @@ Vector2f worldMapToWorldCoords(  World& world,   string& mapName, Vector2f local
                         localPos.y + world.mapLayouts[idx].worldOffsetY);
     cout << "[ERROR] Map '" << mapName << "' not found in layouts" << endl;
     return Vector2f(0, 0);
-}// WorldPos = LocalPos + Offset
-
+}
 Vector2f worldWorldToMapCoords(  World& world,   string& mapName, Vector2f worldPos) {
     int idx = findLayoutIndex(world, mapName);
     if (idx >= 0)
@@ -153,8 +152,7 @@ Vector2f worldWorldToMapCoords(  World& world,   string& mapName, Vector2f world
                         worldPos.y - world.mapLayouts[idx].worldOffsetY);
     cout << "[ERROR] Map '" << mapName << "' not found in layouts" << endl;
     return Vector2f(0, 0);
-}//LocalPos = WorldPos - Offset
-
+}
 string worldGetMapAtWorldPosition(  World& world, float worldX, float worldY) {
     for (int i = 0; i < world.layoutCount; i++) {
           MapLayout& l = world.mapLayouts[i];
@@ -162,8 +160,7 @@ string worldGetMapAtWorldPosition(  World& world, float worldX, float worldY) {
             return l.name;
     }
     return "";
-}// el x , y mahbosa gowa ana rectangle fe el le3ba w mnha ba7dd
-
+}
 
 
 

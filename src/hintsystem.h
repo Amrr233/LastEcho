@@ -5,17 +5,14 @@
 #include <string>
 
 struct HintSystem {
-    // الأيكون الصغير
     sf::Texture iconTex;
     sf::Sprite  iconSprite;
 
-    // الورقة الكاملة
     sf::Texture pageTex;
     sf::Sprite  pageSprite;
 
     sf::Font    font;
 
-    // الهنتات
     std::string hints[4] = {
         "I hold what falls but never keep it,\nlook beneath where water sleeps.",
         "Thousands sat upon my back,\nbut no one checked beneath my legs.",
@@ -23,15 +20,15 @@ struct HintSystem {
         "I show you music frozen in time,\nwhat you seek rests behind my frame."
     };
 
-    int  hintsUnlocked  = 0;   // كام هنت اتفتح
+    int  hintsUnlocked  = 0;
     bool isOpen         = false;
-    bool hasNewHint     = false; // النقطة الحمرا
-    bool allDone        = false; // لما يلم الكل
+    bool hasNewHint     = false;
+    bool allDone        = false;
     bool initialized    = false;
 };
 
 void initHintSystem(HintSystem& hs);
-void unlockHint(HintSystem& hs, int stringIndex); // 0-3
+void unlockHint(HintSystem& hs, int stringIndex);
 void markAllStringsCollected(HintSystem& hs);
 void drawHintIcon(sf::RenderWindow& window, HintSystem& hs);
 void drawHintPage(sf::RenderWindow& window, HintSystem& hs);

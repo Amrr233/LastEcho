@@ -40,7 +40,7 @@ struct NPC {
 };
 extern NPC allNPCs[MAX_NPCS];
 
-//flags in data.h
+
 
 void initNPCs(World& world);
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos);

@@ -26,7 +26,7 @@ struct FretButton {
     bool isPressed;
 };
 
-// button layout rectangle + text
+
 struct CompositeButton {
      Sprite sprite;
      Text text;
@@ -42,7 +42,6 @@ struct GuitarGame {
      View guitarView;
 
     FretButton frets[MAX_STRINGS][MAX_FRETS];
-    // buffer = place in the memory stores a sound
      SoundBuffer noteBuffers[MAX_STRINGS][MAX_FRETS];
      Sound currentSound;
     
@@ -56,12 +55,10 @@ struct GuitarGame {
     int notesPlayedCorrect;
     GuitarNote targetSequence[100];
 
-    // أزرار الصور
      Texture buttonBgTexture;
     CompositeButton exitBtn;
     CompositeButton changeModeBtn;
 
-    // الأنيميشن
     float currentScale;
     bool isAnimating;
 };

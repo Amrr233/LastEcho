@@ -85,7 +85,6 @@ bool tryOpenChest(sf::Vector2f playerPos, std::string currentMap) {
     );
     if (dist > 80.f) return false;
 
-    // player must have key selected in inventory
     int slot = inv.selectedSlot;
     if (!inv.hasItem[slot] || inv.itemNames[slot] != "key") {
         std::string noKey[] = {
@@ -96,12 +95,11 @@ bool tryOpenChest(sf::Vector2f playerPos, std::string currentMap) {
         return false;
     }
 
-    // consume the key
     inv.hasItem[slot]      = false;
     inv.itemNames[slot]    = "";
     inv.itemQuantity[slot] = 0;
 
-    // start opening animation
+
     gameChest.isOpening    = true;
     gameChest.currentFrame = 0;
     gameChest.animTimer    = 0.f;

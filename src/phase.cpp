@@ -10,13 +10,6 @@
 
 extern inventory inv;
 extern NPC allNPCs[MAX_NPCS];
-// ════════════════════════════════════════════════════════════════
-// HELPER - makeGroup
-//
-// MoverTarget(type, name, x, y, speed, startDelay)
-//   startDelay=0   → يبدأ فوراً
-//   startDelay=0.8 → يستنى 0.8 ثانية والتاني ماشي وبعدين يبدأ
-// ════════════════════════════════════════════════════════════════
 static CutsceneAction makeGroup(
     std::vector<MoverTarget> movers,
     float completionDist = 20.f)
@@ -29,9 +22,6 @@ static CutsceneAction makeGroup(
     return a;
 }
 
-// ════════════════════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════════════════════
 void phaseInit(PhaseSystem& ps) {
     ps.currentPhaseIdx = 0;
     for (int i = 0; i < MAX_FLAGS; i++) ps.gameFlags[i] = false;
@@ -69,9 +59,6 @@ void phaseInit(PhaseSystem& ps) {
     ps.allPhases[6].currentQuestIdx = 0;
 }
 
-// ════════════════════════════════════════════════════════════════
-// DISPATCHER
-// ════════════════════════════════════════════════════════════════
 void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
     switch (ps.currentPhaseIdx) {
         case 0: updatePhase0(ps, npcName, hs); break;
@@ -92,9 +79,6 @@ void checkDialogueReward(PhaseSystem& ps) {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-// STRINGS SYSTEM
-// ════════════════════════════════════════════════════════════════
 struct StringData {
     int          flag;
     std::string  map;
@@ -174,8 +158,7 @@ void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentM
         extLoaded = true;
     }
 
-    // String 1 — wcw (sink)
-    if (!ps.gameFlags[3] && currentMap == "wcw") {
+        if (!ps.gameFlags[3] && currentMap == "wcw") {
         static sf::Texture sinkTex; static sf::Sprite sinkSprite; static bool sinkLoaded = false;
         if (!sinkLoaded) {
             sinkTex.loadFromFile("assets/sprites/items/pelvis.png");
@@ -185,7 +168,7 @@ void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentM
         window.draw(sinkSprite);
     }
 
-    // String 2 — hallAfter (chair)
+
     if (currentMap == "hallAfter") {
         static sf::Texture chairStringTex; static sf::Sprite chairStringSprite; static bool chairStringLoaded = false;
         static sf::Texture chairTex;       static sf::Sprite chairSprite;       static bool chairLoaded = false;
@@ -201,13 +184,13 @@ void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentM
         else                   { chairSprite.setPosition(985.82f, 115.652f);       window.draw(chairSprite); }
     }
 
-    // String 3 — connHall (extinguisher)
+
     if (!ps.gameFlags[5] && currentMap == "connHall") {
         extSprite.setPosition(938.f, 253.f);
         window.draw(extSprite);
     }
 
-    // String 4 — leftPassage (painting)
+
     if (!ps.gameFlags[6] && currentMap == "leftPassage") {
         static sf::Texture paintingTex; static sf::Sprite paintingSprite; static bool paintingLoaded = false;
         if (!paintingLoaded) {
@@ -219,12 +202,9 @@ void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentM
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-// PHASE 0
-// ════════════════════════════════════════════════════════════════
 void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
 
-    // ── Friend_NPC ───────────────────────────────────────────────
+
     if (npcName == "Friend_NPC") {
         if (!ps.gameFlags[0]) {
             ps.pendingItemTexture = "assets/items/idcard.png";
@@ -232,7 +212,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             ps.allPhases[0].currentQuestIdx = 1;
             inv.addItem("id_card", "assets/items/idcard.png");
 
-            // 2. ابدأ الحوار آخر حاجة
+
             std::string lines1[] = { "Oh! Your ID card is here.", "Take it and go to the gate." };
             startDialogue("Friend", lines1, 2, getNPCAvatar("Friend_NPC"));
         } else {
@@ -241,7 +221,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         }
     }
 
-    // ── Security_Guard ───────────────────────────────────────────
+
     else if (npcName == "Security_Guard") {
         if (ps.gameFlags[0]) {
             std::string ok[] = { "Valid ID. Welcome to FCIS!", "Go find Amr in the Hallway, he's waiting." };
@@ -253,7 +233,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         }
     }
 
-    // ── Amr ──────────────────────────────────────────────────────
+
     else if (npcName == "amr") {
         if (ps.allPhases[0].currentQuestIdx < 2) {
             std::string wait[] = { "I can't talk now, get your ID first!" };
@@ -262,7 +242,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         else if (ps.allPhases[0].currentQuestIdx == 2 && !isCutsceneActive()) {
             std::vector<CutsceneAction> steps;
 
-            // Emotions
+
             CutsceneAction a1;
             a1.type = CUTSCENE_EMOTION; a1.characterName = "amr";
             a1.emotion = EMOTION_SURPRISE; a1.emotionDuration = 2.0f;
@@ -273,7 +253,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             a15.emotion = EMOTION_LOVE; a15.emotionDuration = 2.0f;
             steps.push_back(a15);
 
-            // Dialogue
+
             CutsceneAction s2;
             s2.type = CUTSCENE_SPEAK; s2.characterName = "amr";
             s2.lineCount = 6;
@@ -285,13 +265,13 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             s2.lines[5] = "Follow me..";
             steps.push_back(s2);
 
-            // [LOBBY] amr يبدأ فوراً، player بعده بـ 0.8 ثانية
+
             steps.push_back(makeGroup({
                 { MoverTarget::NPC,    "amr", 1058.85f, 297.645f, 190.f, 0.0f },
                 { MoverTarget::PLAYER, "",     900.85f, 297.645f, 180.f, 0.8f }
             }));
 
-            // Transition → vertPassage
+
             CutsceneAction s7;
             s7.type = CUTSCENE_CHANGE_MAP; s7.characterName = "amr";
             s7.targetMap = "vertPassage"; s7.spawnPos = { 255.067f, 884.582f };
@@ -302,19 +282,19 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             s8.targetMap = "vertPassage"; s8.spawnPos = { 255.067f, 884.582f };
             steps.push_back(s8);
 
-            // [vertPassage] لفوق
+
             steps.push_back(makeGroup({
                 { MoverTarget::NPC,    "amr", 255.067f, 294.625f, 160.f, 0.0f },
                 { MoverTarget::PLAYER, "",    255.067f, 350.0f,   180.f, 0.8f }
             }));
 
-            // [vertPassage] يمين
+
             steps.push_back(makeGroup({
                 { MoverTarget::NPC,    "amr", 374.044f, 294.625f, 160.f, 0.0f },
                 { MoverTarget::PLAYER, "",    335.044f, 340.0f,   180.f, 0.8f }
             }));
 
-            // Transition → wcm2
+
             CutsceneAction s13;
             s13.type = CUTSCENE_CHANGE_MAP; s13.characterName = "amr";
             s13.targetMap = "wcm2"; s13.spawnPos = { 340.0f, 542.879f };
@@ -325,13 +305,12 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             s14.targetMap = "wcm2"; s14.spawnPos = { 380.0f, 542.879f };
             steps.push_back(s14);
 
-            // [wcm2] لليسار
             steps.push_back(makeGroup({
                 { MoverTarget::NPC,    "amr", 150.0f, 542.879f, 160.f, 0.0f },
                 { MoverTarget::PLAYER, "",    200.0f, 542.879f, 180.f, 0.8f }
             }));
 
-            // Ending emotion + dialogue
+
             CutsceneAction s16;
             s16.type = CUTSCENE_EMOTION; s16.characterName = "amr";
             s16.emotion = EMOTION_SAD; s16.emotionDuration = 5.0f;
@@ -347,7 +326,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             s17.lines[4] = "Then come back to me.";
             steps.push_back(s17);
 
-            // amr يمشي ويختفي
+
             steps.push_back(makeGroup({ { MoverTarget::NPC, "amr", 150.0f,  470.879f, 160.f, 0.0f } }));
             steps.push_back(makeGroup({ { MoverTarget::NPC, "amr", 750.0f,  542.879f, 160.f, 0.0f } }));
             steps.push_back(makeGroup({ { MoverTarget::NPC, "amr", 750.0f,  660.879f, 160.f, 0.0f } }));
@@ -391,7 +370,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         }
     }
 
-    // ── Key_Keeper ───────────────────────────────────────────────
+
     else if (npcName == "Key_Keeper") {
         if (ps.allPhases[0].currentQuestIdx < 3) {
             std::string notYet[] = { "I don't know you yet.", "Come back later." };
@@ -415,7 +394,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         }
     }
 
-    // ── Gardener ─────────────────────────────────────────────────
+
     else if (npcName == "Gardener") {
         if (ps.allPhases[0].currentQuestIdx < 3) {
             std::string notYet[] = { "..." };
@@ -449,7 +428,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         }
     }
 
-    // ── Receptionist ─────────────────────────────────────────────
+
     else if (npcName == "Receptionist") {
         std::string liness[] = {
             "Morning.",
@@ -459,7 +438,7 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
         startDialogue("Receptionist", liness, 3, getNPCAvatar("Receptionist"));
     }
 
-    // ── student ──────────────────────────────────────────────────
+
     else if (npcName == "student") {
         std::string liness[] = {
             "You look new here.",
@@ -469,9 +448,6 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-// PHASE 1-6: Stubs
-// ════════════════════════════════════════════════════════════════
 void updatePhase1(PhaseSystem& ps, std::string npcName, HintSystem& hs) { }
 void updatePhase2(PhaseSystem& ps, std::string npcName, HintSystem& hs) { }
 void updatePhase3(PhaseSystem& ps, std::string npcName, HintSystem& hs) { }
