@@ -20,11 +20,11 @@ struct NPC {
     Texture avatarTexture;
     Sprite avatarSprite;
     string avatarPath;
-    float waitTimer = 0.f;      // العداد الحالي
-    float waitTime = 10.f;     // الوقت المطلوب للانتظار (10 ثواني)
-    bool isWaiting = true;     // هل هو حالياً في حالة انتظار؟
+    float waitTimer = 0.f;
+    float waitTime = 10.f;
+    bool isWaiting = true;
     Vector2f pos;
-    string currentMap; // الماب اللي الـ NPC موجود فيها حالياً
+    string currentMap;
 
     bool isStatic;
     sf::Vector2f waypoints[MAX_WAYPOINTS];
@@ -39,9 +39,9 @@ struct NPC {
     int currentFrame = 0;
 };
 extern NPC allNPCs[MAX_NPCS];
+
 //flags in data.h
 
-// الدوال الأساسية
 void initNPCs(World& world);
 void updateNPCs(float deltaTime, std::string currentMapName, sf::Vector2f playerPos);
 void drawNPCs(sf::RenderWindow& window, std::string currentMapName, int currentPhase);
@@ -50,7 +50,6 @@ bool checkNPCCollision(sf::FloatRect playerBounds, std::string currentMap);
 std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap);
 sf::Vector2f getNPCPosition(std::string name);
 void updateNPCPosition(std::string name, sf::Vector2f newPos);
-// دالة مساعدة عشان نجيب التكستشر بتاع الأفاتار للديالوج
 sf::Texture& getNPCAvatar(std::string name);
 void updateNPCAnimation(std::string name, int direction, float dt);
 void setNPCFrame(std::string name, int frame);
