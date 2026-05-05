@@ -33,7 +33,6 @@ struct HintSystem {
 void initHintSystem(HintSystem& hs);
 void unlockHint(HintSystem& hs, int stringIndex); // 0-3
 void markAllStringsCollected(HintSystem& hs);
-void updateHintSystem(HintSystem& hs);
 void drawHintIcon(sf::RenderWindow& window, HintSystem& hs);
 void drawHintPage(sf::RenderWindow& window, HintSystem& hs);
 

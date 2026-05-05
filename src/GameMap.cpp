@@ -4,8 +4,6 @@
 #include "player.h"
 using namespace sf;
 using json = nlohmann::json;
-
-// 1. دالة التحميل: بتملأ الـ struct بالبيانات وبتحفظ اسم الماب للـ NPCs
 bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
     std::ifstream file(jsonPath);
     if (!file.is_open()) {
@@ -20,13 +18,9 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         std::cerr << "[JSON Parse Error]: " << e.what() << std::endl;
         return false;
     }
-
-    // تنظيف البيانات القديمة
     map.layers.clear();
     map.portals.clear();
     map.tileProperties.clear();
-
-    // التأكد من أن الملف عبارة عن "خريطة" وليس مجرد "تايلست"
     if (!mapData.contains("width") || !mapData.contains("tileheight")) {
         std::cerr << "[Error]: " << jsonPath << " is not a valid Tiled Map (missing width/height)!" << std::endl;
         return false;
@@ -35,8 +29,6 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
     map.width = mapData["width"];
     map.height = mapData["height"];
     map.tileSize = mapData["tileheight"];
-
-    // 1. قراءة الـ Tile Properties (الجزء اللي بيخلي الحيطان ناشفة)
     if (mapData.contains("tilesets")) {
         for (const auto& tileset : mapData["tilesets"]) {
             if (!tileset.contains("firstgid")) continue;
@@ -68,8 +60,6 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
             }
         }
     }
-
-    // 2. تظبيط مسارات الصور
     std::string folderPath = "";
     size_t lastSlashJson = jsonPath.find_last_of("/\\");
     if (lastSlashJson != std::string::npos) {
@@ -90,10 +80,7 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
         }
     }
     map.tilesetTexture.setSmooth(false);
-
-    // 3. قراءة الليرات والبوابات
     for (auto& layer : mapData["layers"]) {
-        // قراءة البوابات
         if (layer["type"] == "objectgroup" && layer["name"] == "Portals") {
             for (auto& obj : layer["objects"]) {
                 Portal p;
@@ -115,8 +102,6 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
                 map.portals.push_back(p);
             }
         }
-
-        // قراءة ليرات التايلات
         if (layer["type"] == "tilelayer") {
             MapLayer ml;
             ml.name = layer["name"];
@@ -133,26 +118,14 @@ bool loadMapFromJSON(GameMap& map, const std::string& jsonPath) {
     return true;
 }
 
-//الكاميرا بتجري ورا اللاعب حرفيا
+View updateMapView(sf::View& currentView, const GameMap& map, sf::Vector2f playerPos, float deltaTime) {
 
-View updateMapView(sf::View& currentView, const GameMap& map, sf::Vector2f playerPos, float deltaTime) { //
-
-    //المكان العايزك تشوفه هو مكان اللاعب دلوقتي
     Vector2f targetPos = playerPos;
-
-    // 2. سرعة جري الكاميرا
     float followSpeed = 5.f;
-
-    // 3. معادلة اسمها lerp بتخلي التتبع بتاع الكاميرا smooth اكتر
-
     sf::Vector2f currentCenter = currentView.getCenter();
     sf::Vector2f newCenter;
-
     newCenter.x = currentCenter.x + (targetPos.x - currentCenter.x) *followSpeed * deltaTime;
     newCenter.y = currentCenter.y + (targetPos.y - currentCenter.y) *followSpeed * deltaTime;
-
-    // منع الكاميرا من الخروج بره حدود الماب
-
     float mapW = (float)(map.width * map.tileSize);
     float mapH = (float)(map.height * map.tileSize);
     Vector2f viewSize = currentView.getSize();
@@ -163,12 +136,9 @@ View updateMapView(sf::View& currentView, const GameMap& map, sf::Vector2f playe
         newCenter.x = mapW / 2.0f;
     }
     else {
-        // لو الماب أكبر، اعمل Clamp عادي عشان متخرجش بره
         if (newCenter.x - viewSize.x / 2.0f < 0) newCenter.x = viewSize.x / 2.0f;
         if (newCenter.x + viewSize.x / 2.0f > mapW) newCenter.x = mapW - viewSize.x / 2.0f;
     }
-
-    // بالطول (Y): نفس المنطق
     if (mapH <= viewSize.y) {
         newCenter.y = mapH / 2.0f;
     }
@@ -178,10 +148,8 @@ View updateMapView(sf::View& currentView, const GameMap& map, sf::Vector2f playe
     }
 
     currentView.setCenter(newCenter);
-    return currentView;// برحع الفيو الهيظهر في الاخر للاعب
+    return currentView;
 }
-
-// 3. الرسم
 void drawMap(sf::RenderWindow& window, const GameMap& map) {
     if (map.layers.empty()) return;
 
@@ -216,8 +184,6 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
 
     if (tileX < 0 || tileX >= map.width || tileY < 0 || tileY >= map.height) return false;
     int index = tileY * map.width + tileX;
-
-    // --- ماب الـ outside لوحدها ---
     if (mapName == "outside") {
         for (const auto& layer : map.layers) {
             if (index >= 0 && index < (int)layer.data.size()) {
@@ -226,8 +192,6 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
         }
         return true;
     }
-
-    // --- ماب الـ lobby لوحدها ---
     if (mapName == "lobby") {
         for (const auto& layer : map.layers) {
             if (index >= 0 && index < (int)layer.data.size()) {
@@ -236,37 +200,27 @@ bool mapIsWalkable(const GameMap& map, float x, float y, const std::string& mapN
         }
         return true;
     }
-
-    // --- ماب الـ leftPassage لوحدها (نظام الـ solid property) ---
     if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"|| mapName == "sclab"|| mapName == "datacenter"|| mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw"||mapName == "wcm1"||mapName=="wcm2"||mapName == "vertPassage"||mapName=="connHall") {
      for (const auto& layer : map.layers) {
         int gid = layer.data[index];
-    //     // هل الرقم ده متسجل له خواص؟
         if (map.tileProperties.count(gid)) {
-            // بنقرأ قيمة solid
             if (map.tileProperties.at(gid).count("solid")) {
                 std::string isSolid = map.tileProperties.at(gid).at("solid");
-
-                // ركز هنا: مش هنوقف اللاعب إلا لو لقى كلمة "true" صريحة
                     return false;
             }
         }
     }
-    // لو خلص كل الطبقات ومالقاش ولا واحدة "true" يبقى يمشي عادي
     return true;
 }
     return true;
 }
 
 bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std::string& mapName) {
-
-    // حسابات الهيت بوكس (زي ما هي)
     float hbW = playerBounds.width * 0.6f - 42.f;
     float hbH = playerBounds.height * 0.3f - 20.f;
     float hbLeft = playerBounds.left + (playerBounds.width - hbW) / 2.f + 2.f;
     float hbTop = playerBounds.top + (playerBounds.height - hbH) - 23.f;
 
-    // --- ماب الاوتسايد ---
     if (mapName == "outside") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
@@ -274,8 +228,6 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName)) return true;
         return false;
     }
-
-    // --- ماب اللوبي ---
     if (mapName == "lobby") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
@@ -283,8 +235,6 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop + hbH, mapName)) return true;
         return false;
     }
-
-    // --- ضيف ماب الـ leftPassage هنا عشان الكود يشوفها ---
     if (mapName == "leftPassage" || mapName == "rightPassage"|| mapName == "clinic"||mapName == "sclab"||mapName == "datacenter"||mapName == "class7"||mapName =="secur"||mapName == "class8"||mapName =="hallAfter"||mapName =="wcw" ||mapName == "wcm1"||mapName=="wcm2"||mapName =="vertPassage"||mapName=="connHall") {
         if (!mapIsWalkable(map, hbLeft, hbTop, mapName)) return true;
         if (!mapIsWalkable(map, hbLeft + hbW, hbTop, mapName)) return true;
@@ -299,8 +249,8 @@ bool mapCheckCollision(const GameMap& map, sf::FloatRect playerBounds, const std
 bool mapSwapTileset(GameMap& map, const std::string& newTexturePath) {
     sf::Texture newTex;
     if (newTex.loadFromFile(newTexturePath)) {
-        map.tilesetTexture = newTex; // استبدال الصورة القديمة بالجديدة
-        map.tilesetTexture.setSmooth(false); // عشان بكسل أرت يفضل حاد
+        map.tilesetTexture = newTex;
+        map.tilesetTexture.setSmooth(false);
         return true;
     }
     std::cerr << "[Error]: Could not find cursed texture at " << newTexturePath << std::endl;
