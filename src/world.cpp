@@ -166,6 +166,24 @@ string worldGetMapAtWorldPosition(  World& world, float worldX, float worldY) {
 
 
 
+
+
+void worldSaveMapState(World& world,   string& mapName) {
+    cout << "[SAVE] Map '" << mapName << "' state saved (placeholder)" << endl;
+}
+
+void worldLoadMapState(World& world,   string& mapName) {
+    cout << "[LOAD] Map '" << mapName << "' state loaded (placeholder)" << endl;
+}
+
+void worldOnPlayerEnterMap(World& world,   string& mapName) {
+    cout << "[ENTER] Player entered map: " << mapName << endl;
+}
+
+void worldOnPlayerLeaveMap(World& world,   string& mapName) {
+    cout << "[LEAVE] Player left map: " << mapName << endl;
+}
+
 void worldChangeMapTileSet(World& world,   string& mapName,   string& cursedTexturePath) {
     int idx = findMapIndex(world, mapName);
     if (idx >= 0) {
