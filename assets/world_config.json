@@ -1,5 +1,5 @@
 {
-  "description": "World configuration - all maps with positions in world space",
+  "description": "all maps with positions in world space",
   "maps": [
     {
       "name": "outside",

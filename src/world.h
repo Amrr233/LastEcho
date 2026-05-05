@@ -1,131 +1,75 @@
-#ifndef WORLD_H
-#define WORLD_H
-
+#pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
-#include <map>
 #include "GameMap.h"
+
 #include "phase.h"
-#include "hintsystem.h"
 
 using namespace sf;
+
 using namespace std;
 
-// ============================================
-// STRUCT 1: MapLayout
-// ============================================
-// PURPOSE: Describes where one map sits in world space
-// EXAMPLE:
-// If "clinic" map is 1080 pixels wide × 954 pixels tall
-// And positioned at world (960, 0):
-//   MapLayout {
-//     name = "clinic"
-//     worldOffsetX = 960  ← left edge position
-//     worldOffsetY = 0    ← top edge position
-//     pixelWidth = 1080   ← width in pixels
-//     pixelHeight = 954   ← height in pixels
-//   }
+const int MAX_MAPS           = 16;
+const int MAX_SPAWNS_PER_MAP = 10;
 
 struct MapLayout {
     string name;
     int worldOffsetX;
     int worldOffsetY;
     int pixelWidth;
-    int pixelHeight;
-};
-
-// ============================================
-// STRUCT 2: EntitySpawn
-// ============================================
-// PURPOSE: Where NPCs, items, enemies spawn
-// EXAMPLE:
-// entityId = "npc_doctor"
-// localPos = {100, 200}  ← position inside map
+    int pixelHeight;};
+// every map has a layout
+//offsest: how far is the map from the left,top of the whole world map
 
 struct EntitySpawn {
-    string entityId;
+    string   entityId;
     Vector2f localPos;
 };
+//to spawn anything with a specific id in specific map (local)
 
-// ============================================
-// STRUCT 3: World (THE MAIN STRUCT)
-// ============================================
-// Holds ALL game world data
+struct MapSpawnList {
+    string      mapName;
+    EntitySpawn spawns[MAX_SPAWNS_PER_MAP];
+    int         count;
+};
+//list for the things that spawned in somemap and a counter to count things that its really there
+
+struct MapDirtyEntry {
+    string mapName;
+    bool   dirty;
+};
+// if player changed anything or anything spawned we make it true so wwe can save it later
 
 struct World {
-    // All maps in memory (name → GameMap)
-    map<string, GameMap> maps;
+    GameMap       maps[MAX_MAPS];
+    string        mapNames[MAX_MAPS];
+    int           mapCount;
+    MapLayout     mapLayouts[MAX_MAPS];
+    int           layoutCount;
+    MapSpawnList  entitySpawns[MAX_MAPS];
+    int           spawnListCount;
+    MapDirtyEntry mapDirtyFlags[MAX_MAPS];
+    int           dirtyFlagCount;
+    string        currentMapName;
+    PhaseSystem   phaseSys;
 
-    // Map positions in world space
-    vector<MapLayout> mapLayouts;
-
-    // Entity spawn points per map
-    map<string, vector<EntitySpawn>> entitySpawns;
-
-    // Track which maps changed (for saving)
-    map<string, bool> mapDirtyFlags;
-
-    // Which map player is in NOW
-    string currentMapName;
-    PhaseSystem phaseSys;
-    HintSystem hintSys;
+    HintSystem    hintSys;
 };
 
-// ============================================
-// FUNCTION DECLARATIONS
-// ============================================
-
-// Load all maps from disk at startup
-bool worldLoadAllMaps(World& world);
-
-// Get pointer to current map
-GameMap* worldGetCurrentMap(World& world);
-
-// Switch to different map
-void worldSetCurrentMap(World& world, const string& mapName);
-
-// Get any map by name
-GameMap* worldGetMapByName(World& world, const string& mapName);
-
-// Get list of all map names
-vector<string> worldGetAllMapNames(const World& world);
-
-// Convert local map coords to world coords
-Vector2f worldMapToWorldCoords(const World& world, const string& mapName, Vector2f localPos);
-
-// Convert world coords to local map coords
-Vector2f worldWorldToMapCoords(const World& world, const string& mapName, Vector2f worldPos);
-
-// Check which map contains a world position
-string worldGetMapAtWorldPosition(const World& world, float worldX, float worldY);
-
-// Get map's world-space boundaries
-FloatRect worldGetMapWorldBounds(const World& world, const string& mapName);
-
-// Register entity spawn point
-void worldRegisterEntitySpawnPoint(World& world, const string& mapName,
-                                   const string& entityId, Vector2f localPos);
-
-// Get all spawn points in a map
-vector<EntitySpawn> worldGetEntitySpawnPoints(const World& world, const string& mapName);
-
-// Save map state to disk
-void worldSaveMapState(World& world, const string& mapName);
-
-// Load map state from disk
-void worldLoadMapState(World& world, const string& mapName);
-
-// Mark map as changed
-void worldMarkMapDirty(World& world, const string& mapName);
-
-// Check if map was changed
-bool worldIsMapDirty(const World& world, const string& mapName);
-
-// HOOKS for your team to implement:
-void worldOnPlayerEnterMap(World& world, const string& mapName);
-void worldOnPlayerLeaveMap(World& world, const string& mapName);
-
-void worldChangeMapTileSet(World& world, const std::string& mapName, const std::string& cursedTexturePath);
-
-#endif
+bool      worldLoadAllMaps(World& world); //pass by refrence to get the original world not a copy
+GameMap*  worldGetCurrentMap(World& world);
+void      worldSetCurrentMap(World& world,string& mapName);
+GameMap*  worldGetMapByName(World& world,string& mapName); // from mapNames
+Vector2f  worldMapToWorldCoords( World& world, string& mapName,Vector2f localPos);
+Vector2f  worldWorldToMapCoords( World& world, string& mapName,Vector2f worldPos);
+string    worldGetMapAtWorldPosition( World& world, float worldX,float worldY);
+FloatRect worldGetMapWorldBounds( World& world, string& mapName); // the borders of the map needed for the camera
+void      worldRegisterEntitySpawnPoint(World& world, string& mapName,const string& entityId, Vector2f localPos);
+int       worldGetEntitySpawnPoints( World& world, string& mapName, EntitySpawn* outSpawns, int maxOut);// * arrays passed like poiter to the 1st elemeent
+void      worldSaveMapState(World& world,  string& mapName);
+void      worldLoadMapState(World& world,  string& mapName);
+void      worldMarkMapDirty(World& world,  string& mapName);
+bool      worldIsMapDirty( World& world, string& mapName);
+void      worldOnPlayerEnterMap(World& world,  string& mapName);
+void      worldOnPlayerLeaveMap(World& world,  string& mapName);
+void      worldChangeMapTileSet(World& world,  string& mapName,  string& cursedTexturePath);

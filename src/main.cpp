@@ -184,7 +184,7 @@ int main() {
                 }
 
                 if (event.type == Event::KeyPressed) {
-                    if (event.key.code == Keyboard::Tab && !isGuitarOpen() && inv.itemNames[inv.selectedSlot] == "magical_guitar")
+                    if (event.key.code == Keyboard::Tab && !isGuitarOpen())
                         openGuitarFreePlay();
                     if (event.key.code == sf::Keyboard::R && isGuitarOpen())
                         closeGuitar();
