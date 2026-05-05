@@ -44,14 +44,15 @@ Texture  interactBoxTex;
 Sprite   interactBoxSprite;
 Text     interactPrompt;
 extern GuitarGame g_guitar;
-
-// Lost screen variables
-
 float lostScreenTimer = 0.f;
 float blurAlpha       = 0.f;
 sf::RectangleShape blurOverlay;
 sf::Font lostFont;
 sf::Text lostText;
+
+
+
+
 
 int main() {
 
