@@ -28,7 +28,7 @@ struct PhaseSystem {
 
 void phaseInit(PhaseSystem& ps);
 void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs);
-void checkDialogueReward(PhaseSystem& ps);
+void triggerPickSound(PhaseSystem& ps);
 
 bool canPickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);
 void pickupString(PhaseSystem& ps, sf::Vector2f playerPos, std::string currentMap, HintSystem& hs);

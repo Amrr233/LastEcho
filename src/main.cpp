@@ -211,7 +211,7 @@ int main() {
             if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
             updateCutscene(gState.deltaTime);
-            checkDialogueReward(world.phaseSys);
+            triggerPickSound(world.phaseSys);
 
             Phase& cp = world.phaseSys.allPhases[world.phaseSys.currentPhaseIdx];
             Quest& cq = cp.quests[cp.currentQuestIdx];

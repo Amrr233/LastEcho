@@ -72,7 +72,7 @@ void updatePhaseLogic(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
     }
 }
 
-void checkDialogueReward(PhaseSystem& ps) {
+void triggerPickSound(PhaseSystem& ps) {
     if (ps.pendingItemTexture != "" && !isDialogueActive()) {
         inv.triggerPickupEffect(ps.pendingItemTexture);
         ps.pendingItemTexture = "";
@@ -87,6 +87,9 @@ struct StringData {
     int          hintIndex;
 };
 
+/**
+ *
+ */
 static StringData strings[] = {
     { 3, "wcw",         { 490.f,    385.f    }, 80.f,  0 },
     { 4, "hallAfter",   { 980.82f,  110.652f }, 80.f,  1 },
@@ -135,10 +138,10 @@ void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,
     }
 
     inv.addItem("guitar_string", "assets/sprites/items/guitar_string.png");
-    inv.triggerPickupEffect("assets/sprites/items/guitar_string.png");
+
 
     std::string lines[] = { "You found a guitar string!", "Keep searching." };
-    startDialogue("String", lines, 2, getNPCAvatar("Gardener"));
+    startDialogue("String", lines, 2, getNPCAvatar("String") );
 
     if (player.stringsCollected >= 4) {
         ps.gameFlags[7] = true;
@@ -148,8 +151,8 @@ void pickupString(PhaseSystem& ps, sf::Vector2f playerPos,
 }
 
 void drawStrings(sf::RenderWindow& window, PhaseSystem& ps, std::string currentMap) {
-    static sf::Texture extTex;
-    static sf::Sprite  extSprite;
+    static Texture extTex;
+    static Sprite  extSprite;
     static bool        extLoaded = false;
     if (!extLoaded) {
         extTex.loadFromFile("assets/sprites/items/extinguisher.png");
