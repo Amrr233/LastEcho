@@ -7,9 +7,7 @@
 using namespace sf;
 using namespace std;
 
-// =======================
-// GLOBALS
-// =======================
+
 Sprite boxSprite;
 Texture boxTexture;
 
@@ -36,9 +34,6 @@ int charIdx = 0;
 float maxWidth = 500.f;
 
 
-// =======================
-// FIT SPRITE INSIDE BOX
-// =======================
 void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
     sf::FloatRect bounds = sprite.getLocalBounds();
 
@@ -54,9 +49,7 @@ void fitSpriteToBox(sf::Sprite& sprite, sf::Vector2f boxSize) {
 }
 
 
-// =======================
-// TEXT WRAP
-// =======================
+
 string wrapTextSimple(const string& text) {
 
     string word = "";
@@ -90,16 +83,14 @@ string wrapTextSimple(const string& text) {
 }
 
 
-// =======================
-// CENTER TEXT
-// =======================
+
+
 void centerText() {
 
 
     FloatRect bounds = nameText.getLocalBounds();
 
-    // سنترة حقيقية (تعويض الـ left/top)
-    nameText.setOrigin(
+        nameText.setOrigin(
         bounds.left + bounds.width / 2.0f,
         bounds.top  + bounds.height / 2.0f
     );
@@ -109,19 +100,15 @@ void centerText() {
 
     float centerX = (boxLeft + boxRight) / 2.0f;
 
-    // خليك على نفس الـ Y بتاعك
     nameText.setPosition(centerX+13.f, 499.f);
-
-
     FloatRect diagBounds = dialogueText.getLocalBounds();
     dialogueText.setOrigin(diagBounds.left, diagBounds.top);
     dialogueText.setPosition(300.f, 320.f);
 }
 
 
-// =======================
-// INIT
-// =======================
+
+
 void initDialogue() {
 
     if (!boxTexture.loadFromFile("assets/gameplay/dialogue.png")) {
@@ -150,9 +137,7 @@ void initDialogue() {
 }
 
 
-// =======================
-// START DIALOGUE (FIXED)
-// =======================
+
 void startDialogue(string name, string messages[], int count, sf::Texture& avatarTexture) {
 
     isOpen = true;
@@ -186,9 +171,6 @@ void startDialogue(string name, string messages[], int count, sf::Texture& avata
 }
 
 
-// =======================
-// NEXT LINE
-// =======================
 void nextLine() {
 
     if (charIdx < (int)fullText.length()) {
@@ -218,9 +200,6 @@ void nextLine() {
 }
 
 
-// =======================
-// UPDATE
-// =======================
 void updateDialogue(float deltaTime) {
 
     if (!isOpen) return;
@@ -244,9 +223,7 @@ void updateDialogue(float deltaTime) {
 }
 
 
-// =======================
-// DRAW
-// =======================
+
 void drawDialogue(RenderWindow& window) {
 
     if (!isOpen) return;
@@ -258,9 +235,6 @@ void drawDialogue(RenderWindow& window) {
 }
 
 
-// =======================
-// STATE
-// =======================
 bool isDialogueActive() {
     return isOpen;
 }

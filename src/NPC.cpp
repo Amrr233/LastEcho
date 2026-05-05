@@ -294,17 +294,7 @@ void interactWithNPC(sf::Vector2f playerPos) {
         float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) +
                                 std::pow(npc.pos.y - playerPos.y, 2));
 
-        if (dist < 75.0f) {
-
-            sf::Vector2f diff = playerPos - npc.pos;
-
-            if (std::abs(diff.x) > std::abs(diff.y))
-                npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
-            else
-                npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
-
-            npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
-
+        if (dist < 100.0f) {
             std::string tempLines[MAX_DIALOGUE_LINES];
             int lineCount = 0;
 
@@ -327,14 +317,7 @@ std::string getNearbyNPCName(sf::Vector2f playerPos, std::string currentMap) {
         NPC& npc = allNPCs[i];
         if (npc.currentMap == currentMap) {
             float dist = std::sqrt(std::pow(npc.pos.x - playerPos.x, 2) + std::pow(npc.pos.y - playerPos.y, 2));
-            if (dist < 75.0f) {
-                sf::Vector2f diff = playerPos - npc.pos;
-                if (std::abs(diff.x) > std::abs(diff.y))
-                    npc.sprite.setTexture(diff.x > 0 ? npc.walkTextures[EAST] : npc.walkTextures[WEST]);
-                else
-                    npc.sprite.setTexture(diff.y > 0 ? npc.walkTextures[SOUTH] : npc.walkTextures[NORTH]);
-
-                npc.sprite.setTextureRect(sf::IntRect(0, 0, 68, 68));
+            if (dist < 100.0f) {
                 return npc.name;
             }
         }
