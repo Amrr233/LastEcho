@@ -33,25 +33,20 @@ AppState     last_state;
 float        warningTimer = 0.0f;
 float        fadeAlpha    = 255.0f;
 float        fadeSpeed    = 180.0f;
-float lostScreenTimer = 0.f;
-float blurAlpha       = 0.f;
 float spawnX = 350;
 float spawnY = 900;
 bool         isFading     = true;
 bool  bossLostScreen  = false;
 Text         warningMessage;
 Text         statusTrackerText;
-Text lostText;
 Font         font;
-Font lostFont;
 Texture  interactBoxTex;
 Sprite   interactBoxSprite;
-RectangleShape blurOverlay;
 Text     interactPrompt;
 extern GuitarGame g_guitar;
 
 // Lost screen variables
-bool  bossLostScreen  = false;
+
 float lostScreenTimer = 0.f;
 float blurAlpha       = 0.f;
 sf::RectangleShape blurOverlay;
