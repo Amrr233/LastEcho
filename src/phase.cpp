@@ -227,12 +227,14 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
     // ── Friend_NPC ───────────────────────────────────────────────
     if (npcName == "Friend_NPC") {
         if (!ps.gameFlags[0]) {
-            std::string lines1[] = { "Oh! Your ID card is here.", "Take it and go to the gate." };
-            inv.addItem("id_card", "assets/items/idcard.png");
             ps.pendingItemTexture = "assets/items/idcard.png";
-            startDialogue("Friend", lines1, 2, getNPCAvatar("Friend_NPC"));
             ps.gameFlags[0] = true;
             ps.allPhases[0].currentQuestIdx = 1;
+            inv.addItem("id_card", "assets/items/idcard.png");
+
+            // 2. ابدأ الحوار آخر حاجة
+            std::string lines1[] = { "Oh! Your ID card is here.", "Take it and go to the gate." };
+            startDialogue("Friend", lines1, 2, getNPCAvatar("Friend_NPC"));
         } else {
             std::string lines2[] = { "Go! The security is waiting." };
             startDialogue("Friend", lines2, 1, getNPCAvatar("Friend_NPC"));
