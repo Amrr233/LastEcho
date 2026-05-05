@@ -132,16 +132,14 @@ void initDialogue() {
 
 void startDialogue(string name, string messages[], int count, sf::Texture& avatarTexture) {
 
-    isOpen = true;
+    isOpen = true;                  //name
     nameText.setString(name);
 
-    avatarSprite.setTexture(avatarTexture, true);
-
-    float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);
+    float boxX = (SCREEN_W / 2.0f) - (boxSprite.getGlobalBounds().width / 2.0f);        //dialogue box
     float boxY = SCREEN_H - boxSprite.getGlobalBounds().height - 20.0f;
 
+    avatarSprite.setTexture(avatarTexture, true);                               //avatar
     avatarSprite.setPosition(boxX + 758.f, boxY + 167.f);
-
     sf::Vector2f avatarBoxSize(120.f, 120.f);
     fitSpriteToBox(avatarSprite, avatarBoxSize);
 
