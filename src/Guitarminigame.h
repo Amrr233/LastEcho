@@ -1,14 +1,14 @@
-#ifndef GUITAR_MINIGAME_H
-#define GUITAR_MINIGAME_H
+#pragma once
+
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <string>
 
 #define MAX_STRINGS 6
 #define MAX_FRETS 8
 #define GUITAR_VM_WIDTH 1200.0f
 #define GUITAR_VM_HEIGHT 800.0f
+using namespace sf;
 
 enum GuitarMode { GUITAR_FREE, GUITAR_QUEST };
 
@@ -18,45 +18,46 @@ struct GuitarNote {
 };
 
 struct FretButton {
-    sf::RectangleShape shape;
-    sf::Text buttonText;
-    sf::FloatRect bounds;
+     RectangleShape shape;
+     Text buttonText;
+     FloatRect bounds;
     int stringNum;
     int fretNum;
     bool isPressed;
 };
 
-// هيكل الزرار المركب (صورة + تيكست فوقها)
+// button layout rectangle + text
 struct CompositeButton {
-    sf::Sprite sprite;
-    sf::Text text;
-    sf::FloatRect bounds;
+     Sprite sprite;
+     Text text;
+     FloatRect bounds;
 };
 
 struct GuitarGame {
     bool isOpen;
     GuitarMode mode;
-    sf::Texture guitarTexture;
-    sf::Sprite guitarSprite;
-    sf::Font uiFont;
-    sf::View guitarView;
+     Texture guitarTexture;
+     Sprite guitarSprite;
+     Font uiFont;
+     View guitarView;
 
     FretButton frets[MAX_STRINGS][MAX_FRETS];
-    sf::SoundBuffer noteBuffers[MAX_STRINGS][MAX_FRETS];
-    sf::Sound currentSound;
+    // buffer = place in the memory stores a sound
+     SoundBuffer noteBuffers[MAX_STRINGS][MAX_FRETS];
+     Sound currentSound;
+    
+     Text modeText;
+     Text scoreText;
 
-    sf::Text modeText;
-    sf::Text scoreText;
 
-    // --- المتغيرات اللي الـ Compiler بيدور عليها ---
-    bool questActive;              // هل الكويست شغال؟
-    float questTimer;             // الوقت المتبقي
-    int targetSequenceLength;     // طول النغمة المطلوبة
-    int notesPlayedCorrect;       // إنت عزفت كام نوتة صح
-    GuitarNote targetSequence[100]; // مصفوفة النوتات المطلوبة
+    bool questActive;
+    float questTimer;
+    int targetSequenceLength;
+    int notesPlayedCorrect;
+    GuitarNote targetSequence[100];
 
     // أزرار الصور
-    sf::Texture buttonBgTexture;
+     Texture buttonBgTexture;
     CompositeButton exitBtn;
     CompositeButton changeModeBtn;
 
@@ -70,14 +71,12 @@ extern GuitarGame g_guitar;
 void initGuitar();
 void loadGuitarAssets();
 void setupFretButtons();
-void drawGuitar(sf::RenderWindow& window);
+void drawGuitar( RenderWindow& window);
 void updateGuitar(float deltaTime);
-void handleGuitarClick(sf::RenderWindow& window, sf::Vector2i mousePixelPos);
+void handleGuitarClick( RenderWindow& window,  Vector2i mousePixelPos);
 void playGuitarNote(int stringNum, int fretNum);
 bool isNoteCorrect(int s, int f);
 void openGuitarFreePlay();
 void openGuitarQuest(const GuitarNote* n, int c, float t);
 bool isGuitarOpen();
 void closeGuitar();
-
-#endif

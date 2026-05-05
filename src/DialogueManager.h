@@ -2,9 +2,8 @@
 #define DIALOGUE_MANAGER_H
 #include <SFML/Graphics.hpp>
 #include <string>
-#include "Data.h"
 
-// الدوال الأساسية للنظام
+
 void initDialogue();
 void startDialogue(std::string name,
                    std::string messages[],
