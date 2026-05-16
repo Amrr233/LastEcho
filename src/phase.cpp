@@ -314,6 +314,13 @@ void updatePhase0(PhaseSystem& ps, std::string npcName, HintSystem& hs) {
             }));
 
 
+            CutsceneAction turnAmr;
+            turnAmr.type = CUTSCENE_SET_DIRECTION;
+            turnAmr.characterName = "amr";
+            turnAmr.direction = 3; // 3 تعني East بناءً على دالة updateCutscene عندك
+            steps.push_back(turnAmr);
+
+
             CutsceneAction s16;
             s16.type = CUTSCENE_EMOTION; s16.characterName = "amr";
             s16.emotion = EMOTION_SAD; s16.emotionDuration = 5.0f;

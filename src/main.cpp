@@ -334,6 +334,8 @@ int main() {
                 drawBoss(window);
                 drawFireballs(window);
             }
+            drawCutsceneOverlay(window, font);
+
 
             window.setView(window.getDefaultView());
             bool nearNPC    = getNearbyNPCName(player.pos, world.currentMapName) != "";
@@ -379,7 +381,7 @@ int main() {
                 warningTimer -= gState.deltaTime;
             }
 
-            drawCutsceneOverlay(window, font);
+
             if (isGuitarOpen())
                 drawGuitar(window);
 
