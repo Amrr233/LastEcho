@@ -103,7 +103,7 @@ void updateBinaryGame(BinaryGameData& data, float deltaTime) {
         data.promptText.setFillColor(sf::Color::Green);
 
 
-        data.inputText.setString("[Press M to Exit]");
+        data.inputText.setString("[Press H to Exit]");
     }
     else {
         // الحالة العادية قبل الحل

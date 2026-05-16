@@ -21,6 +21,7 @@
 #include "boss.h"
 #include "HiddenWordsminigame.h"
 #include "HintSystem.h"
+#include "BTDminigame.h"
 using namespace sf;
 using namespace std;
 
@@ -104,6 +105,12 @@ int main() {
     initChest(Vector2f(100.f, 150.f), "sclab");
     initGuitar();
     initDialogue();
+    BinaryGameData myBinaryGame;
+    initBinaryGame(myBinaryGame);
+    myBinaryGame.targetBinary = "1010";
+    myBinaryGame.targetDecimal = 10;
+    myBinaryGame.active = false;
+
 
     gState.currentState = STATE_MENU;
     MenuStart(window);
@@ -144,6 +151,26 @@ int main() {
                     isMinigameActive = false;
                 else if (gState.currentState == STATE_PLAYING && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen())
                     isMinigameActive = true;
+            }
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::H) {
+                if (myBinaryGame.active) {
+                    myBinaryGame.active = false;
+                } else if (gState.currentState == STATE_PLAYING && !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive) {
+                    restartBinaryGame(myBinaryGame);
+                    myBinaryGame.active = true;
+                }
+                continue;
+            }
+            if (myBinaryGame.active) {
+                handleBinaryInput(myBinaryGame, event);
+                continue;
+            }
+            if (myBinaryGame.active) {
+                handleBinaryInput(myBinaryGame, event);
+                if (event.type == Event::KeyPressed && (event.key.code == Keyboard::M || event.key.code == Keyboard::H)) {
+                    myBinaryGame.active = false;
+                }
+                continue;
             }
 
             if (isMinigameActive) {
@@ -211,6 +238,8 @@ int main() {
         if (gState.currentState == STATE_PLAYING) {
             if (isGuitarOpen())
                 updateGuitar(gState.deltaTime);
+            if (myBinaryGame.active)
+                updateBinaryGame(myBinaryGame, gState.deltaTime);
             updateCutscene(gState.deltaTime);
             triggerPickSound(world.phaseSys);
 
@@ -226,7 +255,7 @@ int main() {
                 updateDialogue(gState.deltaTime);
                 inv.invt_update(window, gState.currentState, player.pos, gState.deltaTime);
 
-                if (/*!gameLogic.isPaused &&*/ !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !bossLostScreen) {
+                if (/*!gameLogic.isPaused &&*/ !isDialogueActive() && !isCutsceneActive() && !isGuitarOpen() && !isMinigameActive && !myBinaryGame.active && !bossLostScreen) {
                     updatePlayer(gState.deltaTime, world);
                     updateNPCs(gState.deltaTime, world.currentMapName, player.pos);
                     updateEnemies(gState.deltaTime);
@@ -313,7 +342,7 @@ int main() {
                 (gameChest.mapName == world.currentMapName);
             bool nearString = canPickupString(world.phaseSys, player.pos, world.currentMapName, world.hintSys);
 
-            if ((nearNPC || nearChest || nearString) && !isDialogueActive() && !isCutsceneActive() && !isMinigameActive) {
+            if ((nearNPC || nearChest || nearString) && !isDialogueActive() && !isCutsceneActive() && !isMinigameActive && !myBinaryGame.active) {
                 if (nearString && !nearNPC && !nearChest)
                     interactPrompt.setString("Press E to pickup");
                 else
@@ -371,6 +400,11 @@ int main() {
             overlay.setFillColor(Color(0, 0, 0, 230));
             window.draw(overlay);
             drawReviewGame(window, terminalSprite, terminalFont, myReview);
+        }
+
+        if (myBinaryGame.active) {
+            window.setView(window.getDefaultView()); // تأكيد إن الرسم واخد أبعاد الشاشة الثابتة
+            drawBinaryGame(window, myBinaryGame);
         }
 
         statusTrackerText.setFont(font);
