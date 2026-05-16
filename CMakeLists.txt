@@ -48,6 +48,8 @@ add_executable(LastEcho
         src/boss.h
         src/hintsystem.cpp
         src/hintsystem.h
+        src/BTDminigame.cpp
+        src/BTDminigame.h
 
 )
 
